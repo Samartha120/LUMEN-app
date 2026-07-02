@@ -55,7 +55,11 @@ export function Component(props: ComponentProps) {
               {props.primaryActionLabel ? (
                 <Pressable
                   accessibilityRole="button"
-                  style={({ pressed }) => [styles.actionPrimary, pressed ? { opacity: 0.92, transform: [{ scale: 0.99 }] } : null]}
+                  accessibilityLabel={props.primaryActionLabel}
+                  style={({ pressed }) => [
+                    styles.actionPrimary,
+                    pressed ? { opacity: 0.92, transform: [{ scale: 0.99 }] } : null,
+                  ]}
                 >
                   <Text style={styles.actionPrimaryLabel}>{props.primaryActionLabel}</Text>
                 </Pressable>
@@ -63,7 +67,11 @@ export function Component(props: ComponentProps) {
               {props.secondaryActionLabel ? (
                 <Pressable
                   accessibilityRole="button"
-                  style={({ pressed }) => [styles.actionSecondary, pressed ? { opacity: 0.9 } : null]}
+                  accessibilityLabel={props.secondaryActionLabel}
+                  style={({ pressed }) => [
+                    styles.actionSecondary,
+                    pressed ? { opacity: 0.9 } : null,
+                  ]}
                 >
                   <Text style={styles.actionSecondaryLabel}>{props.secondaryActionLabel}</Text>
                 </Pressable>

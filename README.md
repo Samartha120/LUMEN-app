@@ -1,56 +1,82 @@
-# Welcome to your Expo app 👋
+# LUMEN Mobile Application
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+LUMEN is an enterprise-grade civic management and engineering platform built on **Expo (React Native)**. It enables citizens to report local infrastructure issues and engineers to update progress and navigate assigned tasks on-site, even with poor or intermittent internet connectivity.
 
-## Get started
+[![CI Status](https://github.com/lumen-org/lumen-app/workflows/CI/badge.svg)](https://github.com/lumen-org/lumen-app/actions)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue.svg)](https://www.typescriptlang.org/)
+[![Linting](https://img.shields.io/badge/Lint-ESLint-purple.svg)](https://eslint.org/)
+[![Formatting](https://img.shields.io/badge/Format-Prettier-pink.svg)](https://prettier.io/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-cyan.svg)](https://www.docker.com/)
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🚀 Key Features
 
-2. Start the app
+- **Offline-Ready Service Queue**: Fully cached database queuing and connectivity listeners ensure tasks are loggable without active networks and synced automatically.
+- **Role-Aware Router Layout**: Separate secure flows for Citizens (`/(citizen)`) and Engineers (`/(engineer)`) with strict type-checked parameters.
+- **Location & Mapping Sync**: Native spatial rendering wrappers support route mapping and task dispatching.
+- **Accessibility Compliant**: Every component is built with comprehensive semantic role markings (`accessibilityRole`, `accessibilityLabel`) to ensure compatibility with screen readers.
+- **Strict Engineering Quality**: Automated unit and integration testing pipelines run on each branch, accompanied by strict TypeScript checks and Prettier formatting.
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 📁 Repository Structure
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- `app/` — Expo Router file-based route definitions (grouped by role).
+- `src/components/` — Shared modular UI components.
+- `src/features/` — Clean-architecture slices representing unique domains (ai, auth, camera, citizen, engineer, maps, notifications, offline, etc.).
+- `src/services/` — Base platform operations (Storage, API request clients).
+- `docs/` — Architectural designs and details.
+- `tests/` — Automated test files.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## 🛠️ Getting Started
 
-When you're ready, run:
+### Prerequisites
 
-```bash
-npm run reset-project
-```
+- Node.js (v18 or newer)
+- npm (v9 or newer)
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Installation
 
-### Other setup steps
+1.  Clone the repository and install dependencies:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+    ```bash
+    npm install
+    ```
 
-## Learn more
+2.  Copy the environmental variables template:
 
-To learn more about developing your project with Expo, look at the following resources:
+    ```bash
+    cp .env.example .env
+    ```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+3.  Configure variables inside `.env` to match your local API servers.
 
-## Join the community
+### Development Scripts
 
-Join our community of developers creating universal apps.
+| Command                 | Description                                            |
+| :---------------------- | :----------------------------------------------------- |
+| `npm run start`         | Start the Expo CLI development server.                 |
+| `npm run android`       | Open the application on an Android Emulator.           |
+| `npm run ios`           | Open the application on an iOS Simulator.              |
+| `npm run web`           | Run the application inside the local browser.          |
+| `npm run lint`          | Scan the project for style violations and code errors. |
+| `npm run format`        | Auto-format files to adhere to Prettier conventions.   |
+| `npm run test`          | Run Jest unit and integration tests.                   |
+| `npm run test:coverage` | Run Jest tests and generate a code coverage report.    |
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+
+## 🐳 Docker Deployment (Web Target)
+
+To compile and serve the web target inside a clean, containerized Nginx load balancer:
+
+1.  Build and run the container:
+
+    ```bash
+    docker compose up --build -d
+    ```
+
+2.  Access the web application at `http://localhost:8080`.

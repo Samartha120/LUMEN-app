@@ -1,5 +1,11 @@
 ﻿import type { AuthSession, AuthIdentity, AuthChallenge } from "../domain";
-import type { ForgotPasswordCommand, LoginCommand, RefreshSessionCommand, RegisterCommand, VerifyOtpCommand } from "../application";
+import type {
+  ForgotPasswordCommand,
+  LoginCommand,
+  RefreshSessionCommand,
+  RegisterCommand,
+  VerifyOtpCommand,
+} from "../application";
 
 export interface AuthApiService {
   login(command: LoginCommand): Promise<{ identity: AuthIdentity; session: AuthSession }>;

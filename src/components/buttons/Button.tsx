@@ -23,7 +23,10 @@ export function Button(props: ButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
-      style={({ pressed }) => [styles.root, pressed ? { opacity: 0.92, transform: [{ translateY: 1 }] } : null]}
+      style={({ pressed }) => [
+        styles.root,
+        pressed ? { opacity: 0.92, transform: [{ translateY: 1 }] } : null,
+      ]}
       testID={props.testID}
     >
       <View>{props.children ? <Text style={styles.label}>{props.children}</Text> : null}</View>

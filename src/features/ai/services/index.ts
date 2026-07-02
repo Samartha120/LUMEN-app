@@ -1,4 +1,8 @@
-﻿import type { GenerateAiInsightsCommand, LoadAiSuggestionsQuery, SubmitAiPromptCommand } from "../application";
+﻿import type {
+  GenerateAiInsightsCommand,
+  LoadAiSuggestionsQuery,
+  SubmitAiPromptCommand,
+} from "../application";
 import type { AiInsight, AiSuggestion } from "../domain";
 
 export interface AiApiService {

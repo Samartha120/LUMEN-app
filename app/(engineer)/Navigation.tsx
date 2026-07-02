@@ -1,1 +1,1 @@
-﻿export { default } from "@/features/engineer/screens/EngineerNavigationScreen";
+﻿export { default } from "@/features/engineer/screens/NavigationScreen";

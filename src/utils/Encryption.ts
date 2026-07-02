@@ -1,7 +1,7 @@
 ﻿export function encryptText(value: string): string {
-	return value;
+  return value;
 }
 
 export function decryptText(value: string): string {
-	return value;
+  return value;
 }

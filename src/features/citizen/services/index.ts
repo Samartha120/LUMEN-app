@@ -1,8 +1,16 @@
 ﻿import type { CitizenPreference, CitizenProfile, CitizenReportSummary } from "../domain";
-import type { LoadCitizenDashboardQuery, SubmitCitizenReportCommand, UpdateCitizenProfileCommand } from "../application";
+import type {
+  LoadCitizenDashboardQuery,
+  SubmitCitizenReportCommand,
+  UpdateCitizenProfileCommand,
+} from "../application";
 
 export interface CitizenApiService {
-  loadDashboard(query: LoadCitizenDashboardQuery): Promise<{ profile: CitizenProfile; reports: CitizenReportSummary[]; preference: CitizenPreference }>;
+  loadDashboard(query: LoadCitizenDashboardQuery): Promise<{
+    profile: CitizenProfile;
+    reports: CitizenReportSummary[];
+    preference: CitizenPreference;
+  }>;
   updateProfile(command: UpdateCitizenProfileCommand): Promise<CitizenProfile>;
   submitReport(command: SubmitCitizenReportCommand): Promise<CitizenReportSummary>;
 }

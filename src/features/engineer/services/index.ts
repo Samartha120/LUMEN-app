@@ -1,8 +1,14 @@
 ﻿import type { EngineerProfile, EngineerProgressEntry, EngineerTaskSummary } from "../domain";
-import type { LoadEngineerDashboardQuery, UpdateEngineerProgressCommand, UploadEngineerProofCommand } from "../application";
+import type {
+  LoadEngineerDashboardQuery,
+  UpdateEngineerProgressCommand,
+  UploadEngineerProofCommand,
+} from "../application";
 
 export interface EngineerApiService {
-  loadDashboard(query: LoadEngineerDashboardQuery): Promise<{ profile: EngineerProfile; tasks: EngineerTaskSummary[] }>;
+  loadDashboard(
+    query: LoadEngineerDashboardQuery
+  ): Promise<{ profile: EngineerProfile; tasks: EngineerTaskSummary[] }>;
   updateProgress(command: UpdateEngineerProgressCommand): Promise<EngineerProgressEntry>;
   uploadProof(command: UploadEngineerProofCommand): Promise<{ taskId: string; uploaded: boolean }>;
 }

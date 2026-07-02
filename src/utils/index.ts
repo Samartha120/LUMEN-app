@@ -6,5 +6,7 @@ export * from "./Formatter";
 export * from "./Image";
 export * from "./Logger";
 export * from "./Network";
+export * from "./Permission";
 export * from "./Permissions";
 export * from "./Validator";
+export * from "./Validators";

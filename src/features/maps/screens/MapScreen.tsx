@@ -1,3 +1,1 @@
-﻿export default function MapScreen() {
-  return null;
-}
+﻿export { default } from "./MapPlaceholderScreen";

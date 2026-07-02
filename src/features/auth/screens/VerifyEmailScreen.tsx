@@ -1,3 +1,1 @@
-﻿export default function VerifyEmailScreen() {
-  return null;
-}
+﻿export { default } from "./AuthPlaceholderScreen";

@@ -1,3 +1,1 @@
-﻿export const reportsscreensModule = {
-  name: "reportsscreens",
-} as const;
+﻿export * from "./ReportScreen";

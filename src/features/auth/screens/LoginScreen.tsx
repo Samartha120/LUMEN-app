@@ -1,3 +1,1 @@
-﻿export default function LoginScreen() {
-  return null;
-}
+﻿export { default } from "./AuthPlaceholderScreen";

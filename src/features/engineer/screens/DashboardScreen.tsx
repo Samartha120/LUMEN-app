@@ -1,3 +1,1 @@
-﻿export default function EngineerDashboardScreen() {
-  return null;
-}
+﻿export { default } from "./EngineerPlaceholderScreen";

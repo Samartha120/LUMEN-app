@@ -1,3 +1,1 @@
-﻿export default function RegisterScreen() {
-  return null;
-}
+﻿export { default } from "./AuthPlaceholderScreen";

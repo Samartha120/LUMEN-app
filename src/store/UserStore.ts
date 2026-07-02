@@ -1,3 +1,9 @@
-﻿export const userStore = {
+﻿export interface UserStoreState {
+  readonly hydrated: boolean;
+  readonly ready: boolean;
+}
+
+export const userStore: UserStoreState = {
   hydrated: false,
-} as const;
+  ready: false,
+};

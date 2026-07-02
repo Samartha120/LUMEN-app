@@ -1,3 +1,4 @@
-﻿export const aipresentationModule = {
+﻿export * from "../screens";
+export const aipresentationModule = {
   name: "aipresentation",
 } as const;

@@ -1,3 +1,1 @@
-﻿export default function NotificationScreen() {
-  return null;
-}
+﻿export { default } from "./NotificationPlaceholderScreen";

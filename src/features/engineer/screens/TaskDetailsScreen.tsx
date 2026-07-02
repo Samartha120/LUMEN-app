@@ -1,3 +1,1 @@
-﻿export default function TaskDetailsScreen() {
-  return null;
-}
+﻿export { default } from "./EngineerPlaceholderScreen";

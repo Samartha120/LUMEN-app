@@ -1,3 +1,9 @@
-﻿export const themeStore = {
+﻿export interface ThemeStoreState {
+  readonly hydrated: boolean;
+  readonly mode: "light" | "dark" | "system";
+}
+
+export const themeStore: ThemeStoreState = {
   hydrated: false,
-} as const;
+  mode: "system",
+};

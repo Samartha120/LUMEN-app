@@ -1,3 +1,1 @@
-﻿export default function ReportScreen() {
-  return null;
-}
+﻿export { default } from "./ReportPlaceholderScreen";

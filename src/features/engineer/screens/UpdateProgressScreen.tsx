@@ -1,3 +1,1 @@
-﻿export default function UpdateProgressScreen() {
-  return null;
-}
+﻿export { default } from "./EngineerPlaceholderScreen";

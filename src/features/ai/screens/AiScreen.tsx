@@ -1,3 +1,1 @@
-﻿export default function AiScreen() {
-  return null;
-}
+﻿export { default } from "./AiPlaceholderScreen";

@@ -1,3 +1,1 @@
-﻿export default function OfflineScreen() {
-  return null;
-}
+﻿export { default } from "./OfflinePlaceholderScreen";

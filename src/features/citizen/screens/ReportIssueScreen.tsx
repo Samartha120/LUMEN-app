@@ -1,3 +1,1 @@
-﻿export default function CitizenReportIssueScreen() {
-  return null;
-}
+﻿export { default } from "./CitizenPlaceholderScreen";

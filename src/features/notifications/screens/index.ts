@@ -1,3 +1,1 @@
-﻿export const notificationsscreensModule = {
-  name: "notificationsscreens",
-} as const;
+﻿export * from "./NotificationScreen";

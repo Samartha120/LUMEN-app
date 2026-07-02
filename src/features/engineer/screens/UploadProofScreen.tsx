@@ -1,3 +1,1 @@
-﻿export default function UploadProofScreen() {
-  return null;
-}
+﻿export { default } from "./EngineerPlaceholderScreen";

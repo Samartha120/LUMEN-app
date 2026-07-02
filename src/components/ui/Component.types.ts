@@ -6,6 +6,8 @@ export interface ComponentProps {
   readonly description?: string;
   readonly primaryActionLabel?: string;
   readonly secondaryActionLabel?: string;
+  readonly onPrimaryAction?: () => void;
+  readonly onSecondaryAction?: () => void;
   readonly subtitle?: string;
   readonly title: string;
   readonly testID?: string;

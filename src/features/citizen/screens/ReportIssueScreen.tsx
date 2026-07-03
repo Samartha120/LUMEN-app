@@ -4,7 +4,6 @@
 // ============================================================
 import type { LumenIconName } from "@/design-system";
 import { useTheme } from "@/design-system/ThemeContext";
-import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
 import { LinearProgress } from "@/design-system/components/Progress";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
@@ -14,13 +13,12 @@ import React, { useRef, useState } from "react";
 import {
     Animated,
     Dimensions,
-    Platform,
     Pressable,
     ScrollView,
     StatusBar,
     StyleSheet,
     Text,
-    View,
+    View
 } from "react-native";
 
 const { width: W } = Dimensions.get("window");
@@ -289,30 +287,6 @@ export default function ReportIssueScreen() {
           )}
         </Animated.View>
       </ScrollView>
-
-      {/* Footer CTA */}
-      <View style={[s.footer, { borderTopColor: colors.borderDefault, backgroundColor: colors.bgBase }]}>
-        {step < STEPS.length - 1 ? (
-          <Button
-            label="Continue"
-            variant="primary"
-            size="lg"
-            fullWidth
-            iconRight="forward"
-            onPress={goNext}
-            disabled={step === 0 && !category}
-          />
-        ) : (
-          <Button
-            label="Submit Report"
-            variant="primary"
-            size="lg"
-            fullWidth
-            iconRight="success"
-            onPress={submit}
-          />
-        )}
-      </View>
     </View>
   );
 }
@@ -377,9 +351,5 @@ const s = StyleSheet.create({
   reviewRow: {
     flexDirection: "row", gap: Spacing[4], padding: Spacing[4],
     borderBottomWidth: 1, alignItems: "flex-start",
-  },
-  footer: {
-    padding: Spacing[5], borderTopWidth: 1,
-    paddingBottom: Platform.OS === "ios" ? 100 : 100,
   },
 });

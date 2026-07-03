@@ -1,11 +1,22 @@
 import { BottomNavigation, type NavItem } from '@/design-system/components/BottomNavigation';
 import { useTheme } from '@/design-system/ThemeContext';
-import { router, Tabs } from 'expo-router';
-import { useState } from 'react';
+import { router, Tabs, useSegments } from 'expo-router';
 
 export default function AdminLayout() {
   const { colors } = useTheme();
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const segments = useSegments();
+
+  // Dynamically derive the current route and active tab name
+  const currentPath = segments[1] || "Dashboard";
+
+  const getActiveTab = (path: string) => {
+    if (path === "Analytics") return "Analytics";
+    if (path === "Users") return "Users";
+    if (path === "Settings") return "Settings";
+    return "Dashboard";
+  };
+
+  const activeTab = getActiveTab(currentPath);
 
   const navItems: NavItem[] = [
     { name: "Dashboard", icon: "home", label: "Home" },
@@ -15,7 +26,6 @@ export default function AdminLayout() {
   ];
 
   const handleTabPress = (name: string) => {
-    setActiveTab(name);
     if (name === "Dashboard") {
       router.push("/(admin)/Dashboard" as any);
     } else if (name === "Analytics") {
@@ -32,6 +42,7 @@ export default function AdminLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
+          tabBarStyle: { display: "none" },
         }}
       >
         <Tabs.Screen name="Dashboard" />

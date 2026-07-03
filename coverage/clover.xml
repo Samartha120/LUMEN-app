@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1783069754171" clover="3.2.0">
-  <project timestamp="1783069754172" name="All files">
+<coverage generated="1783073755322" clover="3.2.0">
+  <project timestamp="1783073755322" name="All files">
     <metrics statements="1646" coveredstatements="11" conditionals="1023" coveredconditionals="14" methods="601" coveredmethods="6" elements="3270" coveredelements="31" complexity="0" loc="1646" ncloc="1646" packages="303" files="498" classes="498"/>
     <package name="assets.animations">
       <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
@@ -692,9 +692,9 @@
         <line num="35" count="0" type="stmt"/>
         <line num="37" count="0" type="stmt"/>
         <line num="39" count="0" type="stmt"/>
-        <line num="59" count="0" type="stmt"/>
         <line num="60" count="0" type="stmt"/>
-        <line num="75" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
       </file>
       <file name="Extras.tsx" path="D:\LUMEN\Lumen-app\src\design-system\components\Extras.tsx">
         <metrics statements="24" coveredstatements="0" conditionals="20" coveredconditionals="0" methods="6" coveredmethods="0"/>
@@ -816,7 +816,7 @@
         <line num="68" count="0" type="stmt"/>
         <line num="69" count="0" type="stmt"/>
         <line num="70" count="0" type="stmt"/>
-        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
       </file>
       <file name="Progress.tsx" path="D:\LUMEN\Lumen-app\src\design-system\components\Progress.tsx">
         <metrics statements="19" coveredstatements="0" conditionals="16" coveredconditionals="0" methods="6" coveredmethods="0"/>

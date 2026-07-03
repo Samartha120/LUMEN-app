@@ -38,6 +38,7 @@ export function DonutChart({
 
           return (
             <Circle
+              key={`donut-slice-${index}`}
               cx={size / 2}
               cy={size / 2}
               r={radius}
@@ -58,7 +59,7 @@ export function DonutChart({
           {data.map((item, index) => {
             const legendKey = `legend-${index}`;
             return (
-              <View style={styles.legendItem}>
+              <View key={legendKey} style={styles.legendItem}>
                 <View style={[styles.legendColor, { backgroundColor: item.color }]} />
                 <Text style={[styles.legendLabel, { color: colors.textSecondary, fontSize: fontSize.sm }]}>
                   {item.label}

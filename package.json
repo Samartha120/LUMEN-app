@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
-    "expo": "~56.0.13",
+    "expo": "~56.0.14",
     "expo-blur": "~56.0.3",
     "expo-constants": "~56.0.18",
     "expo-font": "~56.0.7",

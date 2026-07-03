@@ -69,6 +69,7 @@ export function LineChart({
             const pointKey = `point-${index}`;
             return (
               <Path
+                key={pointKey}
                 d={`M ${x - 4},${y} L ${x + 4},${y} M ${x},${y - 4} L ${x},${y + 4}`}
                 stroke={chartColor}
                 strokeWidth={2}

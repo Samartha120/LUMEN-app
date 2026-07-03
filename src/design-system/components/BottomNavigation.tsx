@@ -4,21 +4,28 @@
 
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
-    Animated,
-    Pressable,
-    StyleSheet,
-    Text,
-    useWindowDimensions,
-    View,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  Text,
+  Animated,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  withRepeat,
+  interpolate,
+  Easing,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../ThemeContext';
 import { LumenIcon, type LumenIconName } from '../icons/LumenIcon';
 import { Spacing } from '../tokens';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export interface NavItem {
   name: string;
@@ -36,6 +43,165 @@ export interface BottomNavigationProps {
   fabOnPress?: () => void;
 }
 
+interface TabItemProps {
+  item: NavItem;
+  isActive: boolean;
+  onPress: () => void;
+  colors: any;
+  isDark: boolean;
+}
+
+function TabItem({ item, isActive, onPress, colors, isDark }: TabItemProps) {
+  const activeProgress = useSharedValue(isActive ? 1 : 0);
+
+  useEffect(() => {
+    activeProgress.value = withSpring(isActive ? 1 : 0, {
+      damping: 18,
+      stiffness: 150,
+    });
+  }, [isActive]);
+
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress();
+  };
+
+  const iconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { translateY: interpolate(activeProgress.value, [0, 1], [0, -6]) },
+        { scale: interpolate(activeProgress.value, [0, 1], [1, 1.15]) },
+      ],
+    };
+  });
+
+  const labelStyle = useAnimatedStyle(() => {
+    return {
+      opacity: activeProgress.value,
+      transform: [
+        { scale: interpolate(activeProgress.value, [0, 1], [0.8, 1]) },
+        { translateY: interpolate(activeProgress.value, [0, 1], [6, 0]) },
+      ],
+    };
+  });
+
+  const pillStyle = useAnimatedStyle(() => {
+    return {
+      opacity: activeProgress.value,
+      transform: [
+        { scale: interpolate(activeProgress.value, [0, 1], [0.85, 1.05]) },
+      ],
+    };
+  });
+
+  return (
+    <Pressable onPress={handlePress} style={styles.tabItem}>
+      <Animated.View
+        style={[
+          styles.pill,
+          pillStyle,
+          {
+            backgroundColor: isDark
+              ? 'rgba(103, 179, 255, 0.12)'
+              : 'rgba(32, 138, 239, 0.08)',
+          },
+        ]}
+      />
+      <Animated.View style={[styles.iconWrapper, iconStyle]}>
+        <LumenIcon
+          name={item.icon}
+          size="md"
+          color={isActive ? colors.brand : colors.textTertiary}
+          strokeWidth={isActive ? 2.3 : 1.8}
+        />
+      </Animated.View>
+      <Animated.View style={[styles.labelContainer, labelStyle]}>
+        <Text style={[styles.label, { color: colors.brand }]} numberOfLines={1}>
+          {item.label}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+function FABItem({
+  icon,
+  onPress,
+  colors,
+}: {
+  icon: LumenIconName;
+  onPress: () => void;
+  colors: any;
+}) {
+  const pulseValue = useSharedValue(0);
+  const scaleValue = useSharedValue(1);
+
+  useEffect(() => {
+    pulseValue.value = withRepeat(
+      withTiming(1, { duration: 2000, easing: Easing.out(Easing.ease) }),
+      -1,
+      false
+    );
+  }, []);
+
+  const handlePressIn = () => {
+    scaleValue.value = withSpring(0.9, { damping: 10 });
+  };
+
+  const handlePressOut = () => {
+    scaleValue.value = withSpring(1, { damping: 10 });
+  };
+
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onPress();
+  };
+
+  const pulseStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: interpolate(pulseValue.value, [0, 1], [1, 1.55]) }],
+      opacity: interpolate(pulseValue.value, [0, 1], [0.45, 0]),
+    };
+  });
+
+  const fabStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scaleValue.value }],
+    };
+  });
+
+  return (
+    <View style={styles.fabContainer}>
+      <Animated.View
+        style={[
+          styles.fabPulse,
+          pulseStyle,
+          { backgroundColor: colors.brand },
+        ]}
+      />
+      <Pressable
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={styles.fabTouchTarget}
+      >
+        <Animated.View
+          style={[
+            styles.fab,
+            fabStyle,
+            {
+              backgroundColor: colors.brand,
+              shadowColor: colors.brand,
+            },
+          ]}
+        >
+          <LumenIcon name={icon} size="lg" color="#FFFFFF" strokeWidth={2.5} />
+        </Animated.View>
+      </Pressable>
+    </View>
+  );
+}
+
 export function BottomNavigation({
   items,
   activeTab,
@@ -44,23 +210,9 @@ export function BottomNavigation({
   fabIcon = 'add',
   fabOnPress,
 }: BottomNavigationProps) {
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, shadows } = useTheme();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const pulseAnim = useRef(new Animated.Value(0)).current;
-
-  // Pulse animation for FAB
-  useEffect(() => {
-    if (showFAB) {
-      const animate = () => {
-        Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 0, duration: 1500, useNativeDriver: true }),
-        ]).start(animate);
-      };
-      animate();
-    }
-  }, [showFAB]);
 
   const handleTabPress = (name: string, isFAB = false) => {
     if (isFAB) {
@@ -71,18 +223,21 @@ export function BottomNavigation({
   };
 
   const isTablet = width > 768;
-  const navHeight = isTablet ? 80 : 70;
-  const fabSize = isTablet ? 64 : 56;
+  const barWidth = isTablet ? 550 : width - Spacing[8];
+  const bottomMargin = insets.bottom > 0 ? insets.bottom + Spacing[1] : Spacing[4];
+
+  // Dynamic shadows
+  const activeShadow = isDark ? shadows.lg : shadows.md;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <BlurView
         intensity={isDark ? 40 : 30}
         tint={isDark ? 'dark' : 'light'}
         style={[
-          styles.navBar,
+          styles.shadowWrapper,
           {
-            height: navHeight,
+            height: navHeight + insets.bottom,
             backgroundColor: isDark ? 'rgba(15, 15, 25, 0.85)' : 'rgba(255, 255, 255, 0.85)',
           },
         ]}
@@ -97,88 +252,37 @@ export function BottomNavigation({
           style={StyleSheet.absoluteFill}
         />
 
-        <View style={[styles.content, { paddingHorizontal: isTablet ? Spacing[8] : Spacing[6] }]}>
-          {items.map((item, index) => {
-            const isActive = activeTab === item.name;
-            const isCenterFAB = showFAB && index === Math.floor(items.length / 2);
-
-            if (isCenterFAB) {
-              // FAB in center
-              return (
-                <View key={item.name} style={styles.fabContainer}>
-                  <Animated.View
-                    style={[
-                      styles.fabPulse,
-                      {
-                        opacity: pulseAnim,
-                        transform: [{ scale: pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] }) }],
-                      },
-                    ]}
-                  />
-                  <AnimatedPressable
+          <View style={styles.content}>
+            {items.map((item, index) => {
+              const isCenterFAB = item.isFAB || (showFAB && index === Math.floor(items.length / 2));
+              
+              if (isCenterFAB) {
+                return (
+                  <FABItem
+                    key={item.name}
+                    icon={item.isFAB ? item.icon : fabIcon}
                     onPress={() => handleTabPress(item.name, true)}
-                    style={({ pressed }) => [
-                      styles.fab,
-                      {
-                        width: fabSize,
-                        height: fabSize,
-                        backgroundColor: colors.brand,
-                        transform: [{ scale: pressed ? 0.92 : 1 }],
-                        shadowColor: colors.brand,
-                      },
-                    ]}
-                  >
-                    <LumenIcon name={fabIcon} size="lg" color="#FFFFFF" strokeWidth={2.5} />
-                  </AnimatedPressable>
-                </View>
-              );
-            }
-
-            return (
-              <AnimatedPressable
-                key={item.name}
-                onPress={() => handleTabPress(item.name)}
-                style={({ pressed }) => [
-                  styles.tabItem,
-                  {
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.iconWrapper,
-                    isActive && {
-                      backgroundColor: colors.brand + '15',
-                    },
-                  ]}
-                >
-                  <LumenIcon
-                    name={item.icon}
-                    size={isActive ? 'md' : 'sm'}
-                    color={isActive ? colors.brand : colors.textTertiary}
-                    strokeWidth={isActive ? 2.5 : 2}
+                    colors={colors}
                   />
-                </View>
-                {isActive && (
-                  <Text
-                    style={[
-                      styles.label,
-                      {
-                        color: colors.brand,
-                        marginTop: 4,
-                      },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {item.label}
-                  </Text>
-                )}
-              </AnimatedPressable>
-            );
-          })}
-        </View>
-      </BlurView>
+                );
+              }
+
+              const isActive = activeTab === item.name;
+
+              return (
+                <TabItem
+                  key={item.name}
+                  item={item}
+                  isActive={isActive}
+                  onPress={() => handleTabPress(item.name)}
+                  colors={colors}
+                  isDark={isDark}
+                />
+              );
+            })}
+          </View>
+        </BlurView>
+      </View>
     </View>
   );
 }
@@ -186,56 +290,72 @@ export function BottomNavigation({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
+    bottom: 0,
+    left: 0,
+    right: 0,
     zIndex: 1000,
+  },
+  shadowWrapper: {
+    overflow: 'hidden',
   },
   navBar: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.05)',
-    borderRadius: 28,
-    overflow: 'hidden',
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    flex: 1,
+    justifyContent: 'space-around',
+    height: '100%',
+    paddingHorizontal: Spacing[2],
   },
   tabItem: {
     flex: 1,
+    height: '100%',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingVertical: 12,
-    paddingBottom: 8,
+    justifyContent: 'center',
+    paddingVertical: 8,
   },
   iconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  labelContainer: {
+    position: 'absolute',
+    bottom: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.2,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.3,
     textAlign: 'center',
   },
   fabContainer: {
-    flex: 1,
+    width: 72,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -24,
+    zIndex: 1010,
+  },
+  fabTouchTarget: {
+    width: 60,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingBottom: 8,
   },
   fab: {
+    width: 56,
+    height: 56,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 8,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
     shadowRadius: 8,
   },
   fabPulse: {
@@ -243,6 +363,5 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(124, 58, 237, 0.3)',
   },
 });

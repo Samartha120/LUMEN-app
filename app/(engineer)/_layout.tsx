@@ -1,11 +1,23 @@
 import { BottomNavigation, type NavItem } from "@/design-system/components/BottomNavigation";
 import { useTheme } from "@/design-system/ThemeContext";
-import { router, Tabs } from "expo-router";
-import { useState } from "react";
+import { router, Tabs, useSegments } from "expo-router";
 
 export default function EngineerLayout() {
   const { colors } = useTheme();
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const segments = useSegments();
+
+  // Dynamically derive the current route and active tab name
+  const currentPath = segments[1] || "Dashboard";
+
+  const getActiveTab = (path: string) => {
+    if (path === "Update-progress") return "FAB";
+    if (path === "Assigned-tasks" || path === "Task-details" || path === "Upload-proof") return "Assigned-tasks";
+    if (path === "Navigation") return "Navigation";
+    if (path === "Profile") return "Profile";
+    return "Dashboard";
+  };
+
+  const activeTab = getActiveTab(currentPath);
 
   const navItems: NavItem[] = [
     { name: "Dashboard", icon: "home", label: "Home" },
@@ -16,7 +28,6 @@ export default function EngineerLayout() {
   ];
 
   const handleTabPress = (name: string) => {
-    setActiveTab(name);
     if (name === "Dashboard") {
       router.push("/(engineer)/Dashboard" as any);
     } else if (name === "Assigned-tasks") {
@@ -25,6 +36,8 @@ export default function EngineerLayout() {
       router.push("/(engineer)/Navigation" as any);
     } else if (name === "Profile") {
       router.push("/(engineer)/Profile" as any);
+    } else if (name === "FAB") {
+      router.push("/(engineer)/Update-progress" as any);
     }
   };
 
@@ -37,13 +50,13 @@ export default function EngineerLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
+          tabBarStyle: { display: "none" },
         }}
       >
         <Tabs.Screen name="Dashboard" />
         <Tabs.Screen name="Assigned-tasks" />
         <Tabs.Screen name="Navigation" />
         <Tabs.Screen name="Profile" />
-        <Tabs.Screen name="FAB" options={{ href: null }} />
       </Tabs>
       <BottomNavigation
         items={navItems}

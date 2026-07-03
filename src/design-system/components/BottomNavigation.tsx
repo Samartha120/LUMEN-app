@@ -287,7 +287,7 @@ export function BottomNavigation({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 80,
     left: 16,
     right: 16,
     zIndex: 1000,

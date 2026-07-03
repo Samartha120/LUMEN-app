@@ -4,14 +4,14 @@
 
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-  Text,
-  Animated,
+    Animated,
+    Pressable,
+    StyleSheet,
+    Text,
+    useWindowDimensions,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../ThemeContext';
@@ -75,14 +75,14 @@ export function BottomNavigation({
   const fabSize = isTablet ? 64 : 56;
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View style={styles.container}>
       <BlurView
         intensity={isDark ? 40 : 30}
         tint={isDark ? 'dark' : 'light'}
         style={[
           styles.navBar,
           {
-            height: navHeight + insets.bottom,
+            height: navHeight,
             backgroundColor: isDark ? 'rgba(15, 15, 25, 0.85)' : 'rgba(255, 255, 255, 0.85)',
           },
         ]}
@@ -186,14 +186,16 @@ export function BottomNavigation({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    bottom: 16,
+    left: 16,
+    right: 16,
     zIndex: 1000,
   },
   navBar: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 28,
+    overflow: 'hidden',
   },
   content: {
     flexDirection: 'row',
@@ -204,8 +206,9 @@ const styles = StyleSheet.create({
   tabItem: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
+    justifyContent: 'flex-end',
+    paddingVertical: 12,
+    paddingBottom: 8,
   },
   iconWrapper: {
     width: 44,
@@ -223,7 +226,8 @@ const styles = StyleSheet.create({
   fabContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 8,
   },
   fab: {
     borderRadius: 28,

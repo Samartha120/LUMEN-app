@@ -2,27 +2,26 @@
 // LUMEN — ReportIssueScreen (Multi-Step Wizard)
 // Phase 3: Citizen Experience
 // ============================================================
+import type { LumenIconName } from "@/design-system";
+import { useTheme } from "@/design-system/ThemeContext";
+import { Button } from "@/design-system/components/Button";
+import { Input } from "@/design-system/components/Input";
+import { LinearProgress } from "@/design-system/components/Progress";
+import { LumenIcon } from "@/design-system/icons/LumenIcon";
+import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
+import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Animated,
-  StatusBar,
-  Dimensions,
-  Platform,
+    Animated,
+    Dimensions,
+    Platform,
+    Pressable,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
-import { router } from "expo-router";
-import { useTheme } from "@/design-system/ThemeContext";
-import { LumenIcon } from "@/design-system/icons/LumenIcon";
-import { Input } from "@/design-system/components/Input";
-import { Button } from "@/design-system/components/Button";
-import { Badge } from "@/design-system/components/Badge";
-import { LinearProgress } from "@/design-system/components/Progress";
-import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
-import type { LumenIconName } from "@/design-system";
 
 const { width: W } = Dimensions.get("window");
 
@@ -381,6 +380,6 @@ const s = StyleSheet.create({
   },
   footer: {
     padding: Spacing[5], borderTopWidth: 1,
-    paddingBottom: Platform.OS === "ios" ? 32 : Spacing[5],
+    paddingBottom: Platform.OS === "ios" ? 100 : 100,
   },
 });

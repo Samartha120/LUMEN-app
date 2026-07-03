@@ -287,13 +287,14 @@ export function BottomNavigation({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    bottom: 20,
+    left: 16,
+    right: 16,
     zIndex: 1000,
   },
   shadowWrapper: {
     overflow: 'hidden',
+    borderRadius: 28,
   },
   navBar: {
     borderTopWidth: 1,

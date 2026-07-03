@@ -132,109 +132,101 @@ export default function AdminDashboardScreen() {
           {/* ── Analytics Charts ── */}
           <View style={s.section}>
             <Card variant="elevated" style={s.chartCard}>
-              <>
-                <View style={s.chartHeader}>
-                  <Text style={[TextStyles.subtitle, { color: colors.textPrimary }]}>Reports Trend</Text>
-                  <Badge label="This Week" variant="brand" size="sm" />
+              <View style={s.chartHeader}>
+                <Text style={[TextStyles.subtitle, { color: colors.textPrimary }]}>Reports Trend</Text>
+                <Badge label="This Week" variant="brand" size="sm" />
+              </View>
+              <LineChart
+                data={[65, 78, 90, 81, 95, 110, 125]}
+                width={W - 80}
+                height={180}
+                color={colors.brand}
+                showGradient
+                showPoints
+              />
+              <View style={s.chartLegend}>
+                <View style={s.legendItem}>
+                  <View style={[s.legendDot, { backgroundColor: colors.brand }]} />
+                  <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Reports</Text>
                 </View>
-                <LineChart
-                  data={[65, 78, 90, 81, 95, 110, 125]}
-                  width={W - 80}
-                  height={180}
-                  color={colors.brand}
-                  showGradient
-                  showPoints
-                />
-                <View style={s.chartLegend}>
-                  <View style={s.legendItem}>
-                    <View style={[s.legendDot, { backgroundColor: colors.brand }]} />
-                    <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Reports</Text>
-                  </View>
-                  <View style={s.legendItem}>
-                    <View style={[s.legendDot, { backgroundColor: colors.successText }]} />
-                    <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Resolved</Text>
-                  </View>
+                <View style={s.legendItem}>
+                  <View style={[s.legendDot, { backgroundColor: colors.successText }]} />
+                  <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Resolved</Text>
                 </View>
-              </>
+              </View>
             </Card>
           </View>
 
           {/* ── Category Distribution ── */}
           <View style={s.chartRow}>
-            <Card variant="elevated" style={{ ...s.chartCard, flex: 1 }}>
-              <>
-                <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>By Category</Text>
-                <DonutChart
-                  data={[
-                    { value: 35, color: "#208AEF", label: "Roads" },
-                    { value: 25, color: "#12B76A", label: "Water" },
-                    { value: 20, color: "#F79009", label: "Lighting" },
-                    { value: 15, color: "#7C3AED", label: "Garbage" },
-                    { value: 5, color: "#F04438", label: "Other" },
-                  ]}
-                  size={140}
-                  showLabels
-                />
-              </>
+            <Card variant="elevated" style={{ flex: 1 }}>
+              <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>By Category</Text>
+              <DonutChart
+                data={[
+                  { value: 35, color: "#208AEF", label: "Roads" },
+                  { value: 25, color: "#12B76A", label: "Water" },
+                  { value: 20, color: "#F79009", label: "Lighting" },
+                  { value: 15, color: "#7C3AED", label: "Garbage" },
+                  { value: 5, color: "#F04438", label: "Other" },
+                ]}
+                size={140}
+                showLabels
+              />
             </Card>
-            <Card variant="elevated" style={{ ...s.chartCard, flex: 1 }}>
-              <>
-                <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>By Priority</Text>
-                <BarChart
-                  data={[45, 30, 25]}
-                  width={140}
-                  height={140}
-                  color={colors.brand}
-                  showGradient
-                />
-                <View style={s.priorityLegend}>
-                  <View style={s.legendItem}>
-                    <View style={[s.legendDot, { backgroundColor: "#F04438" }]} />
-                    <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>High</Text>
-                  </View>
-                  <View style={s.legendItem}>
-                    <View style={[s.legendDot, { backgroundColor: "#F79009" }]} />
-                    <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Medium</Text>
-                  </View>
-                  <View style={s.legendItem}>
-                    <View style={[s.legendDot, { backgroundColor: "#12B76A" }]} />
-                    <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Low</Text>
-                  </View>
+            <Card variant="elevated" style={{ flex: 1 }}>
+              <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>By Priority</Text>
+              <BarChart
+                data={[45, 30, 25]}
+                width={140}
+                height={140}
+                color={colors.brand}
+                showGradient
+              />
+              <View style={s.priorityLegend}>
+                <View style={s.legendItem}>
+                  <View style={[s.legendDot, { backgroundColor: "#F04438" }]} />
+                  <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>High</Text>
                 </View>
-              </>
+                <View style={s.legendItem}>
+                  <View style={[s.legendDot, { backgroundColor: "#F79009" }]} />
+                  <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Medium</Text>
+                </View>
+                <View style={s.legendItem}>
+                  <View style={[s.legendDot, { backgroundColor: "#12B76A" }]} />
+                  <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Low</Text>
+                </View>
+              </View>
             </Card>
           </View>
 
           {/* ── Department Performance ── */}
           <View style={s.section}>
             <Card variant="elevated" style={s.chartCard}>
-              <>
-                <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>Department Performance</Text>
-                {[
-                  { dept: "Roads", completed: 92, pending: 8, color: "#208AEF" },
-                  { dept: "Water", completed: 88, pending: 12, color: "#12B76A" },
-                  { dept: "Lighting", completed: 95, pending: 5, color: "#F79009" },
-                  { dept: "Sanitation", completed: 85, pending: 15, color: "#7C3AED" },
-                ].map((dept) => {
-                  const deptKey = dept.dept;
-                  return (
-                    <View style={s.deptRow}>
-                      <View style={s.deptInfo}>
-                        <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}>{dept.dept}</Text>
-                        <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
-                          {dept.completed} completed · {dept.pending} pending
-                        </Text>
-                      </View>
-                      <View style={s.deptProgress}>
-                        <View style={[s.deptBar, { backgroundColor: colors.bgSubtle }]}>
-                          <View style={[s.deptBarFill, { width: `${dept.completed}%`, backgroundColor: dept.color }]} />
-                        </View>
-                        <Text style={[TextStyles.label, { color: dept.color }]}>{dept.completed}%</Text>
-                      </View>
+              <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>Department Performance</Text>
+              {[
+                { dept: "Roads", completed: 92, pending: 8, color: "#208AEF" },
+                { dept: "Water", completed: 88, pending: 12, color: "#12B76A" },
+                { dept: "Lighting", completed: 95, pending: 5, color: "#F79009" },
+                { dept: "Sanitation", completed: 85, pending: 15, color: "#7C3AED" },
+              ].map((dept) => {
+                const deptKey = dept.dept;
+                return (
+                  <View style={s.deptRow}>
+                    <View style={s.deptInfo}>
+                      <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}>{dept.dept}</Text>
+                      <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
+                        {dept.completed} completed · {dept.pending} pending
+                      </Text>
                     </View>
-                  );
-                })}
-              </>
+                    <View style={s.deptProgress}>
+                      <View style={[s.deptBar, { backgroundColor: colors.bgSubtle }]}>
+                        <View style={[s.deptBarFill, { width: `${dept.completed}%`, backgroundColor: dept.color }]} />
+                      </View>
+                      <Text style={[TextStyles.label, { color: dept.color }]}>{dept.completed}%</Text>
+                    </View>
+                  </View>
+                );
+              })}
             </Card>
           </View>
 
@@ -256,18 +248,16 @@ export default function AdminDashboardScreen() {
                 const activityKey = idx;
                 return (
                   <Card variant="elevated" padding={Spacing[4]} style={s.activityCard}>
-                    <>
-                      <View style={s.activityRow}>
-                        <View style={[s.activityIcon, { backgroundColor: activity.color + "15" }]}>
-                          <LumenIcon name={activity.icon as any} size="sm" color={activity.color} strokeWidth={2} />
-                        </View>
-                        <View style={s.activityInfo}>
-                          <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}>{activity.action}</Text>
-                          <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>{activity.user}</Text>
-                        </View>
-                        <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{activity.time}</Text>
+                    <View style={s.activityRow}>
+                      <View style={[s.activityIcon, { backgroundColor: activity.color + "15" }]}>
+                        <LumenIcon name={activity.icon as any} size="sm" color={activity.color} strokeWidth={2} />
                       </View>
-                    </>
+                      <View style={s.activityInfo}>
+                        <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}>{activity.action}</Text>
+                        <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>{activity.user}</Text>
+                      </View>
+                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{activity.time}</Text>
+                    </View>
                   </Card>
                 );
               })}
@@ -294,8 +284,8 @@ const s = StyleSheet.create({
   },
   section: { marginBottom: Spacing[6] },
   kpiRow: { gap: Spacing[4], paddingHorizontal: 2 },
-  chartCard: { gap: Spacing[4] },
-  chartHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  chartCard: {},
+  chartHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing[4] },
   chartLegend: { flexDirection: "row", gap: Spacing[4], marginTop: Spacing[2] },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
@@ -308,7 +298,7 @@ const s = StyleSheet.create({
   deptBarFill: { height: "100%", borderRadius: 4 },
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing[3] },
   activityList: { gap: Spacing[3] },
-  activityCard: { gap: 0 },
+  activityCard: {},
   activityRow: { flexDirection: "row", gap: Spacing[3], alignItems: "center" },
   activityIcon: { width: 36, height: 36, borderRadius: Radius.lg, alignItems: "center", justifyContent: "center" },
   activityInfo: { flex: 1, gap: 2 },

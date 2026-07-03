@@ -2,14 +2,14 @@
 // LUMEN DS — Card Component
 // ============================================================
 import React, { useRef } from "react";
-import { View, Pressable, StyleSheet, Animated, type ViewStyle } from "react-native";
+import { Animated, Pressable, StyleSheet, View, type ViewStyle } from "react-native";
 import { useTheme } from "../ThemeContext";
 import { Radius, Spacing } from "../tokens";
 
 export type CardVariant = "default" | "elevated" | "glass" | "outlined" | "flat";
 
 export interface CardProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: CardVariant;
   onPress?: () => void;
   style?: ViewStyle;

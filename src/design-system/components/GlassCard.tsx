@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import { StyleSheet, View, ViewStyle } from 'react-native';
+import { useTheme } from '../ThemeContext';
 
 interface GlassCardProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   style?: ViewStyle;
   intensity?: number;
   tint?: 'light' | 'dark' | 'default';

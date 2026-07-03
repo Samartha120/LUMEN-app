@@ -40,7 +40,7 @@ export function KPICard({
   const trendColor = isPositive ? colors.successText : isNegative ? colors.errorText : colors.textSecondary;
 
   return (
-    <GlassCard style={[styles.container, style]}>
+    <GlassCard style={StyleSheet.flatten([styles.container, style])}>
       <LinearGradient
         colors={gradient || [colors.bgSurface, colors.bgSurfaceRaised]}
         start={{ x: 0, y: 0 }}

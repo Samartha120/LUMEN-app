@@ -4,23 +4,22 @@
 
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   Pressable,
   StyleSheet,
+  Text,
   useWindowDimensions,
   View,
-  Text,
-  Animated,
 } from 'react-native';
 import Animated, {
-  useSharedValue,
+  Easing,
+  interpolate,
   useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
   withSpring,
   withTiming,
-  withRepeat,
-  interpolate,
-  Easing,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../ThemeContext';
@@ -62,7 +61,6 @@ function TabItem({ item, isActive, onPress, colors, isDark }: TabItemProps) {
   }, [isActive]);
 
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress();
   };
 
@@ -105,9 +103,9 @@ function TabItem({ item, isActive, onPress, colors, isDark }: TabItemProps) {
               ? 'rgba(103, 179, 255, 0.12)'
               : 'rgba(32, 138, 239, 0.08)',
           },
-        ]}
+        ] as any}
       />
-      <Animated.View style={[styles.iconWrapper, iconStyle]}>
+      <Animated.View style={[styles.iconWrapper, iconStyle] as any}>
         <LumenIcon
           name={item.icon}
           size="md"
@@ -115,7 +113,7 @@ function TabItem({ item, isActive, onPress, colors, isDark }: TabItemProps) {
           strokeWidth={isActive ? 2.3 : 1.8}
         />
       </Animated.View>
-      <Animated.View style={[styles.labelContainer, labelStyle]}>
+      <Animated.View style={[styles.labelContainer, labelStyle] as any}>
         <Text style={[styles.label, { color: colors.brand }]} numberOfLines={1}>
           {item.label}
         </Text>
@@ -153,7 +151,6 @@ function FABItem({
   };
 
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onPress();
   };
 
@@ -177,7 +174,7 @@ function FABItem({
           styles.fabPulse,
           pulseStyle,
           { backgroundColor: colors.brand },
-        ]}
+        ] as any}
       />
       <Pressable
         onPress={handlePress}
@@ -193,7 +190,7 @@ function FABItem({
               backgroundColor: colors.brand,
               shadowColor: colors.brand,
             },
-          ]}
+          ] as any}
         >
           <LumenIcon name={icon} size="lg" color="#FFFFFF" strokeWidth={2.5} />
         </Animated.View>
@@ -223,6 +220,7 @@ export function BottomNavigation({
   };
 
   const isTablet = width > 768;
+  const navHeight = isTablet ? 80 : 70;
   const barWidth = isTablet ? 550 : width - Spacing[8];
   const bottomMargin = insets.bottom > 0 ? insets.bottom + Spacing[1] : Spacing[4];
 
@@ -283,7 +281,6 @@ export function BottomNavigation({
           </View>
         </BlurView>
       </View>
-    </View>
   );
 }
 
@@ -315,6 +312,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
+  },
+  pill: {
+    position: 'absolute',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
   iconWrapper: {
     alignItems: 'center',

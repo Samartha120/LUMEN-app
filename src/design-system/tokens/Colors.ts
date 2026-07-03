@@ -105,6 +105,15 @@ export const LightColors = {
   gradientBrand: [Palette.brand500, Palette.brand700] as [string, string],
   gradientCard: ["rgba(255,255,255,0.95)", "rgba(255,255,255,0.75)"] as [string, string],
   gradientAccent: ["#667EEA", "#764BA2"] as [string, string],
+  gradientSuccess: ["#10B981", "#059669"] as [string, string],
+  gradientWarning: ["#F59E0B", "#D97706"] as [string, string],
+  gradientError: ["#EF4444", "#DC2626"] as [string, string],
+
+  // Glassmorphism
+  glassLight: "rgba(255, 255, 255, 0.72)",
+  glassLightBorder: "rgba(255, 255, 255, 0.6)",
+  glassDark: "rgba(16, 24, 40, 0.72)",
+  glassDarkBorder: "rgba(255, 255, 255, 0.1)",
 } as const;
 
 export const DarkColors = {
@@ -162,6 +171,15 @@ export const DarkColors = {
   gradientBrand: ["#1D6FD1", "#1558A8"] as [string, string],
   gradientCard: ["rgba(29,41,57,0.95)", "rgba(29,41,57,0.75)"] as [string, string],
   gradientAccent: ["#4F46E5", "#7C3AED"] as [string, string],
+  gradientSuccess: ["#059669", "#047857"] as [string, string],
+  gradientWarning: ["#D97706", "#B45309"] as [string, string],
+  gradientError: ["#DC2626", "#B91C1C"] as [string, string],
+
+  // Glassmorphism
+  glassLight: "rgba(255, 255, 255, 0.72)",
+  glassLightBorder: "rgba(255, 255, 255, 0.6)",
+  glassDark: "rgba(16, 24, 40, 0.72)",
+  glassDarkBorder: "rgba(255, 255, 255, 0.1)",
 } as const;
 
 export type ColorTokens = typeof LightColors;

@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState } from "react";
 import { useColorScheme } from "react-native";
-import { LightColors, DarkColors, type ColorTokens } from "./tokens/Colors";
-import { LightShadows, DarkShadows, type ShadowScale } from "./tokens/Shadows";
-import { TextStyles, FontSize, FontWeight } from "./tokens/Typography";
-import { Spacing, Radius } from "./tokens/Spacing";
+import { DarkColors, LightColors, type ColorTokens } from "./tokens/Colors";
+import { DarkShadows, LightShadows, type ShadowScale } from "./tokens/Shadows";
+import { Radius, Spacing } from "./tokens/Spacing";
+import { FontSize, FontWeight, TextStyles } from "./tokens/Typography";
 
 export type ThemeMode = "light" | "dark" | "system";
 export type ShadowTokens = ShadowScale;
@@ -19,6 +19,10 @@ export interface Theme {
   isDark: boolean;
   mode: ThemeMode;
   setMode: (mode: ThemeMode) => void;
+  glassLight: string;
+  glassLightBorder: string;
+  glassDark: string;
+  glassDarkBorder: string;
 }
 
 const ThemeContext = createContext<Theme | null>(null);
@@ -40,6 +44,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     isDark,
     mode,
     setMode,
+    glassLight: isDark ? DarkColors.glassDark : LightColors.glassLight,
+    glassLightBorder: isDark ? DarkColors.glassDarkBorder : LightColors.glassLightBorder,
+    glassDark: DarkColors.glassDark,
+    glassDarkBorder: DarkColors.glassDarkBorder,
   };
 
   return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;

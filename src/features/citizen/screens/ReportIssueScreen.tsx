@@ -287,6 +287,30 @@ export default function ReportIssueScreen() {
           )}
         </Animated.View>
       </ScrollView>
+
+      {/* Footer CTA */}
+      <View style={[s.footer, { borderTopColor: colors.borderDefault, backgroundColor: colors.bgBase }]}>
+        {step < STEPS.length - 1 ? (
+          <Button
+            label="Continue"
+            variant="primary"
+            size="lg"
+            fullWidth
+            iconRight="forward"
+            onPress={goNext}
+            disabled={step === 0 && !category}
+          />
+        ) : (
+          <Button
+            label="Submit Report"
+            variant="primary"
+            size="lg"
+            fullWidth
+            iconRight="success"
+            onPress={submit}
+          />
+        )}
+      </View>
     </View>
   );
 }
@@ -351,5 +375,9 @@ const s = StyleSheet.create({
   reviewRow: {
     flexDirection: "row", gap: Spacing[4], padding: Spacing[4],
     borderBottomWidth: 1, alignItems: "flex-start",
+  },
+  footer: {
+    padding: Spacing[5], borderTopWidth: 1,
+    paddingBottom: Platform.OS === "ios" ? 100 : 100,
   },
 });

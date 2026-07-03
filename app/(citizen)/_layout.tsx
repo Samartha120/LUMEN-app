@@ -10,7 +10,7 @@ export default function CitizenLayout() {
   const currentPath = segments[1] || "Dashboard";
 
   const getActiveTab = (path: string) => {
-    if (path === "Report-issue") return "FAB";
+    if (path === "Report-issue") return "Report-issue";
     if (path === "My-report" || path === "Report-details") return "My-report";
     if (path === "Notifications") return "Notifications";
     if (path === "Profile" || path === "Settings" || path === "Help") return "Profile";
@@ -21,8 +21,8 @@ export default function CitizenLayout() {
 
   const navItems: NavItem[] = [
     { name: "Dashboard", icon: "home", label: "Home" },
+    { name: "Report-issue", icon: "report", label: "Report" },
     { name: "My-report", icon: "reportList", label: "Reports" },
-    { name: "FAB", icon: "add", label: "", isFAB: true },
     { name: "Notifications", icon: "notifications", label: "Alerts" },
     { name: "Profile", icon: "profile", label: "Profile" },
   ];
@@ -30,19 +30,15 @@ export default function CitizenLayout() {
   const handleTabPress = (name: string) => {
     if (name === "Dashboard") {
       router.push("/(citizen)/Dashboard" as any);
+    } else if (name === "Report-issue") {
+      router.push("/(citizen)/Report-issue" as any);
     } else if (name === "My-report") {
       router.push("/(citizen)/My-report" as any);
     } else if (name === "Notifications") {
       router.push("/(citizen)/Notifications" as any);
     } else if (name === "Profile") {
       router.push("/(citizen)/Profile" as any);
-    } else if (name === "FAB") {
-      router.push("/(citizen)/Report-issue" as any);
     }
-  };
-
-  const handleFABPress = () => {
-    router.push("/(citizen)/Report-issue" as any);
   };
 
   return (
@@ -63,9 +59,6 @@ export default function CitizenLayout() {
         items={navItems}
         activeTab={activeTab}
         onTabPress={handleTabPress}
-        showFAB
-        fabIcon="add"
-        fabOnPress={handleFABPress}
       />
     </>
   );

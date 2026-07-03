@@ -2,7 +2,7 @@
 // LUMEN DS — StatCard Component
 // ============================================================
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { LumenIcon, type LumenIconName } from "../icons/LumenIcon";
 import { useTheme } from "../ThemeContext";
 import { Radius, Spacing, TextStyles } from "../tokens";
@@ -78,18 +78,20 @@ export function StatCard({ label, value, icon, trend, variant = "default", compa
 const s = StyleSheet.create({
   card: {
     borderWidth: 1,
-    gap: 4,
+    gap: 8,
+    minHeight: 120,
+    justifyContent: 'center',
   },
   iconBox: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
   },
   trend: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 3,
-    marginTop: 2,
+    gap: 4,
+    marginTop: 4,
   },
 });

@@ -39,13 +39,13 @@ export function GlassCard({ children, style, intensity = 20, tint = 'default', b
 const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
-    borderRadius: 16,
+    borderRadius: 20,
   },
   border: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 20,
   },
   content: {
-    padding: 16,
+    padding: 20,
   },
 });

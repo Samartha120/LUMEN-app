@@ -46,8 +46,8 @@ interface Task {
 }
 
 const TASKS: Task[] = [
-  { id: "T001", title: "Repair large pothole", address: "123 MG Road, Bangalore", category: "road", priority: "high", distance: "1.2 km", eta: "15 min", status: "in_progress" },
-  { id: "T002", title: "Fix street light panel", address: "Park Ave, 2nd Block", category: "streetlight", priority: "medium", distance: "3.4 km", eta: "30 min", status: "pending" },
+  { id: "T001", title: "Repair large pothole", address: "123 MG Road, Bangalore", category: "navigate", priority: "high", distance: "1.2 km", eta: "15 min", status: "in_progress" },
+  { id: "T002", title: "Fix street light panel", address: "Park Ave, 2nd Block", category: "electricity", priority: "medium", distance: "3.4 km", eta: "30 min", status: "pending" },
   { id: "T003", title: "Water valve replacement", address: "5th Cross, Gandhi Nagar", category: "water", priority: "high", distance: "5.1 km", eta: "45 min", status: "pending" },
   { id: "T004", title: "Garbage collection assist", address: "Gandhi Nagar Main St", category: "garbage", priority: "low", distance: "6.8 km", eta: "60 min", status: "pending" },
 ];

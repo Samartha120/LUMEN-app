@@ -79,16 +79,18 @@ export function KPICard({
 
 const styles = StyleSheet.create({
   container: {
-    minHeight: 120,
+    minHeight: 140,
   },
   content: {
-    padding: 16,
+    padding: 20,
+    flex: 1,
+    justifyContent: 'center',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   title: {
     textTransform: 'uppercase',
@@ -98,17 +100,17 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   value: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
   trend: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   trendText: {
     fontVariant: ['tabular-nums'],
   },
   trendLabel: {
-    marginLeft: 4,
+    marginLeft: 6,
   },
 });

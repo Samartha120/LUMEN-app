@@ -17,7 +17,6 @@ import {
     Building2,
     Calendar,
     Camera,
-    Car,
     Check,
     CheckCircle2,
     CheckSquare,
@@ -101,7 +100,6 @@ import {
     Wrench,
     X,
     XCircle,
-    // Domain — Infrastructure
     Zap
 } from "lucide-react-native";
 import React from "react";
@@ -136,7 +134,7 @@ const LUMEN_ICONS = {
   clipboard: Clipboard,
 
   // Infrastructure Issues
-  road: Car,
+  road: MapPin,
   electricity: Zap,
   water: Droplets,
   fire: Flame,

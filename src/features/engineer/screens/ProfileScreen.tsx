@@ -3,15 +3,7 @@
 // Phase 4: Engineer Experience
 // ============================================================
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  StatusBar,
-  Switch,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, StatusBar, Switch } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
@@ -58,9 +50,7 @@ const MENU_SECTIONS: { title: string; items: MenuItem[] }[] = [
   },
   {
     title: "",
-    items: [
-      { icon: "logout", label: "Sign Out", danger: true },
-    ],
+    items: [{ icon: "logout", label: "Sign Out", danger: true }],
   },
 ];
 
@@ -78,7 +68,10 @@ export default function EngineerProfileScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
       {/* Header */}
       <View style={[s.header, { borderBottomColor: colors.borderDefault }]}>
@@ -92,9 +85,13 @@ export default function EngineerProfileScreen() {
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-
         {/* Profile Hero Card */}
-        <View style={[s.hero, { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderDefault }]}>
+        <View
+          style={[
+            s.hero,
+            { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderDefault },
+          ]}
+        >
           <View style={s.avatarRow}>
             <Avatar name="Rajesh Kumar" size="xl" role="engineer" online={onDuty} />
             <Pressable style={[s.editAvatarBtn, { backgroundColor: colors.brand }]}>
@@ -114,7 +111,9 @@ export default function EngineerProfileScreen() {
         <Card variant="elevated" style={s.dutyCard}>
           <View style={s.dutyRow}>
             <View style={s.dutyInfo}>
-              <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, fontWeight: "600" }]}>
+              <Text
+                style={[TextStyles.bodyMedium, { color: colors.textPrimary, fontWeight: "600" }]}
+              >
                 On-Duty Dispatch Status
               </Text>
               <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
@@ -141,7 +140,16 @@ export default function EngineerProfileScreen() {
         {MENU_SECTIONS.map((section, si) => (
           <View key={si} style={s.section}>
             {section.title ? (
-              <Text style={[TextStyles.label, { color: colors.textTertiary, marginBottom: Spacing[2], paddingHorizontal: Spacing[5] }]}>
+              <Text
+                style={[
+                  TextStyles.label,
+                  {
+                    color: colors.textTertiary,
+                    marginBottom: Spacing[2],
+                    paddingHorizontal: Spacing[5],
+                  },
+                ]}
+              >
                 {section.title}
               </Text>
             ) : null}
@@ -159,7 +167,12 @@ export default function EngineerProfileScreen() {
                   ]}
                   onPress={() => handleItem(item)}
                 >
-                  <View style={[s.menuIcon, { backgroundColor: item.danger ? "#FEF3F2" : colors.bgSubtle }]}>
+                  <View
+                    style={[
+                      s.menuIcon,
+                      { backgroundColor: item.danger ? "#FEF3F2" : colors.bgSubtle },
+                    ]}
+                  >
                     <LumenIcon
                       name={item.icon}
                       size="sm"
@@ -167,14 +180,26 @@ export default function EngineerProfileScreen() {
                       strokeWidth={2}
                     />
                   </View>
-                  <Text style={[TextStyles.bodyMedium, { color: item.danger ? "#F04438" : colors.textPrimary, flex: 1 }]}>
+                  <Text
+                    style={[
+                      TextStyles.bodyMedium,
+                      { color: item.danger ? "#F04438" : colors.textPrimary, flex: 1 },
+                    ]}
+                  >
                     {item.label}
                   </Text>
                   {item.value && (
-                    <Text style={[TextStyles.bodySmall, { color: colors.textTertiary }]}>{item.value}</Text>
+                    <Text style={[TextStyles.bodySmall, { color: colors.textTertiary }]}>
+                      {item.value}
+                    </Text>
                   )}
                   {!item.danger && (
-                    <LumenIcon name="chevronRight" size="sm" color={colors.textTertiary} strokeWidth={2} />
+                    <LumenIcon
+                      name="chevronRight"
+                      size="sm"
+                      color={colors.textTertiary}
+                      strokeWidth={2}
+                    />
                   )}
                 </Pressable>
               ))}
@@ -191,20 +216,33 @@ export default function EngineerProfileScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: Spacing[5], paddingTop: 52, paddingBottom: Spacing[4], borderBottomWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing[5],
+    paddingTop: 52,
+    paddingBottom: Spacing[4],
+    borderBottomWidth: 1,
   },
   scroll: { paddingBottom: Spacing[10] },
   hero: {
-    alignItems: "center", gap: Spacing[2],
-    padding: Spacing[8], borderBottomWidth: 1,
+    alignItems: "center",
+    gap: Spacing[2],
+    padding: Spacing[8],
+    borderBottomWidth: 1,
   },
   avatarRow: { position: "relative" },
   editAvatarBtn: {
-    position: "absolute", bottom: 0, right: -4,
-    width: 28, height: 28, borderRadius: 14,
-    alignItems: "center", justifyContent: "center",
-    borderWidth: 2, borderColor: "#FFF",
+    position: "absolute",
+    bottom: 0,
+    right: -4,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#FFF",
   },
   heroTags: { flexDirection: "row", gap: Spacing[2], marginTop: Spacing[1] },
   dutyCard: { marginHorizontal: Spacing[5], marginTop: Spacing[4], marginBottom: Spacing[2] },
@@ -214,8 +252,17 @@ const s = StyleSheet.create({
   section: { marginBottom: Spacing[4] },
   menuCard: { marginHorizontal: Spacing[5], borderRadius: Radius["2xl"], overflow: "hidden" },
   menuRow: {
-    flexDirection: "row", alignItems: "center", gap: Spacing[4],
-    paddingHorizontal: Spacing[5], paddingVertical: Spacing[4],
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing[4],
+    paddingHorizontal: Spacing[5],
+    paddingVertical: Spacing[4],
   },
-  menuIcon: { width: 36, height: 36, borderRadius: Radius.lg, alignItems: "center", justifyContent: "center" },
+  menuIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

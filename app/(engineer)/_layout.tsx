@@ -11,7 +11,8 @@ export default function EngineerLayout() {
 
   const getActiveTab = (path: string) => {
     if (path === "Update-progress") return "FAB";
-    if (path === "Assigned-tasks" || path === "Task-details" || path === "Upload-proof") return "Assigned-tasks";
+    if (path === "Assigned-tasks" || path === "Task-details" || path === "Upload-proof")
+      return "Assigned-tasks";
     if (path === "Navigation") return "Navigation";
     if (path === "Profile") return "Profile";
     return "Dashboard";

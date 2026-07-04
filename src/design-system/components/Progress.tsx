@@ -83,7 +83,9 @@ export function ProgressRing({
       {/* Center label */}
       <View style={s.center}>
         {label && (
-          <Text style={[TextStyles.subtitle, { color: colors.textPrimary, fontWeight: "800" }]}>{label}</Text>
+          <Text style={[TextStyles.subtitle, { color: colors.textPrimary, fontWeight: "800" }]}>
+            {label}
+          </Text>
         )}
         {sublabel && (
           <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>{sublabel}</Text>
@@ -109,7 +111,12 @@ export interface LinearProgressProps {
   animated?: boolean;
 }
 
-export function LinearProgress({ progress, color, height = 6, animated = true }: LinearProgressProps) {
+export function LinearProgress({
+  progress,
+  color,
+  height = 6,
+  animated = true,
+}: LinearProgressProps) {
   const { colors } = useTheme();
   const barColor = color ?? colors.brand;
   const anim = useSharedValue(0);
@@ -125,7 +132,11 @@ export function LinearProgress({ progress, color, height = 6, animated = true }:
   return (
     <View style={[lp.track, { height, backgroundColor: colors.bgSubtle, borderRadius: height }]}>
       <Animated.View
-        style={[lp.bar, { height, backgroundColor: barColor, borderRadius: height }, animated && barStyle]}
+        style={[
+          lp.bar,
+          { height, backgroundColor: barColor, borderRadius: height },
+          animated && barStyle,
+        ]}
       />
     </View>
   );

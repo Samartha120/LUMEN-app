@@ -4,8 +4,13 @@
 // ============================================================
 import React, { useState } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, Pressable,
-  StatusBar, RefreshControl,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  StatusBar,
+  RefreshControl,
 } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/design-system/ThemeContext";
@@ -41,20 +46,70 @@ interface ReportItem {
 }
 
 const REPORTS: ReportItem[] = [
-  { id: "R001", title: "Large pothole on MG Road near City Bank", category: "road", status: "in_progress", time: "2h ago", priority: "high", progress: 65, engineer: "Rajesh K." },
-  { id: "R002", title: "Street light not working near Park Ave", category: "streetlight", status: "pending", time: "5h ago", priority: "medium", progress: 0 },
-  { id: "R003", title: "Water pipeline leakage on 5th Cross", category: "water", status: "resolved", time: "Yesterday", priority: "high", progress: 100, engineer: "Priya S." },
-  { id: "R004", title: "Garbage overflow at Gandhi Nagar", category: "garbage", status: "pending", time: "3h ago", priority: "low", progress: 0 },
-  { id: "R005", title: "Electrical sparks near residential area", category: "electricity", status: "in_progress", time: "1 day ago", priority: "high", progress: 40, engineer: "Suresh M." },
+  {
+    id: "R001",
+    title: "Large pothole on MG Road near City Bank",
+    category: "road",
+    status: "in_progress",
+    time: "2h ago",
+    priority: "high",
+    progress: 65,
+    engineer: "Rajesh K.",
+  },
+  {
+    id: "R002",
+    title: "Street light not working near Park Ave",
+    category: "streetlight",
+    status: "pending",
+    time: "5h ago",
+    priority: "medium",
+    progress: 0,
+  },
+  {
+    id: "R003",
+    title: "Water pipeline leakage on 5th Cross",
+    category: "water",
+    status: "resolved",
+    time: "Yesterday",
+    priority: "high",
+    progress: 100,
+    engineer: "Priya S.",
+  },
+  {
+    id: "R004",
+    title: "Garbage overflow at Gandhi Nagar",
+    category: "garbage",
+    status: "pending",
+    time: "3h ago",
+    priority: "low",
+    progress: 0,
+  },
+  {
+    id: "R005",
+    title: "Electrical sparks near residential area",
+    category: "electricity",
+    status: "in_progress",
+    time: "1 day ago",
+    priority: "high",
+    progress: 40,
+    engineer: "Suresh M.",
+  },
 ];
 
-const STATUS_CONFIG: Record<Exclude<Status,"all">, { label: string; variant: any; progress: string }> = {
+const STATUS_CONFIG: Record<
+  Exclude<Status, "all">,
+  { label: string; variant: any; progress: string }
+> = {
   pending: { label: "Pending", variant: "warning", progress: "#F79009" },
   in_progress: { label: "In Progress", variant: "info", progress: "#208AEF" },
   resolved: { label: "Resolved", variant: "success", progress: "#12B76A" },
 };
 
-const PRIORITY_COLOR: Record<string, string> = { high: "#F04438", medium: "#F79009", low: "#12B76A" };
+const PRIORITY_COLOR: Record<string, string> = {
+  high: "#F04438",
+  medium: "#F79009",
+  low: "#12B76A",
+};
 
 export default function MyReportScreen() {
   const { colors, isDark, shadows } = useTheme();
@@ -70,7 +125,10 @@ export default function MyReportScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
       {/* Header */}
       <View style={[s.header, { borderBottomColor: colors.borderDefault }]}>
@@ -90,7 +148,8 @@ export default function MyReportScreen() {
 
       {/* Filter Chips */}
       <ScrollView
-        horizontal showsHorizontalScrollIndicator={false}
+        horizontal
+        showsHorizontalScrollIndicator={false}
         contentContainerStyle={s.filters}
       >
         {FILTERS.map((f) => (
@@ -107,7 +166,17 @@ export default function MyReportScreen() {
       <ScrollView
         contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await new Promise(r => setTimeout(r, 1000)); setRefreshing(false); }} tintColor={colors.brand} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              await new Promise((r) => setTimeout(r, 1000));
+              setRefreshing(false);
+            }}
+            tintColor={colors.brand}
+          />
+        }
       >
         {filtered.length === 0 ? (
           <EmptyState
@@ -130,17 +199,31 @@ export default function MyReportScreen() {
               >
                 {/* Top row */}
                 <View style={s.cardTop}>
-                  <View style={[s.catIcon, { backgroundColor: PRIORITY_COLOR[report.priority] + "15" }]}>
-                    <LumenIcon name={report.category} size="md" color={PRIORITY_COLOR[report.priority]} strokeWidth={2} />
+                  <View
+                    style={[s.catIcon, { backgroundColor: PRIORITY_COLOR[report.priority] + "15" }]}
+                  >
+                    <LumenIcon
+                      name={report.category}
+                      size="md"
+                      color={PRIORITY_COLOR[report.priority]}
+                      strokeWidth={2}
+                    />
                   </View>
                   <View style={s.cardInfo}>
-                    <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]} numberOfLines={2}>
+                    <Text
+                      style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}
+                      numberOfLines={2}
+                    >
                       {report.title}
                     </Text>
                     <View style={s.cardMeta}>
-                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>#{report.id}</Text>
+                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                        #{report.id}
+                      </Text>
                       <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>·</Text>
-                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{report.time}</Text>
+                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                        {report.time}
+                      </Text>
                     </View>
                   </View>
                   <Badge label={sc.label} variant={sc.variant} size="sm" />
@@ -150,8 +233,12 @@ export default function MyReportScreen() {
                 {report.progress > 0 && (
                   <View style={s.progressSection}>
                     <View style={s.progressHeader}>
-                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Completion</Text>
-                      <Text style={[TextStyles.label, { color: sc.progress }]}>{report.progress}%</Text>
+                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                        Completion
+                      </Text>
+                      <Text style={[TextStyles.label, { color: sc.progress }]}>
+                        {report.progress}%
+                      </Text>
                     </View>
                     <LinearProgress progress={report.progress} color={sc.progress} height={5} />
                   </View>
@@ -179,8 +266,12 @@ export default function MyReportScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: Spacing[5], paddingTop: 52, paddingBottom: Spacing[4],
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing[5],
+    paddingTop: 52,
+    paddingBottom: Spacing[4],
     borderBottomWidth: 1,
   },
   countBadge: { paddingHorizontal: Spacing[3], paddingVertical: 4, borderRadius: Radius.full },
@@ -188,10 +279,21 @@ const s = StyleSheet.create({
   scroll: { paddingHorizontal: Spacing[5], paddingTop: Spacing[3], gap: Spacing[3] },
   card: { marginBottom: 0 },
   cardTop: { flexDirection: "row", gap: Spacing[3], alignItems: "flex-start" },
-  catIcon: { width: 44, height: 44, borderRadius: Radius.lg, alignItems: "center", justifyContent: "center" },
+  catIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   cardInfo: { flex: 1, gap: 4 },
   cardMeta: { flexDirection: "row", alignItems: "center", gap: 4 },
   progressSection: { gap: Spacing[1.5], marginTop: Spacing[2] },
   progressHeader: { flexDirection: "row", justifyContent: "space-between" },
-  engineerRow: { flexDirection: "row", alignItems: "center", gap: Spacing[2], marginTop: Spacing[2] },
+  engineerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing[2],
+    marginTop: Spacing[2],
+  },
 });

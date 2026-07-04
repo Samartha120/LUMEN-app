@@ -10,14 +10,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    Pressable,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
+  Animated,
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 const { width: W, height: H } = Dimensions.get("window");
@@ -26,7 +26,8 @@ const FEATURES = [
   {
     icon: "report",
     title: "Smart Reporting",
-    description: "Report infrastructure issues with AI-powered categorization and real-time tracking.",
+    description:
+      "Report infrastructure issues with AI-powered categorization and real-time tracking.",
     color: "#208AEF",
   },
   {
@@ -71,16 +72,34 @@ export default function LandingScreen() {
       Animated.sequence([
         Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
         Animated.parallel([
-          Animated.spring(slideUpAnim, { toValue: 0, useNativeDriver: true, speed: 16, bounciness: 8 }),
-          Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 16, bounciness: 8 }),
+          Animated.spring(slideUpAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            speed: 16,
+            bounciness: 8,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+            speed: 16,
+            bounciness: 8,
+          }),
         ]),
       ]).start();
 
       // Feature cards stagger
       FEATURES.forEach((_, idx) => {
-        setTimeout(() => {
-          Animated.spring(featureAnim, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 6 }).start();
-        }, 800 + idx * 150);
+        setTimeout(
+          () => {
+            Animated.spring(featureAnim, {
+              toValue: 1,
+              useNativeDriver: true,
+              speed: 14,
+              bounciness: 6,
+            }).start();
+          },
+          800 + idx * 150
+        );
       });
     };
     animate();
@@ -102,7 +121,10 @@ export default function LandingScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
       {/* Animated Background Orbs */}
       <Animated.View
@@ -114,7 +136,10 @@ export default function LandingScreen() {
       <Animated.View
         style={[
           s.orb2,
-          { backgroundColor: "#7C3AED10", transform: [{ translateY: Animated.multiply(orbTranslateY, -1) }] },
+          {
+            backgroundColor: "#7C3AED10",
+            transform: [{ translateY: Animated.multiply(orbTranslateY, -1) }],
+          },
         ]}
       />
       <Animated.View
@@ -131,15 +156,26 @@ export default function LandingScreen() {
             <View style={[s.wordmarkDot, { backgroundColor: colors.brand }]} />
             <Text style={[TextStyles.badge, { color: colors.brand, letterSpacing: 4 }]}>LUMEN</Text>
           </View>
-          
+
           <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-            <Text style={[TextStyles.heading1, { color: colors.textPrimary, textAlign: "center", lineHeight: 50 }]}>
+            <Text
+              style={[
+                TextStyles.heading1,
+                { color: colors.textPrimary, textAlign: "center", lineHeight: 50 },
+              ]}
+            >
               Smarter Cities,{"\n"}Better Lives
             </Text>
           </Animated.View>
-          
-          <Animated.Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center", opacity: fadeAnim }]}>
-            Transform civic infrastructure management with AI-powered reporting, real-time tracking, and transparent governance.
+
+          <Animated.Text
+            style={[
+              TextStyles.body,
+              { color: colors.textSecondary, textAlign: "center", opacity: fadeAnim },
+            ]}
+          >
+            Transform civic infrastructure management with AI-powered reporting, real-time tracking,
+            and transparent governance.
           </Animated.Text>
 
           <Animated.View style={[s.ctaContainer, { transform: [{ translateY: slideUpAnim }] }]}>
@@ -168,30 +204,48 @@ export default function LandingScreen() {
               style={[
                 s.statItem,
                 {
-                  transform: [{ scale: featureAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }],
+                  transform: [
+                    {
+                      scale: featureAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }),
+                    },
+                  ],
                   opacity: featureAnim,
                 },
               ]}
             >
               <Text style={[TextStyles.heading2, { color: colors.brand }]}>{stat.value}</Text>
-              <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>{stat.label}</Text>
+              <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
+                {stat.label}
+              </Text>
             </Animated.View>
           ))}
         </Animated.View>
 
         {/* Features Section */}
         <Animated.View style={[s.featuresSection, { opacity: featureAnim }]}>
-          <Text style={[TextStyles.heading2, { color: colors.textPrimary, textAlign: "center", marginBottom: Spacing[6] }]}>
+          <Text
+            style={[
+              TextStyles.heading2,
+              { color: colors.textPrimary, textAlign: "center", marginBottom: Spacing[6] },
+            ]}
+          >
             Why Choose LUMEN?
           </Text>
-          
+
           {FEATURES.map((feature, idx) => (
             <Animated.View
               key={idx}
               style={[
                 s.featureCard,
                 {
-                  transform: [{ translateY: featureAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+                  transform: [
+                    {
+                      translateY: featureAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [30, 0],
+                      }),
+                    },
+                  ],
                   opacity: featureAnim,
                 },
               ]}
@@ -205,10 +259,19 @@ export default function LandingScreen() {
                 />
                 <View style={s.featureContent}>
                   <View style={[s.featureIcon, { backgroundColor: feature.color + "20" }]}>
-                    <LumenIcon name={feature.icon as any} size="lg" color={feature.color} strokeWidth={2} />
+                    <LumenIcon
+                      name={feature.icon as any}
+                      size="lg"
+                      color={feature.color}
+                      strokeWidth={2}
+                    />
                   </View>
-                  <Text style={[TextStyles.subtitle, { color: colors.textPrimary }]}>{feature.title}</Text>
-                  <Text style={[TextStyles.body, { color: colors.textSecondary }]}>{feature.description}</Text>
+                  <Text style={[TextStyles.subtitle, { color: colors.textPrimary }]}>
+                    {feature.title}
+                  </Text>
+                  <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
+                    {feature.description}
+                  </Text>
                 </View>
               </BlurView>
             </Animated.View>
@@ -225,10 +288,17 @@ export default function LandingScreen() {
               style={StyleSheet.absoluteFill}
             />
             <View style={s.bottomCtaContent}>
-              <Text style={[TextStyles.heading2, { color: colors.textPrimary, textAlign: "center" }]}>
+              <Text
+                style={[TextStyles.heading2, { color: colors.textPrimary, textAlign: "center" }]}
+              >
                 Ready to make a difference?
               </Text>
-              <Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center", marginTop: Spacing[2] }]}>
+              <Text
+                style={[
+                  TextStyles.body,
+                  { color: colors.textSecondary, textAlign: "center", marginTop: Spacing[2] },
+                ]}
+              >
                 Join thousands of citizens building smarter communities today.
               </Text>
               <Button

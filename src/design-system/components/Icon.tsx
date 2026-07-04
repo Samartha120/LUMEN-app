@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { useTheme } from '../ThemeContext';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { useTheme } from "../ThemeContext";
 
 interface IconProps {
   icon: React.ReactNode;
@@ -26,7 +26,9 @@ export function Icon({ icon, size = 24, color, backgroundColor }: IconProps) {
           },
         ]}
       >
-        <View style={styles.iconWrapper}>{React.cloneElement(icon as React.ReactElement, { size, color: iconColor })}</View>
+        <View style={styles.iconWrapper}>
+          {React.cloneElement(icon as React.ReactElement, { size, color: iconColor })}
+        </View>
       </View>
     );
   }
@@ -36,11 +38,11 @@ export function Icon({ icon, size = 24, color, backgroundColor }: IconProps) {
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

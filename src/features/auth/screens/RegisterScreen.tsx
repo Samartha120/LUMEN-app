@@ -12,17 +12,17 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    Easing,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
+  Animated,
+  Dimensions,
+  Easing,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 const { width: SCREEN_W } = Dimensions.get("window");
@@ -48,7 +48,12 @@ export function RegisterScreen() {
 
   useEffect(() => {
     Animated.sequence([
-      Animated.timing(logoAnim, { toValue: 1, duration: 500, useNativeDriver: true, easing: Easing.out(Easing.cubic) }),
+      Animated.timing(logoAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }),
       Animated.parallel([
         Animated.spring(cardAnim, { toValue: 0, useNativeDriver: true, speed: 16, bounciness: 8 }),
         Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 16, bounciness: 8 }),
@@ -77,9 +82,18 @@ export function RegisterScreen() {
 
   const handleRegister = async () => {
     let valid = true;
-    if (!fullName) { setNameErr("Full name is required"); valid = false; }
-    if (!email) { setEmailErr("Email is required"); valid = false; }
-    if (!password) { setPassErr("Password is required"); valid = false; }
+    if (!fullName) {
+      setNameErr("Full name is required");
+      valid = false;
+    }
+    if (!email) {
+      setEmailErr("Email is required");
+      valid = false;
+    }
+    if (!password) {
+      setPassErr("Password is required");
+      valid = false;
+    }
     if (!valid) return;
 
     setLoading(true);
@@ -101,7 +115,10 @@ export function RegisterScreen() {
       style={[s.root, { backgroundColor: colors.bgBase }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
       {/* Decorative gradient orbs */}
       <LinearGradient
@@ -111,13 +128,25 @@ export function RegisterScreen() {
         style={s.topGradient}
       />
       <Animated.View
-        style={[s.orbTopRight, { backgroundColor: colors.brand + "12", transform: [{ translateY: orbTranslateY }] }]}
+        style={[
+          s.orbTopRight,
+          { backgroundColor: colors.brand + "12", transform: [{ translateY: orbTranslateY }] },
+        ]}
       />
       <Animated.View
-        style={[s.orbBottomLeft, { backgroundColor: "#7C3AED10", transform: [{ translateY: Animated.multiply(orbTranslateY, -1) }] }]}
+        style={[
+          s.orbBottomLeft,
+          {
+            backgroundColor: "#7C3AED10",
+            transform: [{ translateY: Animated.multiply(orbTranslateY, -1) }],
+          },
+        ]}
       />
       <Animated.View
-        style={[s.orbMid, { backgroundColor: "#12B76A08", transform: [{ translateY: orbTranslateY }] }]}
+        style={[
+          s.orbMid,
+          { backgroundColor: "#12B76A08", transform: [{ translateY: orbTranslateY }] },
+        ]}
       />
 
       <ScrollView
@@ -158,12 +187,29 @@ export function RegisterScreen() {
             <View style={s.cardContent}>
               {/* Role Selector */}
               <View style={s.roleSection}>
-                <Text style={[TextStyles.label, { color: colors.textSecondary, marginBottom: Spacing[2] }]}>
+                <Text
+                  style={[
+                    TextStyles.label,
+                    { color: colors.textSecondary, marginBottom: Spacing[2] },
+                  ]}
+                >
                   Register as
                 </Text>
-                <View style={[s.roleContainer, { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault }]}>
+                <View
+                  style={[
+                    s.roleContainer,
+                    { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault },
+                  ]}
+                >
                   <Animated.View
-                    style={[s.rolePill, { backgroundColor: colors.bgSurface, transform: [{ translateX: pillTranslateX }], width: (SCREEN_W - 48 - 24) / 2 }]}
+                    style={[
+                      s.rolePill,
+                      {
+                        backgroundColor: colors.bgSurface,
+                        transform: [{ translateX: pillTranslateX }],
+                        width: (SCREEN_W - 48 - 24) / 2,
+                      },
+                    ]}
                   />
                   {(["citizen", "engineer"] as Role[]).map((r) => (
                     <Pressable
@@ -174,8 +220,18 @@ export function RegisterScreen() {
                       accessibilityLabel={`Register as ${r}`}
                     >
                       <View style={s.roleBtnContent}>
-                        <LumenIcon name={ROLE_ICON as any} size="sm" color={role === r ? colors.brand : colors.textTertiary} strokeWidth={2} />
-                        <Text style={[TextStyles.label, { color: role === r ? colors.brand : colors.textTertiary }]}>
+                        <LumenIcon
+                          name={ROLE_ICON as any}
+                          size="sm"
+                          color={role === r ? colors.brand : colors.textTertiary}
+                          strokeWidth={2}
+                        />
+                        <Text
+                          style={[
+                            TextStyles.label,
+                            { color: role === r ? colors.brand : colors.textTertiary },
+                          ]}
+                        >
                           {r === "citizen" ? "Citizen" : "Engineer"}
                         </Text>
                       </View>
@@ -184,52 +240,65 @@ export function RegisterScreen() {
                 </View>
               </View>
 
-          {/* Fields */}
-          <View style={s.fields}>
-            <Input
-              label="Full Name"
-              value={fullName}
-              onChangeText={(t) => { setFullName(t); setNameErr(""); }}
-              placeholder="Samuel Krishnamurthy"
-              autoCapitalize="words"
-              iconLeft="profile"
-              error={nameErr}
-            />
-            <Input
-              label="Email address"
-              value={email}
-              onChangeText={(t) => { setEmail(t); setEmailErr(""); }}
-              placeholder="yourname@lumen.app"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              iconLeft="email"
-              error={emailErr}
-            />
-            <Input
-              label="Password"
-              value={password}
-              onChangeText={(t) => { setPassword(t); setPassErr(""); }}
-              placeholder="Minimum 8 characters"
-              secureTextEntry
-              iconLeft="lock"
-              error={passErr}
-            />
-          </View>
+              {/* Fields */}
+              <View style={s.fields}>
+                <Input
+                  label="Full Name"
+                  value={fullName}
+                  onChangeText={(t) => {
+                    setFullName(t);
+                    setNameErr("");
+                  }}
+                  placeholder="Samuel Krishnamurthy"
+                  autoCapitalize="words"
+                  iconLeft="profile"
+                  error={nameErr}
+                />
+                <Input
+                  label="Email address"
+                  value={email}
+                  onChangeText={(t) => {
+                    setEmail(t);
+                    setEmailErr("");
+                  }}
+                  placeholder="yourname@lumen.app"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  iconLeft="email"
+                  error={emailErr}
+                />
+                <Input
+                  label="Password"
+                  value={password}
+                  onChangeText={(t) => {
+                    setPassword(t);
+                    setPassErr("");
+                  }}
+                  placeholder="Minimum 8 characters"
+                  secureTextEntry
+                  iconLeft="lock"
+                  error={passErr}
+                />
+              </View>
 
-          {/* Register Button */}
-          <Button
-            label={loading ? "Registering…" : "Create Account"}
-            variant="primary"
-            size="lg"
-            fullWidth
-            loading={loading}
-            onPress={handleRegister}
-            iconRight={loading ? undefined : "forward"}
-          />
+              {/* Register Button */}
+              <Button
+                label={loading ? "Registering…" : "Create Account"}
+                variant="primary"
+                size="lg"
+                fullWidth
+                loading={loading}
+                onPress={handleRegister}
+                iconRight={loading ? undefined : "forward"}
+              />
 
               {/* Back to login */}
-              <Pressable style={s.backToLogin} onPress={() => router.push("/Login" as any)} accessibilityLabel="Back to sign in">
+              <Pressable
+                style={s.backToLogin}
+                onPress={() => router.push("/Login" as any)}
+                accessibilityLabel="Back to sign in"
+              >
                 <Text style={[TextStyles.bodySmall, { color: colors.textTertiary }]}>
                   Already registered?{" "}
                   <Text style={{ color: colors.brand, fontWeight: "600" }}>Sign In</Text>
@@ -260,16 +329,28 @@ const s = StyleSheet.create({
     height: 300,
   },
   orbTopRight: {
-    position: "absolute", top: -100, right: -100,
-    width: 280, height: 280, borderRadius: 140,
+    position: "absolute",
+    top: -100,
+    right: -100,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
   },
   orbBottomLeft: {
-    position: "absolute", bottom: -120, left: -100,
-    width: 320, height: 320, borderRadius: 160,
+    position: "absolute",
+    bottom: -120,
+    left: -100,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
   },
   orbMid: {
-    position: "absolute", top: "40%", right: -60,
-    width: 180, height: 180, borderRadius: 90,
+    position: "absolute",
+    top: "40%",
+    right: -60,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
   },
   hero: { gap: Spacing[3] },
   wordmarkRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: Spacing[2] },

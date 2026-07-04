@@ -58,7 +58,10 @@ export function ForgetPasswordScreen() {
       style={[s.root, { backgroundColor: colors.bgBase }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
       <ScrollView
         contentContainerStyle={s.scroll}
@@ -71,9 +74,7 @@ export function ForgetPasswordScreen() {
             <View style={[s.wordmarkDot, { backgroundColor: colors.brand }]} />
             <Text style={[TextStyles.badge, { color: colors.brand, letterSpacing: 3 }]}>LUMEN</Text>
           </View>
-          <Text style={[TextStyles.heading1, { color: colors.textPrimary }]}>
-            Recover Access
-          </Text>
+          <Text style={[TextStyles.heading1, { color: colors.textPrimary }]}>Recover Access</Text>
           <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>
             Enter your email below and we'll send you an OTP code to reset your password.
           </Text>
@@ -93,11 +94,22 @@ export function ForgetPasswordScreen() {
         >
           {success ? (
             <View style={s.successContainer}>
-              <Text style={[TextStyles.subtitle, { color: colors.textPrimary, textAlign: "center", marginBottom: Spacing[2] }]}>
+              <Text
+                style={[
+                  TextStyles.subtitle,
+                  { color: colors.textPrimary, textAlign: "center", marginBottom: Spacing[2] },
+                ]}
+              >
                 Check your Email
               </Text>
-              <Text style={[TextStyles.bodySmall, { color: colors.textSecondary, textAlign: "center", marginBottom: Spacing[5] }]}>
-                We've sent a 6-digit OTP code to <Text style={{ fontWeight: "700" }}>{email}</Text>. Please check your inbox.
+              <Text
+                style={[
+                  TextStyles.bodySmall,
+                  { color: colors.textSecondary, textAlign: "center", marginBottom: Spacing[5] },
+                ]}
+              >
+                We've sent a 6-digit OTP code to <Text style={{ fontWeight: "700" }}>{email}</Text>.
+                Please check your inbox.
               </Text>
               <Button
                 label="Enter OTP Code"
@@ -113,7 +125,10 @@ export function ForgetPasswordScreen() {
               <Input
                 label="Email address"
                 value={email}
-                onChangeText={(t) => { setEmail(t); setEmailErr(""); }}
+                onChangeText={(t) => {
+                  setEmail(t);
+                  setEmailErr("");
+                }}
                 placeholder="yourname@lumen.app"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -133,7 +148,11 @@ export function ForgetPasswordScreen() {
           )}
 
           {/* Back to login */}
-          <Pressable style={s.backToLogin} onPress={() => router.replace("/Login" as any)} accessibilityLabel="Back to sign in">
+          <Pressable
+            style={s.backToLogin}
+            onPress={() => router.replace("/Login" as any)}
+            accessibilityLabel="Back to sign in"
+          >
             <Text style={[TextStyles.bodySmall, { color: colors.brand, fontWeight: "600" }]}>
               Back to sign in
             </Text>

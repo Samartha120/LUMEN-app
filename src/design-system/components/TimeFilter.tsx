@@ -1,23 +1,23 @@
-import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import { FilterChip } from './FilterChip';
+import React from "react";
+import { ScrollView, StyleSheet } from "react-native";
+import { useTheme } from "../ThemeContext";
+import { FilterChip } from "./FilterChip";
 
-type TimeFilterValue = 'week' | 'month' | 'year' | 'all';
+type TimeFilterValue = "week" | "month" | "year" | "all";
 
 interface TimeFilterProps {
   value?: TimeFilterValue;
   onChange?: (value: TimeFilterValue) => void;
 }
 
-export function TimeFilter({ value = 'week', onChange }: TimeFilterProps) {
+export function TimeFilter({ value = "week", onChange }: TimeFilterProps) {
   const { spacing } = useTheme();
 
   const filters: { label: string; value: TimeFilterValue }[] = [
-    { label: 'This Week', value: 'week' },
-    { label: 'This Month', value: 'month' },
-    { label: 'This Year', value: 'year' },
-    { label: 'All Time', value: 'all' },
+    { label: "This Week", value: "week" },
+    { label: "This Month", value: "month" },
+    { label: "This Year", value: "year" },
+    { label: "All Time", value: "all" },
   ];
 
   return (

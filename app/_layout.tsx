@@ -15,7 +15,10 @@ export default function RootLayout() {
           <Stack.Screen name="(citizen)" />
           <Stack.Screen name="(engineer)" />
           <Stack.Screen name="(shared)" />
-          <Stack.Screen name="modal" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+          <Stack.Screen
+            name="modal"
+            options={{ presentation: "modal", animation: "slide_from_bottom" }}
+          />
         </Stack>
       </ThemeProvider>
     </GestureHandlerRootView>

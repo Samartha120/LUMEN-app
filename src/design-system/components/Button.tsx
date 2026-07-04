@@ -46,7 +46,12 @@ export function Button({
   const scale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () =>
-    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, speed: 50, bounciness: 0 }).start();
+    Animated.spring(scale, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 0,
+    }).start();
   const handlePressOut = () =>
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 50, bounciness: 4 }).start();
 
@@ -111,13 +116,23 @@ export function Button({
           <>
             {iconLeft && (
               <View style={s.iconLeft}>
-                <LumenIcon name={iconLeft} size={iconSz[size]} color={textColor[variant]} strokeWidth={2.5} />
+                <LumenIcon
+                  name={iconLeft}
+                  size={iconSz[size]}
+                  color={textColor[variant]}
+                  strokeWidth={2.5}
+                />
               </View>
             )}
             <Text style={[textStyle, { color: textColor[variant] }]}>{label}</Text>
             {iconRight && (
               <View style={s.iconRight}>
-                <LumenIcon name={iconRight} size={iconSz[size]} color={textColor[variant]} strokeWidth={2.5} />
+                <LumenIcon
+                  name={iconRight}
+                  size={iconSz[size]}
+                  color={textColor[variant]}
+                  strokeWidth={2.5}
+                />
               </View>
             )}
           </>

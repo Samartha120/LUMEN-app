@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
-import Animated, { useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
-import { useTheme } from '../ThemeContext';
+import React, { useEffect, useState } from "react";
+import { Text, StyleSheet } from "react-native";
+import Animated, { useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
+import { useTheme } from "../ThemeContext";
 
 interface AnimatedCounterProps {
   value: number;
@@ -15,8 +15,8 @@ interface AnimatedCounterProps {
 export function AnimatedCounter({
   value,
   duration = 1000,
-  prefix = '',
-  suffix = '',
+  prefix = "",
+  suffix = "",
   style,
   formatValue,
 }: AnimatedCounterProps) {
@@ -69,6 +69,6 @@ export function AnimatedCounter({
 
 const styles = StyleSheet.create({
   counter: {
-    fontVariant: ['tabular-nums'],
+    fontVariant: ["tabular-nums"],
   },
 });

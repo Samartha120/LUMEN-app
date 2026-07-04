@@ -1,7 +1,7 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Defs, Rect, Stop, Svg, LinearGradient as SvgLinearGradient } from 'react-native-svg';
-import { useTheme } from '../ThemeContext';
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { Defs, Rect, Stop, Svg, LinearGradient as SvgLinearGradient } from "react-native-svg";
+import { useTheme } from "../ThemeContext";
 
 interface BarChartProps {
   data: number[];
@@ -64,6 +64,6 @@ export function BarChart({
 
 const styles = StyleSheet.create({
   container: {
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });

@@ -3,9 +3,7 @@
 // Phase 3: Citizen Experience
 // ============================================================
 import React, { useState } from "react";
-import {
-  View, Text, StyleSheet, ScrollView, Pressable, StatusBar, Switch,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, StatusBar, Switch } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
@@ -28,7 +26,12 @@ interface LinkSetting {
 }
 
 const TOGGLE_SETTINGS: ToggleSetting[] = [
-  { icon: "notifications", label: "Push Notifications", desc: "Report updates & alerts", key: "push" },
+  {
+    icon: "notifications",
+    label: "Push Notifications",
+    desc: "Report updates & alerts",
+    key: "push",
+  },
   { icon: "email", label: "Email Notifications", desc: "Weekly digest", key: "email" },
   { icon: "locate", label: "Location Services", desc: "For issue reporting", key: "location" },
   { icon: "biometric", label: "Biometric Login", desc: "Face ID / Fingerprint", key: "biometric" },
@@ -44,14 +47,21 @@ const APPEARANCE: LinkSetting[] = [
 export default function SettingsScreen() {
   const { colors, isDark, shadows } = useTheme();
   const [toggles, setToggles] = useState<Record<string, boolean>>({
-    push: true, email: false, location: true, biometric: false, offline: true,
+    push: true,
+    email: false,
+    location: true,
+    biometric: false,
+    offline: true,
   });
 
-  const toggle = (key: string) => setToggles(t => ({ ...t, [key]: !t[key] }));
+  const toggle = (key: string) => setToggles((t) => ({ ...t, [key]: !t[key] }));
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
       <View style={[s.header, { borderBottomColor: colors.borderDefault }]}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
@@ -62,21 +72,34 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-
         {/* Notifications & Privacy */}
-        <Text style={[TextStyles.label, s.sectionLabel, { color: colors.textTertiary }]}>Notifications & Privacy</Text>
+        <Text style={[TextStyles.label, s.sectionLabel, { color: colors.textTertiary }]}>
+          Notifications & Privacy
+        </Text>
         <Card variant="elevated" padding={0} style={s.card}>
           {TOGGLE_SETTINGS.map((setting, i) => (
             <View
               key={setting.key}
-              style={[s.row, { borderBottomColor: colors.borderDefault, borderBottomWidth: i < TOGGLE_SETTINGS.length - 1 ? 1 : 0 }]}
+              style={[
+                s.row,
+                {
+                  borderBottomColor: colors.borderDefault,
+                  borderBottomWidth: i < TOGGLE_SETTINGS.length - 1 ? 1 : 0,
+                },
+              ]}
             >
               <View style={[s.rowIcon, { backgroundColor: colors.bgSubtle }]}>
                 <LumenIcon name={setting.icon} size="sm" color={colors.brand} strokeWidth={2} />
               </View>
               <View style={s.rowInfo}>
-                <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}>{setting.label}</Text>
-                {setting.desc && <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>{setting.desc}</Text>}
+                <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}>
+                  {setting.label}
+                </Text>
+                {setting.desc && (
+                  <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
+                    {setting.desc}
+                  </Text>
+                )}
               </View>
               <Switch
                 value={toggles[setting.key]}
@@ -89,7 +112,9 @@ export default function SettingsScreen() {
         </Card>
 
         {/* Appearance */}
-        <Text style={[TextStyles.label, s.sectionLabel, { color: colors.textTertiary }]}>Appearance & General</Text>
+        <Text style={[TextStyles.label, s.sectionLabel, { color: colors.textTertiary }]}>
+          Appearance & General
+        </Text>
         <Card variant="elevated" padding={0} style={s.card}>
           {APPEARANCE.map((item, i) => (
             <Pressable
@@ -104,19 +129,33 @@ export default function SettingsScreen() {
               ]}
             >
               <View style={[s.rowIcon, { backgroundColor: colors.bgSubtle }]}>
-                <LumenIcon name={item.icon} size="sm" color={colors.textSecondary} strokeWidth={2} />
+                <LumenIcon
+                  name={item.icon}
+                  size="sm"
+                  color={colors.textSecondary}
+                  strokeWidth={2}
+                />
               </View>
-              <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, flex: 1 }]}>{item.label}</Text>
+              <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, flex: 1 }]}>
+                {item.label}
+              </Text>
               {item.value && (
                 <Text style={[TextStyles.body, { color: colors.textTertiary }]}>{item.value}</Text>
               )}
-              <LumenIcon name="chevronRight" size="sm" color={colors.textTertiary} strokeWidth={2} />
+              <LumenIcon
+                name="chevronRight"
+                size="sm"
+                color={colors.textTertiary}
+                strokeWidth={2}
+              />
             </Pressable>
           ))}
         </Card>
 
         {/* Danger Zone */}
-        <Text style={[TextStyles.label, s.sectionLabel, { color: colors.textTertiary }]}>Account</Text>
+        <Text style={[TextStyles.label, s.sectionLabel, { color: colors.textTertiary }]}>
+          Account
+        </Text>
         <Card variant="elevated" padding={0} style={s.card}>
           {[
             { label: "Change Password", icon: "lock" as LumenIconName },
@@ -126,14 +165,37 @@ export default function SettingsScreen() {
               key={item.label}
               style={({ pressed }) => [
                 s.row,
-                { borderBottomColor: colors.borderDefault, borderBottomWidth: i === 0 ? 1 : 0, opacity: pressed ? 0.75 : 1 },
+                {
+                  borderBottomColor: colors.borderDefault,
+                  borderBottomWidth: i === 0 ? 1 : 0,
+                  opacity: pressed ? 0.75 : 1,
+                },
               ]}
             >
-              <View style={[s.rowIcon, { backgroundColor: item.danger ? "#FEF3F2" : colors.bgSubtle }]}>
-                <LumenIcon name={item.icon} size="sm" color={item.danger ? "#F04438" : colors.textSecondary} strokeWidth={2} />
+              <View
+                style={[s.rowIcon, { backgroundColor: item.danger ? "#FEF3F2" : colors.bgSubtle }]}
+              >
+                <LumenIcon
+                  name={item.icon}
+                  size="sm"
+                  color={item.danger ? "#F04438" : colors.textSecondary}
+                  strokeWidth={2}
+                />
               </View>
-              <Text style={[TextStyles.bodyMedium, { color: item.danger ? "#F04438" : colors.textPrimary, flex: 1 }]}>{item.label}</Text>
-              <LumenIcon name="chevronRight" size="sm" color={item.danger ? "#F04438" : colors.textTertiary} strokeWidth={2} />
+              <Text
+                style={[
+                  TextStyles.bodyMedium,
+                  { color: item.danger ? "#F04438" : colors.textPrimary, flex: 1 },
+                ]}
+              >
+                {item.label}
+              </Text>
+              <LumenIcon
+                name="chevronRight"
+                size="sm"
+                color={item.danger ? "#F04438" : colors.textTertiary}
+                strokeWidth={2}
+              />
             </Pressable>
           ))}
         </Card>
@@ -147,16 +209,30 @@ export default function SettingsScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: Spacing[5], paddingTop: 52, paddingBottom: Spacing[4], borderBottomWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing[5],
+    paddingTop: 52,
+    paddingBottom: Spacing[4],
+    borderBottomWidth: 1,
   },
   scroll: { padding: Spacing[5] },
   sectionLabel: { marginBottom: Spacing[2], marginTop: Spacing[2] },
   card: { borderRadius: Radius["2xl"], overflow: "hidden", marginBottom: Spacing[5] },
   row: {
-    flexDirection: "row", alignItems: "center", gap: Spacing[4],
-    paddingHorizontal: Spacing[5], paddingVertical: Spacing[4],
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing[4],
+    paddingHorizontal: Spacing[5],
+    paddingVertical: Spacing[4],
   },
-  rowIcon: { width: 36, height: 36, borderRadius: Radius.lg, alignItems: "center", justifyContent: "center" },
+  rowIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   rowInfo: { flex: 1 },
 });

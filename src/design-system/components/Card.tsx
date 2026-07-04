@@ -31,7 +31,12 @@ export function Card({
   const scale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () =>
-    Animated.spring(scale, { toValue: 0.98, useNativeDriver: true, speed: 50, bounciness: 0 }).start();
+    Animated.spring(scale, {
+      toValue: 0.98,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 0,
+    }).start();
   const handlePressOut = () =>
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 40, bounciness: 5 }).start();
 
@@ -59,12 +64,7 @@ export function Card({
     },
   };
 
-  const containerStyle = [
-    s.card,
-    cardStyles[variant],
-    { padding, borderRadius: radius },
-    style,
-  ];
+  const containerStyle = [s.card, cardStyles[variant], { padding, borderRadius: radius }, style];
 
   if (onPress) {
     return (

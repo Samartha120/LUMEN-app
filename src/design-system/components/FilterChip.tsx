@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import { X } from 'lucide-react-native';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useTheme } from "../ThemeContext";
+import { X } from "lucide-react-native";
 
 interface FilterChipProps {
   label: string;
@@ -34,7 +34,7 @@ export function FilterChip({
           borderColor: selected ? colors.brand : colors.borderDefault,
         },
       ]}
-      accessibilityRole={removable ? 'button' : 'checkbox'}
+      accessibilityRole={removable ? "button" : "checkbox"}
       accessibilityState={{ selected }}
       accessibilityLabel={label}
     >
@@ -61,16 +61,16 @@ export function FilterChip({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
     gap: 6,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   label: {
-    textTransform: 'capitalize',
+    textTransform: "capitalize",
   },
 });

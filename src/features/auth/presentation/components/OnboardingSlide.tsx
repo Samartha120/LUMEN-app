@@ -1,7 +1,7 @@
-import { useTheme } from '@/design-system/ThemeContext';
-import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
-import { ImageBackground, StyleSheet, Text, View } from 'react-native';
+import { useTheme } from "@/design-system/ThemeContext";
+import { LinearGradient } from "expo-linear-gradient";
+import React from "react";
+import { ImageBackground, StyleSheet, Text, View } from "react-native";
 
 interface OnboardingSlideProps {
   title: string;
@@ -18,7 +18,7 @@ export function OnboardingSlide({ title, description, image, index, total }: Onb
     <View style={styles.container}>
       <ImageBackground source={image} style={styles.image} resizeMode="cover">
         <LinearGradient
-          colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)']}
+          colors={["rgba(0,0,0,0.3)", "rgba(0,0,0,0.7)"]}
           style={StyleSheet.absoluteFill}
         />
         <View style={styles.content}>
@@ -38,10 +38,20 @@ export function OnboardingSlide({ title, description, image, index, total }: Onb
               );
             })}
           </View>
-          <Text style={[styles.title, { color: colors.textInverse, fontSize: fontSize['3xl'], fontWeight: fontWeight.bold }]}>
+          <Text
+            style={[
+              styles.title,
+              { color: colors.textInverse, fontSize: fontSize["3xl"], fontWeight: fontWeight.bold },
+            ]}
+          >
             {title}
           </Text>
-          <Text style={[styles.description, { color: colors.textInverse, fontSize: fontSize.md, fontWeight: fontWeight.regular }]}>
+          <Text
+            style={[
+              styles.description,
+              { color: colors.textInverse, fontSize: fontSize.md, fontWeight: fontWeight.regular },
+            ]}
+          >
             {description}
           </Text>
         </View>
@@ -56,30 +66,30 @@ const styles = StyleSheet.create({
   },
   image: {
     flex: 1,
-    width: '100%',
+    width: "100%",
   },
   content: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
     padding: 24,
     paddingBottom: 80,
   },
   pagination: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 24,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   dot: {
     height: 8,
     borderRadius: 4,
   },
   title: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 16,
   },
   description: {
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 24,
     opacity: 0.95,
   },

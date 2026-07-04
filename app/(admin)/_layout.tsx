@@ -1,6 +1,6 @@
-import { BottomNavigation, type NavItem } from '@/design-system/components/BottomNavigation';
-import { useTheme } from '@/design-system/ThemeContext';
-import { router, Tabs, useSegments } from 'expo-router';
+import { BottomNavigation, type NavItem } from "@/design-system/components/BottomNavigation";
+import { useTheme } from "@/design-system/ThemeContext";
+import { router, Tabs, useSegments } from "expo-router";
 
 export default function AdminLayout() {
   const { colors } = useTheme();
@@ -50,11 +50,7 @@ export default function AdminLayout() {
         <Tabs.Screen name="Users" />
         <Tabs.Screen name="Settings" />
       </Tabs>
-      <BottomNavigation
-        items={navItems}
-        activeTab={activeTab}
-        onTabPress={handleTabPress}
-      />
+      <BottomNavigation items={navItems} activeTab={activeTab} onTabPress={handleTabPress} />
     </>
   );
 }

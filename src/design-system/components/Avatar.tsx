@@ -37,13 +37,17 @@ export function Avatar({ name = "?", size = "md", color, online = false, role }:
     .join("")
     .toUpperCase();
 
-  const [bg] = role ? ROLE_COLORS[role] ?? [colors.brand, colors.brandMuted] : [color ?? colors.brand, colors.brandMuted];
+  const [bg] = role
+    ? (ROLE_COLORS[role] ?? [colors.brand, colors.brandMuted])
+    : [color ?? colors.brand, colors.brandMuted];
 
   const onlineDotSize = size === "xs" ? 7 : size === "sm" ? 9 : 11;
 
   return (
     <View style={[s.root, { width: dim, height: dim, borderRadius: dim / 2, backgroundColor: bg }]}>
-      <Text style={[TextStyles.label, { fontSize, color: "#FFFFFF", fontWeight: "700" }]}>{initials}</Text>
+      <Text style={[TextStyles.label, { fontSize, color: "#FFFFFF", fontWeight: "700" }]}>
+        {initials}
+      </Text>
       {online && (
         <View
           style={[

@@ -39,14 +39,60 @@ interface MapPin {
 }
 
 const PIN_DATA: MapPin[] = [
-  { id: "P1", title: "MG Road Pothole Repair", category: "road", priority: "high", top: "30%", left: "25%", address: "123 MG Road, Bangalore", engineer: "Rajesh K.", status: "in_progress" },
-  { id: "P2", title: "Street Light Panel Outage", category: "streetlight", priority: "medium", top: "48%", left: "55%", address: "Park Ave, 2nd Block", status: "pending" },
-  { id: "P3", title: "Water Pipeline Replacement", category: "water", priority: "high", top: "62%", left: "38%", address: "5th Cross, Gandhi Nagar", engineer: "Suresh M.", status: "in_progress" },
-  { id: "P4", title: "Garbage Pile Overflow", category: "garbage", priority: "low", top: "25%", left: "70%", address: "City Center Market", status: "pending" },
+  {
+    id: "P1",
+    title: "MG Road Pothole Repair",
+    category: "road",
+    priority: "high",
+    top: "30%",
+    left: "25%",
+    address: "123 MG Road, Bangalore",
+    engineer: "Rajesh K.",
+    status: "in_progress",
+  },
+  {
+    id: "P2",
+    title: "Street Light Panel Outage",
+    category: "streetlight",
+    priority: "medium",
+    top: "48%",
+    left: "55%",
+    address: "Park Ave, 2nd Block",
+    status: "pending",
+  },
+  {
+    id: "P3",
+    title: "Water Pipeline Replacement",
+    category: "water",
+    priority: "high",
+    top: "62%",
+    left: "38%",
+    address: "5th Cross, Gandhi Nagar",
+    engineer: "Suresh M.",
+    status: "in_progress",
+  },
+  {
+    id: "P4",
+    title: "Garbage Pile Overflow",
+    category: "garbage",
+    priority: "low",
+    top: "25%",
+    left: "70%",
+    address: "City Center Market",
+    status: "pending",
+  },
 ];
 
-const PRIORITY_COLOR: Record<string, string> = { high: "#F04438", medium: "#F79009", low: "#12B76A" };
-const STATUS_LABELS: Record<string, string> = { pending: "Pending", in_progress: "In Progress", resolved: "Resolved" };
+const PRIORITY_COLOR: Record<string, string> = {
+  high: "#F04438",
+  medium: "#F79009",
+  low: "#12B76A",
+};
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Pending",
+  in_progress: "In Progress",
+  resolved: "Resolved",
+};
 
 export default function MapScreen() {
   const { colors, shadows, isDark } = useTheme();
@@ -74,22 +120,34 @@ export default function MapScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
 
       {/* Dynamic Simulated Map Canvas */}
       <Pressable style={s.mapCanvas} onPress={() => selectPin(null)}>
         {/* Fake Grid Map Background */}
         <View style={[s.mapGrid, { borderColor: colors.borderDefault + "30" }]} />
-        <View style={[s.mapGridLineVer, { left: "20%", borderColor: colors.borderDefault + "20" }]} />
-        <View style={[s.mapGridLineVer, { left: "50%", borderColor: colors.borderDefault + "20" }]} />
-        <View style={[s.mapGridLineVer, { left: "80%", borderColor: colors.borderDefault + "20" }]} />
-        <View style={[s.mapGridLineHor, { top: "30%", borderColor: colors.borderDefault + "20" }]} />
-        <View style={[s.mapGridLineHor, { top: "60%", borderColor: colors.borderDefault + "20" }]} />
+        <View
+          style={[s.mapGridLineVer, { left: "20%", borderColor: colors.borderDefault + "20" }]}
+        />
+        <View
+          style={[s.mapGridLineVer, { left: "50%", borderColor: colors.borderDefault + "20" }]}
+        />
+        <View
+          style={[s.mapGridLineVer, { left: "80%", borderColor: colors.borderDefault + "20" }]}
+        />
+        <View
+          style={[s.mapGridLineHor, { top: "30%", borderColor: colors.borderDefault + "20" }]}
+        />
+        <View
+          style={[s.mapGridLineHor, { top: "60%", borderColor: colors.borderDefault + "20" }]}
+        />
 
         {/* Fake GPS Route path if pin selected */}
-        {selectedPin && (
-          <View style={[s.routeLine, { backgroundColor: colors.brand }]} />
-        )}
+        {selectedPin && <View style={[s.routeLine, { backgroundColor: colors.brand }]} />}
 
         {/* Active pins */}
         {filteredPins.map((pin) => {
@@ -118,13 +176,20 @@ export default function MapScreen() {
       <View style={[s.floatingHUD, { paddingTop: Platform.OS === "ios" ? 56 : 36 }]}>
         <View style={s.searchRow}>
           <Pressable
-            style={[s.backBtn, { backgroundColor: colors.bgGlass, borderColor: colors.borderGlass, ...shadows.md }]}
+            style={[
+              s.backBtn,
+              { backgroundColor: colors.bgGlass, borderColor: colors.borderGlass, ...shadows.md },
+            ]}
             onPress={() => router.back()}
           >
             <LumenIcon name="back" size="md" color={colors.textPrimary} strokeWidth={2.5} />
           </Pressable>
           <View style={s.searchBarContainer}>
-            <SearchBar value={search} onChangeText={setSearch} placeholder="Search map coordinates…" />
+            <SearchBar
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search map coordinates…"
+            />
           </View>
         </View>
 
@@ -148,10 +213,20 @@ export default function MapScreen() {
 
       {/* Floating Side Tools */}
       <View style={s.sideTools}>
-        <Pressable style={[s.toolBtn, { backgroundColor: colors.bgGlass, borderColor: colors.borderGlass, ...shadows.md }]}>
+        <Pressable
+          style={[
+            s.toolBtn,
+            { backgroundColor: colors.bgGlass, borderColor: colors.borderGlass, ...shadows.md },
+          ]}
+        >
           <LumenIcon name="locate" size="md" color={colors.brand} strokeWidth={2} />
         </Pressable>
-        <Pressable style={[s.toolBtn, { backgroundColor: colors.bgGlass, borderColor: colors.borderGlass, ...shadows.md }]}>
+        <Pressable
+          style={[
+            s.toolBtn,
+            { backgroundColor: colors.bgGlass, borderColor: colors.borderGlass, ...shadows.md },
+          ]}
+        >
           <LumenIcon name="compass" size="md" color={colors.textPrimary} strokeWidth={2} />
         </Pressable>
       </View>
@@ -173,14 +248,30 @@ export default function MapScreen() {
         {selectedPin && (
           <View style={s.drawerContent}>
             <View style={s.drawerHeader}>
-              <View style={[s.drawerIconBg, { backgroundColor: PRIORITY_COLOR[selectedPin.priority] + "15" }]}>
-                <LumenIcon name={selectedPin.category} size="lg" color={PRIORITY_COLOR[selectedPin.priority]} strokeWidth={2} />
+              <View
+                style={[
+                  s.drawerIconBg,
+                  { backgroundColor: PRIORITY_COLOR[selectedPin.priority] + "15" },
+                ]}
+              >
+                <LumenIcon
+                  name={selectedPin.category}
+                  size="lg"
+                  color={PRIORITY_COLOR[selectedPin.priority]}
+                  strokeWidth={2}
+                />
               </View>
               <View style={s.drawerTitleCol}>
-                <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, fontWeight: "700" }]} numberOfLines={1}>
+                <Text
+                  style={[TextStyles.bodyMedium, { color: colors.textPrimary, fontWeight: "700" }]}
+                  numberOfLines={1}
+                >
                   {selectedPin.title}
                 </Text>
-                <Text style={[TextStyles.caption, { color: colors.textSecondary }]} numberOfLines={1}>
+                <Text
+                  style={[TextStyles.caption, { color: colors.textSecondary }]}
+                  numberOfLines={1}
+                >
                   {selectedPin.address}
                 </Text>
               </View>
@@ -197,18 +288,29 @@ export default function MapScreen() {
             <View style={s.metaRow}>
               <View style={s.metaCol}>
                 <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Priority</Text>
-                <Text style={[TextStyles.bodySmall, { color: PRIORITY_COLOR[selectedPin.priority], fontWeight: "600" }]}>
+                <Text
+                  style={[
+                    TextStyles.bodySmall,
+                    { color: PRIORITY_COLOR[selectedPin.priority], fontWeight: "600" },
+                  ]}
+                >
                   {selectedPin.priority.toUpperCase()}
                 </Text>
               </View>
               <View style={s.metaCol}>
-                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Assigned Team</Text>
-                <Text style={[TextStyles.bodySmall, { color: colors.textPrimary, fontWeight: "600" }]}>
+                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                  Assigned Team
+                </Text>
+                <Text
+                  style={[TextStyles.bodySmall, { color: colors.textPrimary, fontWeight: "600" }]}
+                >
                   {selectedPin.engineer ?? "Unassigned"}
                 </Text>
               </View>
               <View style={s.metaCol}>
-                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Resolution ETA</Text>
+                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                  Resolution ETA
+                </Text>
                 <Text style={[TextStyles.bodySmall, { color: colors.brand, fontWeight: "600" }]}>
                   ~24 Hours
                 </Text>

@@ -25,7 +25,12 @@ export function FAB({ icon, label, onPress, color, size = "md" }: FABProps) {
   const dim = SIZES[size];
 
   const pressIn = () =>
-    Animated.spring(scale, { toValue: 0.90, useNativeDriver: true, speed: 60, bounciness: 0 }).start();
+    Animated.spring(scale, {
+      toValue: 0.9,
+      useNativeDriver: true,
+      speed: 60,
+      bounciness: 0,
+    }).start();
   const pressOut = () =>
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 40, bounciness: 8 }).start();
 

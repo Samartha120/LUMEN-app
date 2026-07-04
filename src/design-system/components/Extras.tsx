@@ -2,14 +2,7 @@
 // LUMEN DS — EmptyState, StatusBanner, SearchBar
 // ============================================================
 import React, { useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  Animated,
-} from "react-native";
+import { View, Text, StyleSheet, Pressable, TextInput, Animated } from "react-native";
 import { LumenIcon, type LumenIconName } from "../icons/LumenIcon";
 import { useTheme } from "../ThemeContext";
 import { Radius, Spacing, TextStyles, TouchTarget } from "../tokens";
@@ -33,9 +26,13 @@ export function EmptyState({ icon, title, description, actionLabel, onAction }: 
           <LumenIcon name={icon} size="xl" color={colors.textTertiary} strokeWidth={1.5} />
         </View>
       )}
-      <Text style={[TextStyles.title, { color: colors.textPrimary, textAlign: "center" }]}>{title}</Text>
+      <Text style={[TextStyles.title, { color: colors.textPrimary, textAlign: "center" }]}>
+        {title}
+      </Text>
       {description && (
-        <Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center" }]}>{description}</Text>
+        <Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center" }]}>
+          {description}
+        </Text>
       )}
       {actionLabel && onAction && (
         <Button label={actionLabel} onPress={onAction} variant="secondary" size="md" />
@@ -45,8 +42,19 @@ export function EmptyState({ icon, title, description, actionLabel, onAction }: 
 }
 
 const es = StyleSheet.create({
-  root: { alignItems: "center", gap: Spacing[4], paddingVertical: Spacing[12], paddingHorizontal: Spacing[6] },
-  iconWrap: { width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center" },
+  root: {
+    alignItems: "center",
+    gap: Spacing[4],
+    paddingVertical: Spacing[12],
+    paddingHorizontal: Spacing[6],
+  },
+  iconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
 
 // ---- StatusBanner ----
@@ -108,21 +116,37 @@ export interface SearchBarProps {
   onBlur?: () => void;
 }
 
-export function SearchBar({ value, onChangeText, placeholder = "Search…", onFocus, onBlur }: SearchBarProps) {
+export function SearchBar({
+  value,
+  onChangeText,
+  placeholder = "Search…",
+  onFocus,
+  onBlur,
+}: SearchBarProps) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
   const widthAnim = useRef(new Animated.Value(0)).current;
 
   const handleFocus = () => {
     setFocused(true);
-    Animated.spring(widthAnim, { toValue: 1, useNativeDriver: false, speed: 40, bounciness: 0 }).start();
+    Animated.spring(widthAnim, {
+      toValue: 1,
+      useNativeDriver: false,
+      speed: 40,
+      bounciness: 0,
+    }).start();
     onFocus?.();
   };
 
   const handleBlur = () => {
     setFocused(false);
     if (!value) {
-      Animated.spring(widthAnim, { toValue: 0, useNativeDriver: false, speed: 40, bounciness: 0 }).start();
+      Animated.spring(widthAnim, {
+        toValue: 0,
+        useNativeDriver: false,
+        speed: 40,
+        bounciness: 0,
+      }).start();
     }
     onBlur?.();
   };
@@ -140,7 +164,12 @@ export function SearchBar({ value, onChangeText, placeholder = "Search…", onFo
         },
       ]}
     >
-      <LumenIcon name="search" size="sm" color={focused ? colors.brand : colors.textTertiary} strokeWidth={2} />
+      <LumenIcon
+        name="search"
+        size="sm"
+        color={focused ? colors.brand : colors.textTertiary}
+        strokeWidth={2}
+      />
       <TextInput
         value={value}
         onChangeText={onChangeText}

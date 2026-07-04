@@ -33,10 +33,38 @@ interface SearchResult {
 }
 
 const SEARCH_RESULTS: SearchResult[] = [
-  { id: "S1", title: "MG Road Pothole Damage", category: "road", status: "in_progress", address: "123 MG Road", date: "2h ago" },
-  { id: "S2", title: "Water line broken valve", category: "water", status: "in_progress", address: "5th Cross, Gandhi Nagar", date: "Yesterday" },
-  { id: "S3", title: "Street lamp out near park", category: "streetlight", status: "pending", address: "Park Avenue", date: "3d ago" },
-  { id: "S4", title: "Garbage pile overflow", category: "garbage", status: "pending", address: "City Market St", date: "4d ago" },
+  {
+    id: "S1",
+    title: "MG Road Pothole Damage",
+    category: "road",
+    status: "in_progress",
+    address: "123 MG Road",
+    date: "2h ago",
+  },
+  {
+    id: "S2",
+    title: "Water line broken valve",
+    category: "water",
+    status: "in_progress",
+    address: "5th Cross, Gandhi Nagar",
+    date: "Yesterday",
+  },
+  {
+    id: "S3",
+    title: "Street lamp out near park",
+    category: "streetlight",
+    status: "pending",
+    address: "Park Avenue",
+    date: "3d ago",
+  },
+  {
+    id: "S4",
+    title: "Garbage pile overflow",
+    category: "garbage",
+    status: "pending",
+    address: "City Market St",
+    date: "4d ago",
+  },
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -72,7 +100,8 @@ export default function SearchScreen() {
 
   const getFilteredResults = () => {
     return SEARCH_RESULTS.filter((item) => {
-      const matchQuery = item.title.toLowerCase().includes(query.toLowerCase()) ||
+      const matchQuery =
+        item.title.toLowerCase().includes(query.toLowerCase()) ||
         item.address.toLowerCase().includes(query.toLowerCase());
       const matchCat = selectedCat === "all" || item.category === selectedCat;
       return matchQuery && matchCat;
@@ -83,7 +112,10 @@ export default function SearchScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
       {/* Top Search Panel */}
       <View style={[s.header, { borderBottomColor: colors.borderDefault }]}>
@@ -91,18 +123,28 @@ export default function SearchScreen() {
           <LumenIcon name="back" size="md" color={colors.textPrimary} strokeWidth={2.5} />
         </Pressable>
         <View style={s.searchBarWrapper}>
-          <SearchBar value={query} onChangeText={setQuery} placeholder="Search reports, coordinates, engineers…" />
+          <SearchBar
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search reports, coordinates, engineers…"
+          />
         </View>
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Category filtering pills */}
         <View style={s.catPillContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.catPillsRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.catPillsRow}
+          >
             {["all", "road", "streetlight", "water", "garbage", "electricity"].map((cat) => (
               <Chip
                 key={cat}
-                label={cat === "all" ? "All categories" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                label={
+                  cat === "all" ? "All categories" : cat.charAt(0).toUpperCase() + cat.slice(1)
+                }
                 selected={selectedCat === cat}
                 onPress={() => setSelectedCat(cat)}
               />
@@ -118,17 +160,29 @@ export default function SearchScreen() {
         ) : query ? (
           /* Results Section */
           <View style={s.section}>
-            <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>
+            <Text
+              style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}
+            >
               Search Results ({results.length})
             </Text>
 
             {results.length === 0 ? (
               <View style={s.emptyState}>
                 <LumenIcon name="search" size="xl" color={colors.textTertiary} strokeWidth={1.5} />
-                <Text style={[TextStyles.bodyMedium, { color: colors.textSecondary, marginTop: Spacing[3], textAlign: "center" }]}>
+                <Text
+                  style={[
+                    TextStyles.bodyMedium,
+                    { color: colors.textSecondary, marginTop: Spacing[3], textAlign: "center" },
+                  ]}
+                >
                   No results found for "{query}"
                 </Text>
-                <Text style={[TextStyles.caption, { color: colors.textTertiary, textAlign: "center", marginTop: 4 }]}>
+                <Text
+                  style={[
+                    TextStyles.caption,
+                    { color: colors.textTertiary, textAlign: "center", marginTop: 4 },
+                  ]}
+                >
                   Try checking spelling or use a different keyword.
                 </Text>
               </View>
@@ -142,14 +196,33 @@ export default function SearchScreen() {
                   onPress={() => router.push("/(citizen)/Report-details" as any)}
                 >
                   <View style={s.cardContent}>
-                    <View style={[s.catIcon, { backgroundColor: CATEGORY_COLORS[item.category] + "15" }]}>
-                      <LumenIcon name={item.category} size="md" color={CATEGORY_COLORS[item.category]} strokeWidth={2} />
+                    <View
+                      style={[
+                        s.catIcon,
+                        { backgroundColor: CATEGORY_COLORS[item.category] + "15" },
+                      ]}
+                    >
+                      <LumenIcon
+                        name={item.category}
+                        size="md"
+                        color={CATEGORY_COLORS[item.category]}
+                        strokeWidth={2}
+                      />
                     </View>
                     <View style={s.infoCol}>
-                      <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, fontWeight: "600" }]} numberOfLines={1}>
+                      <Text
+                        style={[
+                          TextStyles.bodyMedium,
+                          { color: colors.textPrimary, fontWeight: "600" },
+                        ]}
+                        numberOfLines={1}
+                      >
                         {item.title}
                       </Text>
-                      <Text style={[TextStyles.caption, { color: colors.textSecondary }]} numberOfLines={1}>
+                      <Text
+                        style={[TextStyles.caption, { color: colors.textSecondary }]}
+                        numberOfLines={1}
+                      >
                         {item.address} · {item.date}
                       </Text>
                     </View>
@@ -169,23 +242,45 @@ export default function SearchScreen() {
             {history.length > 0 && (
               <View style={s.section}>
                 <View style={s.sectionHeader}>
-                  <Text style={[TextStyles.label, { color: colors.textSecondary }]}>Recent Searches</Text>
+                  <Text style={[TextStyles.label, { color: colors.textSecondary }]}>
+                    Recent Searches
+                  </Text>
                   <Pressable onPress={() => setHistory([])}>
-                    <Text style={[TextStyles.caption, { color: colors.brand, fontWeight: "600" }]}>Clear All</Text>
+                    <Text style={[TextStyles.caption, { color: colors.brand, fontWeight: "600" }]}>
+                      Clear All
+                    </Text>
                   </Pressable>
                 </View>
 
                 <View style={s.historyRows}>
                   {history.map((item) => (
-                    <View key={item} style={[s.historyRow, { borderBottomColor: colors.borderDefault }]}>
+                    <View
+                      key={item}
+                      style={[s.historyRow, { borderBottomColor: colors.borderDefault }]}
+                    >
                       <Pressable style={s.historyClickable} onPress={() => setQuery(item)}>
-                        <LumenIcon name="clock" size="sm" color={colors.textTertiary} strokeWidth={2} />
-                        <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, marginLeft: Spacing[3] }]}>
+                        <LumenIcon
+                          name="clock"
+                          size="sm"
+                          color={colors.textTertiary}
+                          strokeWidth={2}
+                        />
+                        <Text
+                          style={[
+                            TextStyles.bodyMedium,
+                            { color: colors.textPrimary, marginLeft: Spacing[3] },
+                          ]}
+                        >
                           {item}
                         </Text>
                       </Pressable>
                       <Pressable onPress={() => deleteHistory(item)} hitSlop={8}>
-                        <LumenIcon name="close" size="sm" color={colors.textTertiary} strokeWidth={2} />
+                        <LumenIcon
+                          name="close"
+                          size="sm"
+                          color={colors.textTertiary}
+                          strokeWidth={2}
+                        />
                       </Pressable>
                     </View>
                   ))}
@@ -194,11 +289,23 @@ export default function SearchScreen() {
             )}
 
             <View style={[s.section, { marginTop: Spacing[4] }]}>
-              <Text style={[TextStyles.label, { color: colors.textSecondary, marginBottom: Spacing[3] }]}>
+              <Text
+                style={[
+                  TextStyles.label,
+                  { color: colors.textSecondary, marginBottom: Spacing[3] },
+                ]}
+              >
                 Popular Tags
               </Text>
               <View style={s.tagsGrid}>
-                {["Potholes", "Street lights", "Water leakage", "Garbage bin", "Transformer", "Bridge"].map((tag) => (
+                {[
+                  "Potholes",
+                  "Street lights",
+                  "Water leakage",
+                  "Garbage bin",
+                  "Transformer",
+                  "Bridge",
+                ].map((tag) => (
                   <Pressable
                     key={tag}
                     style={({ pressed }) => [

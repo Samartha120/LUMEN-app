@@ -46,19 +46,32 @@ export function Input({
 
   const handleFocus = () => {
     setFocused(true);
-    Animated.spring(borderAnim, { toValue: 1, useNativeDriver: false, speed: 40, bounciness: 0 }).start();
+    Animated.spring(borderAnim, {
+      toValue: 1,
+      useNativeDriver: false,
+      speed: 40,
+      bounciness: 0,
+    }).start();
     rest.onFocus?.({} as any);
   };
 
   const handleBlur = () => {
     setFocused(false);
-    Animated.spring(borderAnim, { toValue: 0, useNativeDriver: false, speed: 40, bounciness: 0 }).start();
+    Animated.spring(borderAnim, {
+      toValue: 0,
+      useNativeDriver: false,
+      speed: 40,
+      bounciness: 0,
+    }).start();
     rest.onBlur?.({} as any);
   };
 
   const borderColor = borderAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [error ? colors.errorText : colors.borderDefault, error ? colors.errorText : colors.brand],
+    outputRange: [
+      error ? colors.errorText : colors.borderDefault,
+      error ? colors.errorText : colors.brand,
+    ],
   });
 
   const heights: Record<string, number> = { sm: 40, md: TouchTarget.md, lg: TouchTarget.lg };
@@ -68,7 +81,12 @@ export function Input({
   return (
     <View style={[s.container, containerStyle]}>
       {label && (
-        <Text style={[TextStyles.label, { color: error ? colors.errorText : colors.textSecondary, marginBottom: 6 }]}>
+        <Text
+          style={[
+            TextStyles.label,
+            { color: error ? colors.errorText : colors.textSecondary, marginBottom: 6 },
+          ]}
+        >
           {label}
         </Text>
       )}
@@ -86,7 +104,12 @@ export function Input({
       >
         {iconLeft && (
           <View style={s.iconLeft}>
-            <LumenIcon name={iconLeft} size="sm" color={focused ? colors.brand : colors.textTertiary} strokeWidth={2} />
+            <LumenIcon
+              name={iconLeft}
+              size="sm"
+              color={focused ? colors.brand : colors.textTertiary}
+              strokeWidth={2}
+            />
           </View>
         )}
 
@@ -109,13 +132,23 @@ export function Input({
 
         {secureTextEntry && (
           <Pressable style={s.iconRight} onPress={() => setHidden((h) => !h)} hitSlop={8}>
-            <LumenIcon name={hidden ? "eye" : "eyeOff"} size="sm" color={colors.textTertiary} strokeWidth={2} />
+            <LumenIcon
+              name={hidden ? "eye" : "eyeOff"}
+              size="sm"
+              color={colors.textTertiary}
+              strokeWidth={2}
+            />
           </Pressable>
         )}
 
         {iconRight && !secureTextEntry && (
           <Pressable style={s.iconRight} onPress={onIconRightPress} hitSlop={8}>
-            <LumenIcon name={iconRight} size="sm" color={focused ? colors.brand : colors.textTertiary} strokeWidth={2} />
+            <LumenIcon
+              name={iconRight}
+              size="sm"
+              color={focused ? colors.brand : colors.textTertiary}
+              strokeWidth={2}
+            />
           </Pressable>
         )}
       </Animated.View>
@@ -123,7 +156,9 @@ export function Input({
       {error ? (
         <Text style={[TextStyles.caption, { color: colors.errorText, marginTop: 4 }]}>{error}</Text>
       ) : hint ? (
-        <Text style={[TextStyles.caption, { color: colors.textTertiary, marginTop: 4 }]}>{hint}</Text>
+        <Text style={[TextStyles.caption, { color: colors.textTertiary, marginTop: 4 }]}>
+          {hint}
+        </Text>
       ) : null}
     </View>
   );

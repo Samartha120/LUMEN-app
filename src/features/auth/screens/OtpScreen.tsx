@@ -64,7 +64,10 @@ export function OtpScreen() {
       style={[s.root, { backgroundColor: colors.bgBase }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
       <ScrollView
         contentContainerStyle={s.scroll}
@@ -77,9 +80,7 @@ export function OtpScreen() {
             <View style={[s.wordmarkDot, { backgroundColor: colors.brand }]} />
             <Text style={[TextStyles.badge, { color: colors.brand, letterSpacing: 3 }]}>LUMEN</Text>
           </View>
-          <Text style={[TextStyles.heading1, { color: colors.textPrimary }]}>
-            Verify Code
-          </Text>
+          <Text style={[TextStyles.heading1, { color: colors.textPrimary }]}>Verify Code</Text>
           <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>
             Enter the 6-digit confirmation code we sent to your address.
           </Text>
@@ -101,7 +102,10 @@ export function OtpScreen() {
             <Input
               label="Verification Code"
               value={code}
-              onChangeText={(t) => { setCode(t.replace(/[^0-9]/g, "").slice(0, 6)); setCodeErr(""); }}
+              onChangeText={(t) => {
+                setCode(t.replace(/[^0-9]/g, "").slice(0, 6));
+                setCodeErr("");
+              }}
               placeholder="000 000"
               keyboardType="number-pad"
               autoFocus
@@ -125,7 +129,8 @@ export function OtpScreen() {
           <View style={s.resendContainer}>
             {timer > 0 ? (
               <Text style={[TextStyles.bodySmall, { color: colors.textTertiary }]}>
-                Resend code in <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>{timer}s</Text>
+                Resend code in{" "}
+                <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>{timer}s</Text>
               </Text>
             ) : (
               <Pressable onPress={() => setTimer(59)}>
@@ -137,7 +142,11 @@ export function OtpScreen() {
           </View>
 
           {/* Back link */}
-          <Pressable style={s.backLink} onPress={() => router.replace("/Login" as any)} accessibilityLabel="Back to sign in">
+          <Pressable
+            style={s.backLink}
+            onPress={() => router.replace("/Login" as any)}
+            accessibilityLabel="Back to sign in"
+          >
             <Text style={[TextStyles.bodySmall, { color: colors.textTertiary }]}>
               Back to <Text style={{ color: colors.brand, fontWeight: "600" }}>Sign In</Text>
             </Text>

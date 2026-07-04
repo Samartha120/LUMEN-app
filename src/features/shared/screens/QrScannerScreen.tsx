@@ -98,9 +98,7 @@ export default function QrScannerScreen() {
           <LumenIcon name="back" size="md" color="#FFF" strokeWidth={2.5} />
         </Pressable>
 
-        <Text style={[TextStyles.subtitle, { color: "#FFF", fontWeight: "700" }]}>
-          Scan Tag
-        </Text>
+        <Text style={[TextStyles.subtitle, { color: "#FFF", fontWeight: "700" }]}>Scan Tag</Text>
 
         <Pressable
           style={[s.hudBtn, torch && { backgroundColor: colors.brandSoft }]}
@@ -113,10 +111,17 @@ export default function QrScannerScreen() {
 
       {/* Bottom Panel */}
       <View style={s.bottomPanel}>
-        <Text style={[TextStyles.bodyMedium, { color: "#FFF", textAlign: "center", fontWeight: "600" }]}>
+        <Text
+          style={[TextStyles.bodyMedium, { color: "#FFF", textAlign: "center", fontWeight: "600" }]}
+        >
           Scan Asset QR Tag
         </Text>
-        <Text style={[TextStyles.caption, { color: "rgba(255,255,255,0.5)", textAlign: "center", marginTop: 6 }]}>
+        <Text
+          style={[
+            TextStyles.caption,
+            { color: "rgba(255,255,255,0.5)", textAlign: "center", marginTop: 6 },
+          ]}
+        >
           Position the QR code inside the brackets to retrieve infrastructure data automatically.
         </Text>
 

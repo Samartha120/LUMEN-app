@@ -17,16 +17,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    Easing,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
+  Animated,
+  Dimensions,
+  Easing,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 const { width: W } = Dimensions.get("window");
@@ -49,13 +49,44 @@ interface Report {
 }
 
 const MOCK_REPORTS: Report[] = [
-  { id: "1", title: "Pothole on MG Road", category: "road", status: "in_progress", time: "2h ago", priority: "high" },
-  { id: "2", title: "Street light outage", category: "streetlight", status: "pending", time: "5h ago", priority: "medium" },
-  { id: "3", title: "Water pipeline leak", category: "water", status: "resolved", time: "Yesterday", priority: "high" },
-  { id: "4", title: "Garbage overflow", category: "garbage", status: "pending", time: "3h ago", priority: "low" },
+  {
+    id: "1",
+    title: "Pothole on MG Road",
+    category: "road",
+    status: "in_progress",
+    time: "2h ago",
+    priority: "high",
+  },
+  {
+    id: "2",
+    title: "Street light outage",
+    category: "streetlight",
+    status: "pending",
+    time: "5h ago",
+    priority: "medium",
+  },
+  {
+    id: "3",
+    title: "Water pipeline leak",
+    category: "water",
+    status: "resolved",
+    time: "Yesterday",
+    priority: "high",
+  },
+  {
+    id: "4",
+    title: "Garbage overflow",
+    category: "garbage",
+    status: "pending",
+    time: "3h ago",
+    priority: "low",
+  },
 ];
 
-const STATUS_BADGE: Record<ReportStatus, { label: string; variant: "warning" | "info" | "success" }> = {
+const STATUS_BADGE: Record<
+  ReportStatus,
+  { label: string; variant: "warning" | "info" | "success" }
+> = {
   pending: { label: "Pending", variant: "warning" },
   in_progress: { label: "In Progress", variant: "info" },
   resolved: { label: "Resolved", variant: "success" },
@@ -67,7 +98,10 @@ const PRIORITY_COLOR: Record<string, string> = {
   low: "#12B76A",
 };
 
-const CATEGORY_ICON: Record<string, "road" | "streetlight" | "water" | "garbage" | "electricity" | "fire" | "bridge" | "other"> = {
+const CATEGORY_ICON: Record<
+  string,
+  "road" | "streetlight" | "water" | "garbage" | "electricity" | "fire" | "bridge" | "other"
+> = {
   road: "road",
   streetlight: "streetlight",
   water: "water",
@@ -105,20 +139,40 @@ export default function CitizenDashboardScreen() {
   useEffect(() => {
     const animate = () => {
       Animated.sequence([
-        Animated.timing(headerFade, { toValue: 1, duration: 400, useNativeDriver: true, easing: Easing.out(Easing.cubic) }),
+        Animated.timing(headerFade, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.cubic),
+        }),
         Animated.spring(listAnim, { toValue: 0, useNativeDriver: true, speed: 16, bounciness: 6 }),
       ]).start();
-      
+
       setTimeout(() => {
-        Animated.spring(statsAnim, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 8 }).start();
+        Animated.spring(statsAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          speed: 14,
+          bounciness: 8,
+        }).start();
       }, 150);
-      
+
       setTimeout(() => {
-        Animated.spring(actionsAnim, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 8 }).start();
+        Animated.spring(actionsAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          speed: 14,
+          bounciness: 8,
+        }).start();
       }, 300);
-      
+
       setTimeout(() => {
-        Animated.spring(reportsAnim, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 8 }).start();
+        Animated.spring(reportsAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          speed: 14,
+          bounciness: 8,
+        }).start();
       }, 450);
     };
     animate();
@@ -142,7 +196,10 @@ export default function CitizenDashboardScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
       {/* Gradient accent top */}
       <LinearGradient
@@ -155,17 +212,27 @@ export default function CitizenDashboardScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
+        }
       >
         {/* ── Header ── */}
         <Animated.View style={[s.header, { opacity: headerFade }]}>
           <View style={s.headerContent}>
             <View style={s.greetingWrap}>
-              <Text style={[TextStyles.label, { color: colors.brand, letterSpacing: 1 }]}>{GREETING()}</Text>
-              <Text style={[TextStyles.heading2, { color: colors.textPrimary, letterSpacing: -0.5 }]}>Samuel K.</Text>
+              <Text style={[TextStyles.label, { color: colors.brand, letterSpacing: 1 }]}>
+                {GREETING()}
+              </Text>
+              <Text
+                style={[TextStyles.heading2, { color: colors.textPrimary, letterSpacing: -0.5 }]}
+              >
+                Samuel K.
+              </Text>
               <View style={s.locationRow}>
                 <LumenIcon name="mapPin" size="xs" color={colors.textTertiary} strokeWidth={2} />
-                <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Bangalore, KA</Text>
+                <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
+                  Bangalore, KA
+                </Text>
               </View>
             </View>
           </View>
@@ -173,18 +240,23 @@ export default function CitizenDashboardScreen() {
             <Pressable
               style={({ pressed }) => [
                 s.iconBtn,
-                { 
-                  backgroundColor: colors.bgSurface, 
-                  borderColor: colors.borderDefault, 
+                {
+                  backgroundColor: colors.bgSurface,
+                  borderColor: colors.borderDefault,
                   opacity: pressed ? 0.8 : 1,
                   transform: [{ scale: pressed ? 0.95 : 1 }],
-                  ...shadows.sm 
-                }
+                  ...shadows.sm,
+                },
               ]}
               onPress={() => router.push("/(citizen)/Notifications" as any)}
               accessibilityLabel="Notifications"
             >
-              <LumenIcon name="notifications" size="md" color={colors.textSecondary} strokeWidth={2} />
+              <LumenIcon
+                name="notifications"
+                size="md"
+                color={colors.textSecondary}
+                strokeWidth={2}
+              />
               <View style={[s.notifDot, { backgroundColor: colors.brand }]} />
             </Pressable>
             <Pressable onPress={() => router.push("/(citizen)/Profile" as any)}>
@@ -194,7 +266,6 @@ export default function CitizenDashboardScreen() {
         </Animated.View>
 
         <Animated.View style={[{ transform: [{ translateY: listAnim }], opacity: headerFade }]}>
-
           {/* ── Alert Banner ── */}
           <View style={s.section}>
             <StatusBanner
@@ -206,9 +277,19 @@ export default function CitizenDashboardScreen() {
 
           {/* ── Stats Row ── */}
           <Animated.View style={[s.section, { opacity: statsAnim }]}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.statsRow}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.statsRow}
+            >
               <Animated.View style={{ transform: [{ scale: statsAnim }] }}>
-                <StatCard label="Reports Filed" value="12" icon="reportList" variant="brand" compact />
+                <StatCard
+                  label="Reports Filed"
+                  value="12"
+                  icon="reportList"
+                  variant="brand"
+                  compact
+                />
               </Animated.View>
               <Animated.View style={{ transform: [{ scale: statsAnim }] }}>
                 <StatCard label="Resolved" value="7" icon="success" variant="success" compact />
@@ -224,13 +305,27 @@ export default function CitizenDashboardScreen() {
 
           {/* ── Quick Actions ── */}
           <Animated.View style={[s.section, { opacity: actionsAnim }]}>
-            <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[3], letterSpacing: -0.3 }]}>Quick Actions</Text>
+            <Text
+              style={[
+                TextStyles.subtitle,
+                { color: colors.textPrimary, marginBottom: Spacing[3], letterSpacing: -0.3 },
+              ]}
+            >
+              Quick Actions
+            </Text>
             <View style={s.actionsGrid}>
               {QUICK_ACTIONS.map((action, idx) => (
                 <Animated.View
                   key={action.label}
                   style={{
-                    transform: [{ translateY: actionsAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+                    transform: [
+                      {
+                        translateY: actionsAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [20, 0],
+                        }),
+                      },
+                    ],
                     opacity: actionsAnim,
                   }}
                 >
@@ -249,9 +344,24 @@ export default function CitizenDashboardScreen() {
                     accessibilityLabel={action.label}
                   >
                     <View style={[s.actionIcon, { backgroundColor: action.color + "15" }]}>
-                      <LumenIcon name={action.icon as any} size="lg" color={action.color} strokeWidth={2} />
+                      <LumenIcon
+                        name={action.icon as any}
+                        size="lg"
+                        color={action.color}
+                        strokeWidth={2}
+                      />
                     </View>
-                    <Text style={[TextStyles.bodySmall, { color: colors.textPrimary, fontWeight: "600", textAlign: "center", marginTop: 6 }]}>
+                    <Text
+                      style={[
+                        TextStyles.bodySmall,
+                        {
+                          color: colors.textPrimary,
+                          fontWeight: "600",
+                          textAlign: "center",
+                          marginTop: 6,
+                        },
+                      ]}
+                    >
                       {action.label}
                     </Text>
                   </Pressable>
@@ -275,21 +385,34 @@ export default function CitizenDashboardScreen() {
                     <LumenIcon name="spark" size="md" color={colors.brand} strokeWidth={2} />
                   </View>
                   <View style={s.aiTitleWrap}>
-                    <Text style={[TextStyles.label, { color: colors.brand, letterSpacing: 0.5 }]}>LUMEN AI</Text>
-                    <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Smart Insight</Text>
+                    <Text style={[TextStyles.label, { color: colors.brand, letterSpacing: 0.5 }]}>
+                      LUMEN AI
+                    </Text>
+                    <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                      Smart Insight
+                    </Text>
                   </View>
-                  <Animated.View 
+                  <Animated.View
                     style={[
-                      s.aiPulse, 
-                      { 
+                      s.aiPulse,
+                      {
                         backgroundColor: colors.brand,
                         opacity: aiAnim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }),
-                        transform: [{ scale: aiAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }]
-                      }
-                    ]} 
+                        transform: [
+                          {
+                            scale: aiAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [0.8, 1],
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
                   />
                 </View>
-                <Animated.Text style={[TextStyles.body, { color: colors.textSecondary, opacity: aiAnim }]}>
+                <Animated.Text
+                  style={[TextStyles.body, { color: colors.textSecondary, opacity: aiAnim }]}
+                >
                   {AI_INSIGHTS[aiIdx]}
                 </Animated.Text>
               </View>
@@ -317,21 +440,32 @@ export default function CitizenDashboardScreen() {
                     <Animated.View
                       key={i}
                       style={[
-                        s.mapMarker, 
-                        { 
-                          top: m.top as any, 
-                          left: m.left as any, 
+                        s.mapMarker,
+                        {
+                          top: m.top as any,
+                          left: m.left as any,
                           backgroundColor: m.color,
-                          transform: [{ scale: actionsAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }) }]
-                        }
+                          transform: [
+                            {
+                              scale: actionsAnim.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, 1],
+                              }),
+                            },
+                          ],
+                        },
                       ]}
                     >
                       <LumenIcon name="mapPin" size="xs" color="#FFFFFF" strokeWidth={3} />
                     </Animated.View>
                   ))}
                   <View style={[s.mapOverlay, { backgroundColor: colors.bgBase + "66" }]}>
-                    <Text style={[TextStyles.label, { color: colors.textPrimary }]}>12 active issues nearby</Text>
-                    <Text style={[TextStyles.caption, { color: colors.brand }]}>Tap to view map →</Text>
+                    <Text style={[TextStyles.label, { color: colors.textPrimary }]}>
+                      12 active issues nearby
+                    </Text>
+                    <Text style={[TextStyles.caption, { color: colors.brand }]}>
+                      Tap to view map →
+                    </Text>
                   </View>
                 </View>
               </BlurView>
@@ -349,7 +483,14 @@ export default function CitizenDashboardScreen() {
               />
               <View style={s.chartContent}>
                 <View style={s.chartHeader}>
-                  <Text style={[TextStyles.subtitle, { color: colors.textPrimary, letterSpacing: -0.3 }]}>Your Reports Trend</Text>
+                  <Text
+                    style={[
+                      TextStyles.subtitle,
+                      { color: colors.textPrimary, letterSpacing: -0.3 },
+                    ]}
+                  >
+                    Your Reports Trend
+                  </Text>
                   <Badge label="This Month" variant="brand" size="sm" />
                 </View>
                 <LineChart
@@ -361,7 +502,9 @@ export default function CitizenDashboardScreen() {
                   showPoints
                 />
                 <View style={s.chartLegend}>
-                  <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Reports filed over time</Text>
+                  <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
+                    Reports filed over time
+                  </Text>
                 </View>
               </View>
             </BlurView>
@@ -377,7 +520,14 @@ export default function CitizenDashboardScreen() {
                 style={StyleSheet.absoluteFill}
               />
               <View style={s.chartContent}>
-                <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4], letterSpacing: -0.3 }]}>By Category</Text>
+                <Text
+                  style={[
+                    TextStyles.subtitle,
+                    { color: colors.textPrimary, marginBottom: Spacing[4], letterSpacing: -0.3 },
+                  ]}
+                >
+                  By Category
+                </Text>
                 <DonutChart
                   data={[
                     { value: 5, color: "#208AEF", label: "Roads" },
@@ -396,7 +546,11 @@ export default function CitizenDashboardScreen() {
           {/* ── Recent Reports ── */}
           <Animated.View style={[s.section, { opacity: reportsAnim }]}>
             <View style={s.sectionHeader}>
-              <Text style={[TextStyles.subtitle, { color: colors.textPrimary, letterSpacing: -0.3 }]}>Recent Reports</Text>
+              <Text
+                style={[TextStyles.subtitle, { color: colors.textPrimary, letterSpacing: -0.3 }]}
+              >
+                Recent Reports
+              </Text>
               <Pressable onPress={() => router.push("/(citizen)/My-report" as any)}>
                 <Text style={[TextStyles.label, { color: colors.brand }]}>View all</Text>
               </Pressable>
@@ -408,7 +562,14 @@ export default function CitizenDashboardScreen() {
                   <Animated.View
                     key={report.id}
                     style={{
-                      transform: [{ translateX: reportsAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+                      transform: [
+                        {
+                          translateX: reportsAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [20, 0],
+                          }),
+                        },
+                      ],
                       opacity: reportsAnim,
                     }}
                   >
@@ -416,7 +577,12 @@ export default function CitizenDashboardScreen() {
                       onPress={() => router.push("/(citizen)/Report-details" as any)}
                       style={({ pressed }) => [s.reportItem, { opacity: pressed ? 0.8 : 1 }]}
                     >
-                      <View style={[s.reportGlow, { backgroundColor: PRIORITY_COLOR[report.priority] + "08" }]} />
+                      <View
+                        style={[
+                          s.reportGlow,
+                          { backgroundColor: PRIORITY_COLOR[report.priority] + "08" },
+                        ]}
+                      />
                       <View style={s.reportRow}>
                         <View style={[s.reportIconWrap, { backgroundColor: colors.bgSubtle }]}>
                           <LumenIcon
@@ -428,14 +594,27 @@ export default function CitizenDashboardScreen() {
                         </View>
                         <View style={s.reportInfo}>
                           <View style={s.reportTitleRow}>
-                            <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, flex: 1 }]} numberOfLines={1}>
+                            <Text
+                              style={[
+                                TextStyles.bodyMedium,
+                                { color: colors.textPrimary, flex: 1 },
+                              ]}
+                              numberOfLines={1}
+                            >
                               {report.title}
                             </Text>
-                            <View style={[s.priorityDot, { backgroundColor: PRIORITY_COLOR[report.priority] }]} />
+                            <View
+                              style={[
+                                s.priorityDot,
+                                { backgroundColor: PRIORITY_COLOR[report.priority] },
+                              ]}
+                            />
                           </View>
                           <View style={s.reportMeta}>
                             <Badge label={badge.label} variant={badge.variant} size="sm" />
-                            <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{report.time}</Text>
+                            <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                              {report.time}
+                            </Text>
                           </View>
                         </View>
                       </View>
@@ -453,7 +632,11 @@ export default function CitizenDashboardScreen() {
 
       {/* FAB */}
       <View style={s.fab}>
-        <FAB icon="add" label="Report Issue" onPress={() => router.push("/(citizen)/Report-issue" as any)} />
+        <FAB
+          icon="add"
+          label="Report Issue"
+          onPress={() => router.push("/(citizen)/Report-issue" as any)}
+        />
       </View>
     </View>
   );
@@ -463,15 +646,29 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   topAccent: { position: "absolute", top: 0, left: 0, right: 0, height: 280 },
   scroll: { paddingTop: 56, paddingHorizontal: Spacing[5] },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: Spacing[6] },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: Spacing[6],
+  },
   headerContent: { flex: 1 },
   greetingWrap: {},
-  locationRow: { flexDirection: "row", alignItems: "center", gap: Spacing[1.5], marginTop: Spacing[2] },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing[1.5],
+    marginTop: Spacing[2],
+  },
   headerRight: { flexDirection: "row", alignItems: "center", gap: Spacing[3] },
   iconBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    alignItems: "center", justifyContent: "center",
-    borderWidth: 1, position: "relative",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    position: "relative",
   },
   notifDot: { position: "absolute", top: 10, right: 10, width: 8, height: 8, borderRadius: 4 },
   section: { marginBottom: Spacing[6] },
@@ -484,7 +681,13 @@ const s = StyleSheet.create({
     borderRadius: Radius["2xl"],
     borderWidth: 1,
   },
-  actionIcon: { width: 48, height: 48, borderRadius: Radius.xl, alignItems: "center", justifyContent: "center" },
+  actionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.xl,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   glassCard: {
     borderRadius: Radius["3xl"],
     overflow: "hidden",
@@ -492,11 +695,22 @@ const s = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.1)",
   },
   chartContent: { padding: Spacing[5], gap: Spacing[4] },
-  chartHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing[4] },
+  chartHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing[4],
+  },
   chartLegend: { marginTop: Spacing[3] },
   aiCard: { padding: Spacing[5], gap: Spacing[4] },
   aiHeader: { flexDirection: "row", alignItems: "center", gap: Spacing[3] },
-  aiIconWrap: { width: 40, height: 40, borderRadius: Radius.lg, alignItems: "center", justifyContent: "center" },
+  aiIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   aiTitleWrap: { flex: 1 },
   aiPulse: { width: 8, height: 8, borderRadius: 4 },
   mapCard: { borderRadius: Radius["3xl"], overflow: "hidden", height: 160 },
@@ -504,17 +718,28 @@ const s = StyleSheet.create({
   mapGrid: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 0.5 },
   mapMarker: {
     position: "absolute",
-    width: 24, height: 24,
+    width: 24,
+    height: 24,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: -12, marginTop: -12,
+    marginLeft: -12,
+    marginTop: -12,
   },
   mapOverlay: {
-    position: "absolute", bottom: 0, left: 0, right: 0,
-    padding: Spacing[4], gap: 2,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: Spacing[4],
+    gap: 2,
   },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing[3] },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing[3],
+  },
   reportsList: { gap: Spacing[3] },
   reportItem: {
     position: "relative",
@@ -524,11 +749,20 @@ const s = StyleSheet.create({
   },
   reportGlow: {
     position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     borderRadius: Radius.xl,
   },
   reportRow: { flexDirection: "row", gap: Spacing[3], alignItems: "center", position: "relative" },
-  reportIconWrap: { width: 44, height: 44, borderRadius: Radius.lg, alignItems: "center", justifyContent: "center" },
+  reportIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   reportInfo: { flex: 1, gap: 6 },
   reportTitleRow: { flexDirection: "row", alignItems: "center", gap: Spacing[2] },
   reportMeta: { flexDirection: "row", alignItems: "center", gap: Spacing[2] },

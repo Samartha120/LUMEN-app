@@ -5,7 +5,7 @@ import { router, Tabs, useSegments } from "expo-router";
 export default function CitizenLayout() {
   const { colors } = useTheme();
   const segments = useSegments();
-  
+
   // Dynamically derive the current route and active tab name
   const currentPath = segments[1] || "Dashboard";
 

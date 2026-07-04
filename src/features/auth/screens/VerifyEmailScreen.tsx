@@ -3,15 +3,7 @@
 // Phase 2: Authentication (Verification Check)
 // ============================================================
 import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Animated,
-  StatusBar,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Animated, StatusBar } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/design-system/ThemeContext";
 import { Button } from "@/design-system/components/Button";
@@ -53,23 +45,22 @@ export function VerifyEmailScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
-      <ScrollView
-        contentContainerStyle={s.scroll}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Logo + Hero */}
         <Animated.View style={[s.hero, { opacity: logoAnim }]}>
           <View style={[s.wordmarkRow]}>
             <View style={[s.wordmarkDot, { backgroundColor: colors.brand }]} />
             <Text style={[TextStyles.badge, { color: colors.brand, letterSpacing: 3 }]}>LUMEN</Text>
           </View>
-          <Text style={[TextStyles.heading1, { color: colors.textPrimary }]}>
-            Verify Email
-          </Text>
+          <Text style={[TextStyles.heading1, { color: colors.textPrimary }]}>Verify Email</Text>
           <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>
-            Confirm your inbox setup. We've sent a verification link to your registered email address.
+            Confirm your inbox setup. We've sent a verification link to your registered email
+            address.
           </Text>
         </Animated.View>
 
@@ -95,8 +86,14 @@ export function VerifyEmailScreen() {
             <Text style={[TextStyles.subtitle, { color: colors.textPrimary, textAlign: "center" }]}>
               Verification Sent
             </Text>
-            <Text style={[TextStyles.bodySmall, { color: colors.textSecondary, textAlign: "center", marginTop: 8 }]}>
-              Please tap the activation button inside the email we sent to activate your citizen or engineer credentials.
+            <Text
+              style={[
+                TextStyles.bodySmall,
+                { color: colors.textSecondary, textAlign: "center", marginTop: 8 },
+              ]}
+            >
+              Please tap the activation button inside the email we sent to activate your citizen or
+              engineer credentials.
             </Text>
           </View>
 
@@ -112,7 +109,9 @@ export function VerifyEmailScreen() {
 
           <View style={s.resendRow}>
             {resent ? (
-              <Text style={[TextStyles.bodySmall, { color: colors.successText, fontWeight: "600" }]}>
+              <Text
+                style={[TextStyles.bodySmall, { color: colors.successText, fontWeight: "600" }]}
+              >
                 ✓ Verification email resent!
               </Text>
             ) : (
@@ -124,7 +123,11 @@ export function VerifyEmailScreen() {
             )}
           </View>
 
-          <Pressable style={s.backToLogin} onPress={() => router.replace("/Login" as any)} accessibilityLabel="Back to sign in">
+          <Pressable
+            style={s.backToLogin}
+            onPress={() => router.replace("/Login" as any)}
+            accessibilityLabel="Back to sign in"
+          >
             <Text style={[TextStyles.bodySmall, { color: colors.textTertiary }]}>
               Back to <Text style={{ color: colors.brand, fontWeight: "600" }}>Sign In</Text>
             </Text>

@@ -110,7 +110,12 @@ export default function CameraScreen() {
             <LumenIcon name={getFlashIcon()} size="md" color="#FFF" strokeWidth={2} />
           </Pressable>
           <Pressable style={s.hudBtn} onPress={() => setGrid((g) => !g)} hitSlop={12}>
-            <LumenIcon name="sliders" size="md" color={grid ? colors.brand : "#FFF"} strokeWidth={2} />
+            <LumenIcon
+              name="sliders"
+              size="md"
+              color={grid ? colors.brand : "#FFF"}
+              strokeWidth={2}
+            />
           </Pressable>
         </View>
       </View>
@@ -139,7 +144,11 @@ export default function CameraScreen() {
           </Pressable>
 
           {/* Capture Trigger */}
-          <Pressable onPress={capturePhoto} accessibilityRole="button" accessibilityLabel="Shutter Button">
+          <Pressable
+            onPress={capturePhoto}
+            accessibilityRole="button"
+            accessibilityLabel="Shutter Button"
+          >
             <Animated.View style={[s.shutterOuter, { transform: [{ scale: shutterScale }] }]}>
               <View style={s.shutterInner} />
             </Animated.View>
@@ -156,7 +165,12 @@ export default function CameraScreen() {
           </Pressable>
         </View>
 
-        <Text style={[TextStyles.caption, { color: "rgba(255,255,255,0.4)", textAlign: "center", marginTop: 20 }]}>
+        <Text
+          style={[
+            TextStyles.caption,
+            { color: "rgba(255,255,255,0.4)", textAlign: "center", marginTop: 20 },
+          ]}
+        >
           Auto Focus · HDR Active · Tap shutter to save proof
         </Text>
       </View>

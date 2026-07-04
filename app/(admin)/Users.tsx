@@ -5,7 +5,14 @@ export default function UsersScreen() {
   const { colors } = useTheme();
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bgBase, justifyContent: "center", alignItems: "center" }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: colors.bgBase,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
       <Text style={{ color: colors.textPrimary }}>Users Screen</Text>
     </View>
   );

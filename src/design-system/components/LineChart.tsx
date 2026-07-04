@@ -1,7 +1,7 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Defs, Path, Stop, Svg, LinearGradient as SvgLinearGradient } from 'react-native-svg';
-import { useTheme } from '../ThemeContext';
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { Defs, Path, Stop, Svg, LinearGradient as SvgLinearGradient } from "react-native-svg";
+import { useTheme } from "../ThemeContext";
 
 interface LineChartProps {
   data: number[];
@@ -33,7 +33,7 @@ export function LineChart({
     return `${x},${y}`;
   });
 
-  const pathData = `M ${points.join(' L ')}`;
+  const pathData = `M ${points.join(" L ")}`;
 
   const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -84,6 +84,6 @@ export function LineChart({
 
 const styles = StyleSheet.create({
   container: {
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });

@@ -3,9 +3,7 @@
 // Phase 3: Citizen Experience
 // ============================================================
 import React, { useState } from "react";
-import {
-  View, Text, StyleSheet, ScrollView, Pressable, StatusBar,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, StatusBar } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
@@ -28,22 +26,70 @@ const GROUPS: { label: string; items: Notif[] }[] = [
   {
     label: "Today",
     items: [
-      { id: "1", title: "Engineer Assigned", message: "Rajesh Kumar has been assigned to your MG Road pothole report.", time: "2h ago", read: false, type: "engineer", icon: "engineer" },
-      { id: "2", title: "Report In Progress", message: "Work has started on your Street Light issue near Park Ave.", time: "4h ago", read: false, type: "report", icon: "tools" },
-      { id: "3", title: "City Alert: Water Supply", message: "Water supply disruption in Zone B. Estimated restoration: 4 hours.", time: "5h ago", read: false, type: "alert", icon: "water" },
+      {
+        id: "1",
+        title: "Engineer Assigned",
+        message: "Rajesh Kumar has been assigned to your MG Road pothole report.",
+        time: "2h ago",
+        read: false,
+        type: "engineer",
+        icon: "engineer",
+      },
+      {
+        id: "2",
+        title: "Report In Progress",
+        message: "Work has started on your Street Light issue near Park Ave.",
+        time: "4h ago",
+        read: false,
+        type: "report",
+        icon: "tools",
+      },
+      {
+        id: "3",
+        title: "City Alert: Water Supply",
+        message: "Water supply disruption in Zone B. Estimated restoration: 4 hours.",
+        time: "5h ago",
+        read: false,
+        type: "alert",
+        icon: "water",
+      },
     ],
   },
   {
     label: "Yesterday",
     items: [
-      { id: "4", title: "Report Resolved ✓", message: "Water pipeline leak on 5th Cross has been resolved.", time: "Yesterday, 3 PM", read: true, type: "report", icon: "success" },
-      { id: "5", title: "Report Submitted", message: "Your report #R004 for garbage overflow has been received.", time: "Yesterday, 10 AM", read: true, type: "system", icon: "report" },
+      {
+        id: "4",
+        title: "Report Resolved ✓",
+        message: "Water pipeline leak on 5th Cross has been resolved.",
+        time: "Yesterday, 3 PM",
+        read: true,
+        type: "report",
+        icon: "success",
+      },
+      {
+        id: "5",
+        title: "Report Submitted",
+        message: "Your report #R004 for garbage overflow has been received.",
+        time: "Yesterday, 10 AM",
+        read: true,
+        type: "system",
+        icon: "report",
+      },
     ],
   },
   {
     label: "This Week",
     items: [
-      { id: "6", title: "System Update", message: "LUMEN app updated to version 1.2 with new features.", time: "Mon, 9 AM", read: true, type: "system", icon: "info" },
+      {
+        id: "6",
+        title: "System Update",
+        message: "LUMEN app updated to version 1.2 with new features.",
+        time: "Mon, 9 AM",
+        read: true,
+        type: "system",
+        icon: "info",
+      },
     ],
   },
 ];
@@ -58,18 +104,23 @@ const TYPE_CONFIG: Record<string, { color: string; bg: string }> = {
 export default function NotificationsScreen() {
   const { colors, isDark, shadows } = useTheme();
   const [groups, setGroups] = useState(GROUPS);
-  const unreadCount = GROUPS.flatMap(g => g.items).filter(n => !n.read).length;
+  const unreadCount = GROUPS.flatMap((g) => g.items).filter((n) => !n.read).length;
 
   const markAllRead = () => {
-    setGroups(gs => gs.map(g => ({
-      ...g,
-      items: g.items.map(n => ({ ...n, read: true })),
-    })));
+    setGroups((gs) =>
+      gs.map((g) => ({
+        ...g,
+        items: g.items.map((n) => ({ ...n, read: true })),
+      }))
+    );
   };
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
 
       <View style={[s.header, { borderBottomColor: colors.borderDefault }]}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
@@ -89,13 +140,19 @@ export default function NotificationsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-        {groups.every(g => g.items.length === 0) ? (
-          <EmptyState icon="notifications" title="All caught up!" description="You have no notifications at this time." />
+        {groups.every((g) => g.items.length === 0) ? (
+          <EmptyState
+            icon="notifications"
+            title="All caught up!"
+            description="You have no notifications at this time."
+          />
         ) : (
-          groups.map(group => (
+          groups.map((group) => (
             <View key={group.label}>
-              <Text style={[TextStyles.label, s.groupLabel, { color: colors.textTertiary }]}>{group.label}</Text>
-              {group.items.map(notif => {
+              <Text style={[TextStyles.label, s.groupLabel, { color: colors.textTertiary }]}>
+                {group.label}
+              </Text>
+              {group.items.map((notif) => {
                 const tc = TYPE_CONFIG[notif.type];
                 return (
                   <Pressable
@@ -115,13 +172,22 @@ export default function NotificationsScreen() {
                     </View>
                     <View style={s.notifContent}>
                       <View style={s.notifTitleRow}>
-                        <Text style={[TextStyles.label, { color: colors.textPrimary, flex: 1 }]}>{notif.title}</Text>
-                        {!notif.read && <View style={[s.unreadDot, { backgroundColor: colors.brand }]} />}
+                        <Text style={[TextStyles.label, { color: colors.textPrimary, flex: 1 }]}>
+                          {notif.title}
+                        </Text>
+                        {!notif.read && (
+                          <View style={[s.unreadDot, { backgroundColor: colors.brand }]} />
+                        )}
                       </View>
-                      <Text style={[TextStyles.bodySmall, { color: colors.textSecondary }]} numberOfLines={2}>
+                      <Text
+                        style={[TextStyles.bodySmall, { color: colors.textSecondary }]}
+                        numberOfLines={2}
+                      >
                         {notif.message}
                       </Text>
-                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{notif.time}</Text>
+                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                        {notif.time}
+                      </Text>
                     </View>
                   </Pressable>
                 );
@@ -138,19 +204,39 @@ export default function NotificationsScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: Spacing[5], paddingTop: 52, paddingBottom: Spacing[4], borderBottomWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing[5],
+    paddingTop: 52,
+    paddingBottom: Spacing[4],
+    borderBottomWidth: 1,
   },
   headerCenter: { flexDirection: "row", alignItems: "center", gap: Spacing[2] },
-  unreadBubble: { width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  unreadBubble: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   scroll: { paddingHorizontal: Spacing[5], paddingTop: Spacing[4] },
   groupLabel: { marginBottom: Spacing[3], marginTop: Spacing[2] },
   notifCard: {
-    flexDirection: "row", gap: Spacing[3],
-    padding: Spacing[4], borderRadius: Radius["2xl"],
-    borderWidth: 1, marginBottom: Spacing[3],
+    flexDirection: "row",
+    gap: Spacing[3],
+    padding: Spacing[4],
+    borderRadius: Radius["2xl"],
+    borderWidth: 1,
+    marginBottom: Spacing[3],
   },
-  notifIcon: { width: 44, height: 44, borderRadius: Radius.lg, alignItems: "center", justifyContent: "center" },
+  notifIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   notifContent: { flex: 1, gap: 4 },
   notifTitleRow: { flexDirection: "row", alignItems: "center" },
   unreadDot: { width: 8, height: 8, borderRadius: 4 },

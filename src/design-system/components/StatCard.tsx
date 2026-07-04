@@ -18,7 +18,14 @@ export interface StatCardProps {
   compact?: boolean;
 }
 
-export function StatCard({ label, value, icon, trend, variant = "default", compact = false }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  icon,
+  trend,
+  variant = "default",
+  compact = false,
+}: StatCardProps) {
   const { colors, shadows } = useTheme();
 
   const variantColors: Record<StatCardVariant, { iconBg: string; iconColor: string }> = {
@@ -66,7 +73,12 @@ export function StatCard({ label, value, icon, trend, variant = "default", compa
             color={trend.up ? colors.successText : colors.errorText}
             strokeWidth={2.5}
           />
-          <Text style={[TextStyles.caption, { color: trend.up ? colors.successText : colors.errorText }]}>
+          <Text
+            style={[
+              TextStyles.caption,
+              { color: trend.up ? colors.successText : colors.errorText },
+            ]}
+          >
             {trend.value}
           </Text>
         </View>
@@ -80,7 +92,7 @@ const s = StyleSheet.create({
     borderWidth: 1,
     gap: 8,
     minHeight: 120,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   iconBox: {
     width: 44,

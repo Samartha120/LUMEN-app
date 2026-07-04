@@ -60,7 +60,14 @@ export interface ChipProps {
   variant?: ChipVariant;
 }
 
-export function Chip({ label, selected = false, onPress, onRemove, icon, variant = "filter" }: ChipProps) {
+export function Chip({
+  label,
+  selected = false,
+  onPress,
+  onRemove,
+  icon,
+  variant = "filter",
+}: ChipProps) {
   const { colors } = useTheme();
 
   const bg = selected ? colors.brandSoft : colors.bgSubtle;

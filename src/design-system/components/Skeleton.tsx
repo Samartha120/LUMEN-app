@@ -20,7 +20,12 @@ export interface SkeletonProps {
   style?: ViewStyle;
 }
 
-export function Skeleton({ width = "100%", height = 16, radius = Radius.md, style }: SkeletonProps) {
+export function Skeleton({
+  width = "100%",
+  height = 16,
+  radius = Radius.md,
+  style,
+}: SkeletonProps) {
   const { colors, isDark } = useTheme();
   const shimmer = useSharedValue(0);
 

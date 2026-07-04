@@ -1,8 +1,8 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Animated from 'react-native-reanimated';
-import { Circle, Svg } from 'react-native-svg';
-import { useTheme } from '../ThemeContext';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
+import { Circle, Svg } from "react-native-svg";
+import { useTheme } from "../ThemeContext";
 
 interface DonutChartProps {
   data: { value: number; color: string; label: string }[];
@@ -61,7 +61,12 @@ export function DonutChart({
             return (
               <View key={legendKey} style={styles.legendItem}>
                 <View style={[styles.legendColor, { backgroundColor: item.color }]} />
-                <Text style={[styles.legendLabel, { color: colors.textSecondary, fontSize: fontSize.sm }]}>
+                <Text
+                  style={[
+                    styles.legendLabel,
+                    { color: colors.textSecondary, fontSize: fontSize.sm },
+                  ]}
+                >
                   {item.label}
                 </Text>
               </View>
@@ -75,18 +80,18 @@ export function DonutChart({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   legend: {
     marginTop: 12,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     gap: 12,
   },
   legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   legendColor: {

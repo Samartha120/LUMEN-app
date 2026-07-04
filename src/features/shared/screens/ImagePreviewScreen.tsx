@@ -70,7 +70,12 @@ export default function ImagePreviewScreen() {
           {/* Simulated Image Placeholder */}
           <View style={[s.simulatedImage, s[`filter_${filter}`]]}>
             <LumenIcon name="image" size="2xl" color="rgba(255,255,255,0.25)" strokeWidth={1.5} />
-            <Text style={[TextStyles.caption, { color: "rgba(255,255,255,0.3)", marginTop: Spacing[2] }]}>
+            <Text
+              style={[
+                TextStyles.caption,
+                { color: "rgba(255,255,255,0.3)", marginTop: Spacing[2] },
+              ]}
+            >
               Asset Photograph Preview
             </Text>
           </View>
@@ -79,7 +84,9 @@ export default function ImagePreviewScreen() {
 
       {/* Filter Options bar */}
       <View style={s.filterBar}>
-        <Text style={[TextStyles.caption, { color: "rgba(255,255,255,0.4)", marginBottom: Spacing[2] }]}>
+        <Text
+          style={[TextStyles.caption, { color: "rgba(255,255,255,0.4)", marginBottom: Spacing[2] }]}
+        >
           Visual Enhancements for Inspection
         </Text>
         <View style={s.filtersRow}>

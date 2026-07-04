@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useTheme } from "../ThemeContext";
 
 interface IconProps {
@@ -27,13 +27,13 @@ export function Icon({ icon, size = 24, color, backgroundColor }: IconProps) {
         ]}
       >
         <View style={styles.iconWrapper}>
-          {React.cloneElement(icon as React.ReactElement, { size, color: iconColor })}
+          {React.cloneElement(icon as React.ReactElement<any>, { size, color: iconColor })}
         </View>
       </View>
     );
   }
 
-  return React.cloneElement(icon as React.ReactElement, { size, color: iconColor });
+  return React.cloneElement(icon as React.ReactElement<any>, { size, color: iconColor });
 }
 
 const styles = StyleSheet.create({

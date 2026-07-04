@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Text, StyleSheet } from "react-native";
-import Animated, { useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
+import { StyleSheet } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useTheme } from "../ThemeContext";
 
 interface AnimatedCounterProps {
@@ -22,7 +22,7 @@ export function AnimatedCounter({
 }: AnimatedCounterProps) {
   const { colors, fontSize, fontWeight } = useTheme();
   const [displayValue, setDisplayValue] = useState(0);
-  const animatedValue = React.useRef(new Animated.Value(0)).current;
+  const animatedValue = useSharedValue(0);
 
   useEffect(() => {
     animatedValue.value = withTiming(value, {

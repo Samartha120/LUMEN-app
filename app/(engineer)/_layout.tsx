@@ -3,8 +3,8 @@ import { useTheme } from "@/design-system/ThemeContext";
 import { router, Tabs, useSegments } from "expo-router";
 
 export default function EngineerLayout() {
-  const { colors } = useTheme();
-  const segments = useSegments();
+  useTheme();
+  const segments = useSegments() as string[];
 
   // Dynamically derive the current route and active tab name
   const currentPath = segments[1] || "Dashboard";

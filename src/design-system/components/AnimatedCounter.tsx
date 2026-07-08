@@ -25,7 +25,7 @@ export function AnimatedCounter({
   style,
   formatValue,
 }: AnimatedCounterProps) {
-  const { colors, fontSize, fontWeight } = useTheme();
+  const { colors } = useTheme();
   const [displayValue, setDisplayValue] = useState(0);
   const animatedValue = useSharedValue(0);
 

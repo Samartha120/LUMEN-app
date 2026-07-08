@@ -1,5 +1,13 @@
 import React from "react";
-import { View, StyleSheet, Dimensions, Text, StatusBar, Platform, TouchableOpacity } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  Text,
+  StatusBar,
+  Platform,
+  TouchableOpacity,
+} from "react-native";
 import { router } from "expo-router";
 import { MotiView, MotiText } from "moti";
 import { BlurView } from "expo-blur";
@@ -43,15 +51,33 @@ export default function WelcomeScreen() {
         from={{ translateY: -50, scale: 0.8 }}
         animate={{ translateY: 0, scale: 1.2 }}
         transition={{ type: "timing", duration: 4000, loop: true, repeatReverse: true }}
-        style={[s.blob, { backgroundColor: colors.brand + "40", top: "-5%", left: "-10%", width: W * 0.7, height: W * 0.7 }]}
+        style={[
+          s.blob,
+          {
+            backgroundColor: colors.brand + "40",
+            top: "-5%",
+            left: "-10%",
+            width: W * 0.7,
+            height: W * 0.7,
+          },
+        ]}
       />
       <MotiView
         from={{ translateY: 50, scale: 1 }}
         animate={{ translateY: 0, scale: 1.3 }}
         transition={{ type: "timing", duration: 5000, loop: true, repeatReverse: true }}
-        style={[s.blob, { backgroundColor: "#7C3AED30", top: "25%", right: "-20%", width: W * 0.8, height: W * 0.8 }]}
+        style={[
+          s.blob,
+          {
+            backgroundColor: "#7C3AED30",
+            top: "25%",
+            right: "-20%",
+            width: W * 0.8,
+            height: W * 0.8,
+          },
+        ]}
       />
-      
+
       {/* Universal Blur Overlay for Android/iOS */}
       <BlurView intensity={80} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
 
@@ -74,7 +100,9 @@ export default function WelcomeScreen() {
           >
             Smarter Cities,{"\n"}Better Lives.
           </Text>
-          <Text style={[TextStyles.body, { color: colors.textSecondary, fontSize: 16, lineHeight: 24 }]}>
+          <Text
+            style={[TextStyles.body, { color: colors.textSecondary, fontSize: 16, lineHeight: 24 }]}
+          >
             Join the premium platform for civic infrastructure management and community reporting.
           </Text>
         </MotiView>
@@ -86,8 +114,12 @@ export default function WelcomeScreen() {
           style={s.actionsContainer}
         >
           {/* Solid Premium Card instead of BlurView for better contrast */}
-          <View style={[s.actionCard, { backgroundColor: colors.surface, borderColor: colors.borderDefault }]}>
-            
+          <View
+            style={[
+              s.actionCard,
+              { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault },
+            ]}
+          >
             <Button
               label="Sign In"
               variant="primary"
@@ -117,16 +149,17 @@ export default function WelcomeScreen() {
               <View style={[s.line, { backgroundColor: colors.borderDefault }]} />
             </View>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[s.socialButton, { borderColor: colors.borderDefault }]}
               activeOpacity={0.7}
             >
               <GoogleIcon size={22} />
-              <Text style={[TextStyles.button, { color: colors.textPrimary, marginLeft: Spacing[3] }]}>
+              <Text
+                style={[TextStyles.button, { color: colors.textPrimary, marginLeft: Spacing[3] }]}
+              >
                 Google
               </Text>
             </TouchableOpacity>
-
           </View>
         </MotiView>
       </View>
@@ -193,5 +226,5 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderRadius: Radius.full,
     backgroundColor: "transparent",
-  }
+  },
 });

@@ -22,6 +22,32 @@ interface AuthState {
   logout: () => void;
 }
 
+const memoryStorage: Record<string, string> = {};
+
+const safeStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    try {
+      return await AsyncStorage.getItem(name);
+    } catch (e) {
+      return memoryStorage[name] || null;
+    }
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(name, value);
+    } catch (e) {
+      memoryStorage[name] = value;
+    }
+  },
+  removeItem: async (name: string): Promise<void> => {
+    try {
+      await AsyncStorage.removeItem(name);
+    } catch (e) {
+      delete memoryStorage[name];
+    }
+  },
+};
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -48,7 +74,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "lumen-auth-storage",
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeStorage),
     }
   )
 );

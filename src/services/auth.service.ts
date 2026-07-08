@@ -57,11 +57,11 @@ export const AuthService = {
   async saveUserProfile(profileData: any) {
     // const { error } = await supabase.from('profiles').upsert([profileData]);
     // if (error) throw error;
-    
+
     // For now, we simulate a network request.
     await new Promise((resolve) => setTimeout(resolve, 800));
-    
+
     useAuthStore.getState().setRole(profileData.role);
     useAuthStore.getState().completeOnboarding();
-  }
+  },
 };

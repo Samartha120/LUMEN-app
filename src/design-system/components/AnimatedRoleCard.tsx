@@ -65,7 +65,10 @@ export function AnimatedRoleCard({ role, selected, onSelect }: AnimatedRoleCardP
         <BlurView
           intensity={isDark ? 20 : 40}
           tint={isDark ? "dark" : "light"}
-          style={[s.glass, { backgroundColor: isDark ? "rgba(26,26,46,0.5)" : "rgba(255,255,255,0.7)" }]}
+          style={[
+            s.glass,
+            { backgroundColor: isDark ? "rgba(26,26,46,0.5)" : "rgba(255,255,255,0.7)" },
+          ]}
         >
           <View style={s.content}>
             <View style={[s.header]}>
@@ -84,7 +87,9 @@ export function AnimatedRoleCard({ role, selected, onSelect }: AnimatedRoleCardP
             </View>
             <View style={s.textContainer}>
               <Text style={[TextStyles.heading2, { color: colors.textPrimary }]}>{info.title}</Text>
-              <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: Spacing[1] }]}>
+              <Text
+                style={[TextStyles.body, { color: colors.textSecondary, marginTop: Spacing[1] }]}
+              >
                 {info.description}
               </Text>
             </View>

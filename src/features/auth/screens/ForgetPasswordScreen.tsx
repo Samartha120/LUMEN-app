@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, Text, KeyboardAvoidingView, Platform, StatusBar } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+} from "react-native";
 import { router } from "expo-router";
 import { MotiView } from "moti";
 import { BlurView } from "expo-blur";
@@ -22,7 +30,11 @@ export default function ForgetPasswordScreen() {
   const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
 
-  const { control, handleSubmit, formState: { errors } } = useForm({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(resetSchema),
     defaultValues: { email: "" },
   });
@@ -30,7 +42,7 @@ export default function ForgetPasswordScreen() {
   const onRequestReset = async (data: { email: string }) => {
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       // Route to OTP screen with email params
       router.push({ pathname: "/Otp" as any, params: { email: data.email } });
@@ -43,14 +55,29 @@ export default function ForgetPasswordScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={[s.root, { backgroundColor: colors.bgBase }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView
+      style={[s.root, { backgroundColor: colors.bgBase }]}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      <LinearGradient colors={[colors.brand + "15", colors.brand + "05", "transparent"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGradient} />
+      <LinearGradient
+        colors={[colors.brand + "15", colors.brand + "05", "transparent"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={s.topGradient}
+      />
 
-      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        
-        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} style={s.hero}>
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <MotiView
+          from={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          style={s.hero}
+        >
           <View style={[s.iconWrapper, { backgroundColor: colors.brand + "20" }]}>
             <LumenIcon name="lock" size="xl" color={colors.brand} />
           </View>
@@ -60,9 +87,18 @@ export default function ForgetPasswordScreen() {
           </Text>
         </MotiView>
 
-        <MotiView from={{ opacity: 0, translateY: 40 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 100 }}>
+        <MotiView
+          from={{ opacity: 0, translateY: 40 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 100 }}
+        >
           <BlurView intensity={25} tint={isDark ? "dark" : "light"} style={s.glassCard}>
-            <LinearGradient colors={[isDark ? "#1a1a2e30" : "#ffffff50", isDark ? "#1a1a2e15" : "#ffffff25"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+            <LinearGradient
+              colors={[isDark ? "#1a1a2e30" : "#ffffff50", isDark ? "#1a1a2e15" : "#ffffff25"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
             <View style={s.cardContent}>
               <Controller
                 control={control}
@@ -101,7 +137,6 @@ export default function ForgetPasswordScreen() {
           iconLeft="arrowLeft"
           style={s.backBtn}
         />
-
       </ScrollView>
     </KeyboardAvoidingView>
   );

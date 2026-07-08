@@ -100,10 +100,7 @@ export function Input({
     const shadowOpacity = interpolateColor(
       errorAnim.value,
       [0, 1],
-      [
-        interpolateColor(focusAnim.value, [0, 1], [0, 0.15]),
-        0.15,
-      ]
+      [interpolateColor(focusAnim.value, [0, 1], [0, 0.15]), 0.15]
     );
 
     const shadowColor = errorAnim.value > 0.5 ? colors.errorText : colors.brand;
@@ -180,7 +177,7 @@ export function Input({
             {isValid && !error && (
               <LumenIcon name="checkCircle" size="sm" color="#12B76A" strokeWidth={2} />
             )}
-            
+
             {secureTextEntry && (
               <Pressable onPress={() => setHidden((h) => !h)} hitSlop={8} style={{ marginLeft: 8 }}>
                 <LumenIcon
@@ -207,9 +204,7 @@ export function Input({
       </Animated.View>
 
       {error ? (
-        <Animated.Text
-          style={[TextStyles.caption, { color: colors.errorText, marginTop: 4 }]}
-        >
+        <Animated.Text style={[TextStyles.caption, { color: colors.errorText, marginTop: 4 }]}>
           {error}
         </Animated.Text>
       ) : hint ? (

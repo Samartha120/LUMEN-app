@@ -47,14 +47,13 @@ export default function SplashScreen() {
       />
 
       <View style={s.content}>
-        
         {/* Top Spacer */}
         <View style={{ flex: 1 }} />
 
         {/* Logo Section */}
         <View style={s.logoSection}>
           {/* Stylized L Icon */}
-          <MotiView 
+          <MotiView
             from={{ opacity: 0, translateY: 20 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: "timing", duration: 800 }}
@@ -70,21 +69,36 @@ export default function SplashScreen() {
           </MotiView>
 
           {/* Text Logo with Stylized E */}
-          <MotiView 
+          <MotiView
             from={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: "timing", duration: 800, delay: 200 }}
             style={s.textLogoContainer}
           >
             <Text style={s.logoText}>L U M</Text>
-            
+
             {/* Stylized E */}
             <View style={s.eContainer}>
-              <LinearGradient colors={["#208AEF", "#0ED3FF"]} start={{x:0,y:0}} end={{x:1,y:0}} style={[s.eBar, { width: 28 }]} />
-              <LinearGradient colors={["#208AEF", "#0ED3FF"]} start={{x:0,y:0}} end={{x:1,y:0}} style={[s.eBar, { width: 34 }]} />
-              <LinearGradient colors={["#208AEF", "#0ED3FF"]} start={{x:0,y:0}} end={{x:1,y:0}} style={[s.eBar, { width: 28 }]} />
+              <LinearGradient
+                colors={["#208AEF", "#0ED3FF"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[s.eBar, { width: 28 }]}
+              />
+              <LinearGradient
+                colors={["#208AEF", "#0ED3FF"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[s.eBar, { width: 34 }]}
+              />
+              <LinearGradient
+                colors={["#208AEF", "#0ED3FF"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[s.eBar, { width: 28 }]}
+              />
             </View>
-            
+
             <Text style={s.logoText}>N</Text>
           </MotiView>
 
@@ -99,7 +113,7 @@ export default function SplashScreen() {
         </View>
 
         {/* Roles Row */}
-        <MotiView 
+        <MotiView
           from={{ opacity: 0, translateY: 10 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: "timing", duration: 800, delay: 600 }}
@@ -122,7 +136,7 @@ export default function SplashScreen() {
         </View>
 
         {/* Bottom Loading Area */}
-        <MotiView 
+        <MotiView
           from={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ type: "timing", duration: 500, delay: 800 }}
@@ -138,7 +152,6 @@ export default function SplashScreen() {
           </View>
           <Text style={s.footerText}>BUILDING SMARTER COMMUNITIES</Text>
         </MotiView>
-
       </View>
     </View>
   );
@@ -168,7 +181,10 @@ function NetworkPin({ icon, top, left, right, delay }: any) {
         from={{ opacity: 0.8, scale: 1 }}
         animate={{ opacity: 0, scale: 2 }}
         transition={{ type: "timing", duration: 2000, loop: true }}
-        style={[StyleSheet.absoluteFill, { borderRadius: 20, borderWidth: 1, borderColor: "#0ED3FF" }]}
+        style={[
+          StyleSheet.absoluteFill,
+          { borderRadius: 20, borderWidth: 1, borderColor: "#0ED3FF" },
+        ]}
       />
       <View style={s.networkPin}>
         <LumenIcon name={icon} size={16} color="#FFFFFF" />

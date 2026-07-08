@@ -47,7 +47,7 @@ export default function OtpScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
-    
+
     setLoading(true);
     try {
       await new Promise((r) => setTimeout(r, 1200));
@@ -69,29 +69,54 @@ export default function OtpScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={[s.root, { backgroundColor: colors.bgBase }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView
+      style={[s.root, { backgroundColor: colors.bgBase }]}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      <LinearGradient colors={[colors.brand + "15", colors.brand + "05", "transparent"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGradient} />
+      <LinearGradient
+        colors={[colors.brand + "15", colors.brand + "05", "transparent"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={s.topGradient}
+      />
 
-      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        
-        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} style={s.hero}>
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <MotiView
+          from={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          style={s.hero}
+        >
           <View style={[s.iconWrapper, { backgroundColor: colors.brand + "20" }]}>
             <LumenIcon name="email" size="xl" color={colors.brand} />
           </View>
           <Text style={[TextStyles.heading2, { color: colors.textPrimary }]}>Check your email</Text>
           <Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center" }]}>
             We sent a verification code to{"\n"}
-            <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>{email || "your email"}</Text>
+            <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>
+              {email || "your email"}
+            </Text>
           </Text>
         </MotiView>
 
-        <MotiView from={{ opacity: 0, translateY: 40 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 100 }}>
+        <MotiView
+          from={{ opacity: 0, translateY: 40 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 100 }}
+        >
           <BlurView intensity={25} tint={isDark ? "dark" : "light"} style={s.glassCard}>
-            <LinearGradient colors={[isDark ? "#1a1a2e30" : "#ffffff50", isDark ? "#1a1a2e15" : "#ffffff25"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+            <LinearGradient
+              colors={[isDark ? "#1a1a2e30" : "#ffffff50", isDark ? "#1a1a2e15" : "#ffffff25"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
             <View style={s.cardContent}>
-              
               <Pressable onPress={() => inputRef.current?.focus()} style={s.otpContainer}>
                 {Array.from({ length: OTP_LENGTH }).map((_, i) => (
                   <View
@@ -141,22 +166,29 @@ export default function OtpScreen() {
               />
 
               <View style={s.resendContainer}>
-                <Text style={[TextStyles.body, { color: colors.textSecondary }]}>Didn't receive the code? </Text>
+                <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
+                  Didn't receive the code?{" "}
+                </Text>
                 {timer > 0 ? (
-                  <MotiText style={[TextStyles.body, { color: colors.textTertiary, fontVariant: ["tabular-nums"] }]}>
+                  <MotiText
+                    style={[
+                      TextStyles.body,
+                      { color: colors.textTertiary, fontVariant: ["tabular-nums"] },
+                    ]}
+                  >
                     Resend in 00:{timer.toString().padStart(2, "0")}
                   </MotiText>
                 ) : (
                   <Pressable onPress={handleResend} hitSlop={8}>
-                    <Text style={[TextStyles.body, { color: colors.brand, fontWeight: "600" }]}>Click to resend</Text>
+                    <Text style={[TextStyles.body, { color: colors.brand, fontWeight: "600" }]}>
+                      Click to resend
+                    </Text>
                   </Pressable>
                 )}
               </View>
-
             </View>
           </BlurView>
         </MotiView>
-
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, Text, KeyboardAvoidingView, Platform, StatusBar, Pressable } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  Pressable,
+} from "react-native";
 import { router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,19 +37,22 @@ const stepSchemas = [
     city: z.string().min(1, "City is required"),
     pincode: z.string().min(4, "Pincode is required"),
   }),
-  z.object({
-    email: z.string().email("Invalid email address"),
-    password: z.string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Requires an uppercase letter")
-      .regex(/[a-z]/, "Requires a lowercase letter")
-      .regex(/[0-9]/, "Requires a number")
-      .regex(/[^A-Za-z0-9]/, "Requires a special character"),
-    confirmPassword: z.string(),
-  }).refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  }),
+  z
+    .object({
+      email: z.string().email("Invalid email address"),
+      password: z
+        .string()
+        .min(8, "Password must be at least 8 characters")
+        .regex(/[A-Z]/, "Requires an uppercase letter")
+        .regex(/[a-z]/, "Requires a lowercase letter")
+        .regex(/[0-9]/, "Requires a number")
+        .regex(/[^A-Za-z0-9]/, "Requires a special character"),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "Passwords don't match",
+      path: ["confirmPassword"],
+    }),
   z.object({
     bio: z.string().optional(),
     department: z.string().optional(), // Only for engineer
@@ -56,33 +68,36 @@ const stepSchemas = [
   }),
 ];
 
-const registerSchema = z.object({
-  role: z.enum(["citizen", "engineer"]),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  phone: z.string().min(10, "Valid phone number required"),
-  country: z.string().min(1, "Country is required"),
-  city: z.string().min(1, "City is required"),
-  pincode: z.string().min(4, "Pincode is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Requires an uppercase letter")
-    .regex(/[a-z]/, "Requires a lowercase letter")
-    .regex(/[0-9]/, "Requires a number")
-    .regex(/[^A-Za-z0-9]/, "Requires a special character"),
-  confirmPassword: z.string(),
-  bio: z.string().optional(),
-  department: z.string().optional(),
-  theme: z.enum(["light", "dark", "system"]),
-  language: z.string(),
-  locationPerm: z.boolean(),
-  cameraPerm: z.boolean(),
-  notificationPerm: z.boolean(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    role: z.enum(["citizen", "engineer"]),
+    fullName: z.string().min(2, "Full name must be at least 2 characters"),
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    phone: z.string().min(10, "Valid phone number required"),
+    country: z.string().min(1, "Country is required"),
+    city: z.string().min(1, "City is required"),
+    pincode: z.string().min(4, "Pincode is required"),
+    email: z.string().email("Invalid email address"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Requires an uppercase letter")
+      .regex(/[a-z]/, "Requires a lowercase letter")
+      .regex(/[0-9]/, "Requires a number")
+      .regex(/[^A-Za-z0-9]/, "Requires a special character"),
+    confirmPassword: z.string(),
+    bio: z.string().optional(),
+    department: z.string().optional(),
+    theme: z.enum(["light", "dark", "system"]),
+    language: z.string(),
+    locationPerm: z.boolean(),
+    cameraPerm: z.boolean(),
+    notificationPerm: z.boolean(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -96,7 +111,13 @@ export function RegisterScreen() {
   // Determine current schema for partial validation
   const currentSchema = stepSchemas[step] || z.object({});
 
-  const { control, handleSubmit, trigger, watch, formState: { errors } } = useForm<RegisterFormData>({
+  const {
+    control,
+    handleSubmit,
+    trigger,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
     resolver: step < 7 ? zodResolver(currentSchema as any) : zodResolver(registerSchema as any),
     mode: "onChange",
     defaultValues: {
@@ -129,13 +150,15 @@ export function RegisterScreen() {
     try {
       // 1. Create account via Auth Service (Supabase)
       // await AuthService.signUp(data.email, data.password);
-      
+
       // 2. Save complete profile initialization
       await AuthService.saveUserProfile(data);
-      
+
       // 3. Show success animation then navigate
       // Navigation is handled in authStore listener usually, but we can force it:
-      router.replace(data.role === "citizen" ? "/(citizen)/Dashboard" as any : "/(engineer)/Dashboard" as any);
+      router.replace(
+        data.role === "citizen" ? ("/(citizen)/Dashboard" as any) : ("/(engineer)/Dashboard" as any)
+      );
     } catch (err) {
       console.error(err);
       // Handle error gracefully
@@ -149,7 +172,9 @@ export function RegisterScreen() {
       case 0: // Role
         return (
           <View style={s.stepContainer}>
-            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+            <Text
+              style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}
+            >
               How will you use LUMEN?
             </Text>
             <Controller
@@ -175,7 +200,9 @@ export function RegisterScreen() {
       case 1: // Personal
         return (
           <View style={s.stepContainer}>
-            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+            <Text
+              style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}
+            >
               Personal Information
             </Text>
             <Controller
@@ -226,7 +253,9 @@ export function RegisterScreen() {
       case 2: // Location
         return (
           <View style={s.stepContainer}>
-            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+            <Text
+              style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}
+            >
               Where are you located?
             </Text>
             <Controller
@@ -273,7 +302,9 @@ export function RegisterScreen() {
       case 3: // Account
         return (
           <View style={s.stepContainer}>
-            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+            <Text
+              style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}
+            >
               Secure Your Account
             </Text>
             <Controller
@@ -331,7 +362,9 @@ export function RegisterScreen() {
       case 4: // Profile
         return (
           <View style={s.stepContainer}>
-            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+            <Text
+              style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}
+            >
               Profile Setup
             </Text>
             <Controller
@@ -370,30 +403,42 @@ export function RegisterScreen() {
       case 5: // Preferences
         return (
           <View style={s.stepContainer}>
-            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+            <Text
+              style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}
+            >
               App Preferences
             </Text>
-            <Text style={[TextStyles.body, { color: colors.textSecondary }]}>Theme & Language settings will go here (UI pending).</Text>
+            <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
+              Theme & Language settings will go here (UI pending).
+            </Text>
             {/* For now we use the default values initialized in the form */}
           </View>
         );
       case 6: // Permissions
         return (
           <View style={s.stepContainer}>
-            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>
+            <Text
+              style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[4] }]}
+            >
               Required Permissions
             </Text>
-            <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[6] }]}>
+            <Text
+              style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[6] }]}
+            >
               LUMEN needs certain permissions to provide you with the best experience.
             </Text>
-            
+
             <View style={s.permissionItem}>
               <View style={[s.permIcon, { backgroundColor: colors.brand + "20" }]}>
                 <LumenIcon name="map" size="md" color={colors.brand} />
               </View>
               <View style={s.permText}>
-                <Text style={[TextStyles.label, { color: colors.textPrimary }]}>Location Access</Text>
-                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Used to accurately pin the location of civic issues.</Text>
+                <Text style={[TextStyles.label, { color: colors.textPrimary }]}>
+                  Location Access
+                </Text>
+                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                  Used to accurately pin the location of civic issues.
+                </Text>
               </View>
             </View>
 
@@ -402,8 +447,12 @@ export function RegisterScreen() {
                 <LumenIcon name="camera" size="md" color={colors.brand} />
               </View>
               <View style={s.permText}>
-                <Text style={[TextStyles.label, { color: colors.textPrimary }]}>Camera & Gallery</Text>
-                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Required to attach evidence photos to your reports.</Text>
+                <Text style={[TextStyles.label, { color: colors.textPrimary }]}>
+                  Camera & Gallery
+                </Text>
+                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                  Required to attach evidence photos to your reports.
+                </Text>
               </View>
             </View>
 
@@ -412,8 +461,12 @@ export function RegisterScreen() {
                 <LumenIcon name="notifications" size="md" color={colors.brand} />
               </View>
               <View style={s.permText}>
-                <Text style={[TextStyles.label, { color: colors.textPrimary }]}>Push Notifications</Text>
-                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Stay updated on the resolution status of your reports.</Text>
+                <Text style={[TextStyles.label, { color: colors.textPrimary }]}>
+                  Push Notifications
+                </Text>
+                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                  Stay updated on the resolution status of your reports.
+                </Text>
               </View>
             </View>
           </View>
@@ -421,10 +474,17 @@ export function RegisterScreen() {
       case 7: // Review
         return (
           <View style={s.stepContainer}>
-            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+            <Text
+              style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}
+            >
               Review Information
             </Text>
-            <View style={[s.reviewCard, { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault }]}>
+            <View
+              style={[
+                s.reviewCard,
+                { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault },
+              ]}
+            >
               <ReviewRow label="Role" value={formData.role} />
               <ReviewRow label="Name" value={formData.fullName} />
               <ReviewRow label="Email" value={formData.email} />
@@ -438,19 +498,26 @@ export function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={[s.root, { backgroundColor: colors.bgBase }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView
+      style={[s.root, { backgroundColor: colors.bgBase }]}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      
+
       {/* Header */}
       <View style={s.header}>
         {step > 0 ? (
           <Pressable onPress={prevStep} hitSlop={12} style={s.backBtn}>
             <LumenIcon name="arrowLeft" size="md" color={colors.textPrimary} />
           </Pressable>
-        ) : <View style={s.backBtn} />}
-        
+        ) : (
+          <View style={s.backBtn} />
+        )}
+
         <View style={s.progressContainer}>
-          <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Step {step + 1} of {TOTAL_STEPS}</Text>
+          <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+            Step {step + 1} of {TOTAL_STEPS}
+          </Text>
           <View style={[s.progressBar, { backgroundColor: colors.borderDefault }]}>
             <MotiView
               animate={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
@@ -459,11 +526,15 @@ export function RegisterScreen() {
             />
           </View>
         </View>
-        
+
         <View style={s.backBtn} />
       </View>
 
-      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <AnimatePresence exitBeforeEnter custom={step}>
           <MotiView
             key={`step-${step}`}
@@ -488,13 +559,7 @@ export function RegisterScreen() {
             onPress={handleSubmit(onSubmit)}
           />
         ) : (
-          <Button
-            label="Continue"
-            variant="primary"
-            size="lg"
-            fullWidth
-            onPress={nextStep}
-          />
+          <Button label="Continue" variant="primary" size="lg" fullWidth onPress={nextStep} />
         )}
       </View>
     </KeyboardAvoidingView>
@@ -506,7 +571,9 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
     <View style={s.reviewRow}>
       <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{label}</Text>
-      <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: "500" }]}>{value}</Text>
+      <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: "500" }]}>
+        {value}
+      </Text>
     </View>
   );
 }

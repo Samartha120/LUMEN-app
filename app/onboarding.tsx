@@ -50,7 +50,8 @@ const SLIDES: SlideData[] = [
   {
     id: "5",
     title: "Smart Notifications",
-    description: "Get real-time updates when nearby issues are fixed or your reports change status.",
+    description:
+      "Get real-time updates when nearby issues are fixed or your reports change status.",
     icon: "notifications",
     color: "#12B76A",
   },
@@ -119,22 +120,32 @@ export default function OnboardingScreen() {
               >
                 <LumenIcon name={currentSlide.icon} size="xl" color={currentSlide.color} />
               </MotiView>
-              
+
               {/* Background Glow */}
               <MotiView
                 from={{ scale: 0.8, opacity: 0.5 }}
                 animate={{ scale: 1.2, opacity: 0 }}
                 transition={{ type: "timing", duration: 2000, loop: true }}
-                style={[StyleSheet.absoluteFill, { backgroundColor: currentSlide.color, borderRadius: 100, zIndex: -1 }]}
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: currentSlide.color, borderRadius: 100, zIndex: -1 },
+                ]}
               />
             </View>
 
             {/* Text Content */}
             <View style={s.textContainer}>
-              <Text style={[TextStyles.heading1, { color: colors.textPrimary, textAlign: "center" }]}>
+              <Text
+                style={[TextStyles.heading1, { color: colors.textPrimary, textAlign: "center" }]}
+              >
                 {currentSlide.title}
               </Text>
-              <Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center", marginTop: Spacing[4] }]}>
+              <Text
+                style={[
+                  TextStyles.body,
+                  { color: colors.textSecondary, textAlign: "center", marginTop: Spacing[4] },
+                ]}
+              >
                 {currentSlide.description}
               </Text>
             </View>

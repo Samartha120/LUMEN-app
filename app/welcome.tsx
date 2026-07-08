@@ -31,7 +31,7 @@ export default function WelcomeScreen() {
         transition={{ type: "timing", duration: 1500, loop: true, repeatReverse: true }}
         style={[s.floatingShape, { backgroundColor: colors.brand + "20", top: "10%", left: "10%" }]}
       />
-      
+
       <MotiView
         from={{ translateY: 50, opacity: 0 }}
         animate={{ translateY: 0, opacity: 1 }}
@@ -50,7 +50,12 @@ export default function WelcomeScreen() {
             <View style={[s.logoDot, { backgroundColor: colors.brand }]} />
             <Text style={[TextStyles.badge, { color: colors.brand, letterSpacing: 4 }]}>LUMEN</Text>
           </View>
-          <Text style={[TextStyles.heading1, { color: colors.textPrimary, fontSize: 40, lineHeight: 48 }]}>
+          <Text
+            style={[
+              TextStyles.heading1,
+              { color: colors.textPrimary, fontSize: 40, lineHeight: 48 },
+            ]}
+          >
             Smarter Cities,{"\n"}Better Lives.
           </Text>
           <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
@@ -74,7 +79,7 @@ export default function WelcomeScreen() {
                 onPress={() => router.push("/onboarding" as any)}
                 iconRight="forward"
               />
-              
+
               <Button
                 label="Sign In"
                 variant="secondary"
@@ -85,7 +90,12 @@ export default function WelcomeScreen() {
 
               <View style={s.divider}>
                 <View style={[s.line, { backgroundColor: colors.borderDefault }]} />
-                <Text style={[TextStyles.caption, { color: colors.textTertiary, marginHorizontal: Spacing[2] }]}>
+                <Text
+                  style={[
+                    TextStyles.caption,
+                    { color: colors.textTertiary, marginHorizontal: Spacing[2] },
+                  ]}
+                >
                   or continue with
                 </Text>
                 <View style={[s.line, { backgroundColor: colors.borderDefault }]} />
@@ -99,14 +109,9 @@ export default function WelcomeScreen() {
                   style={{ flex: 1 }}
                   // TODO: Add Google icon support in LumenIcon or SVG
                 />
-                
+
                 {Platform.OS === "ios" && (
-                  <Button
-                    label="Apple"
-                    variant="outline"
-                    size="md"
-                    style={{ flex: 1 }}
-                  />
+                  <Button label="Apple" variant="outline" size="md" style={{ flex: 1 }} />
                 )}
               </View>
             </View>

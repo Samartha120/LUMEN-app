@@ -41,7 +41,11 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
@@ -58,7 +62,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       // await supabase.auth.signInWithPassword({ email: data.email, password: data.password });
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       // For demo, we just route to dashboard. Real app will listen to authStateChange.
       router.replace("/(citizen)/Dashboard" as any);
@@ -86,19 +90,27 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={[s.root, { backgroundColor: colors.bgBase }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView
+      style={[s.root, { backgroundColor: colors.bgBase }]}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Decorative gradient orbs */}
-      <LinearGradient colors={[colors.brand + "15", colors.brand + "05", "transparent"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGradient} />
-      
+      <LinearGradient
+        colors={[colors.brand + "15", colors.brand + "05", "transparent"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={s.topGradient}
+      />
+
       <MotiView
         from={{ translateY: -20, opacity: 0.5 }}
         animate={{ translateY: 20, opacity: 0.8 }}
         transition={{ type: "timing", duration: 4000, loop: true, repeatReverse: true }}
         style={[s.orbTopRight, { backgroundColor: colors.brand + "12" }]}
       />
-      
+
       <MotiView
         from={{ translateY: 20, opacity: 0.4 }}
         animate={{ translateY: -20, opacity: 0.6 }}
@@ -106,23 +118,44 @@ export default function LoginScreen() {
         style={[s.orbBottomLeft, { backgroundColor: "#7C3AED10" }]}
       />
 
-      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Logo + Hero */}
-        <MotiView from={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring" }} style={s.hero}>
+        <MotiView
+          from={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring" }}
+          style={s.hero}
+        >
           <View style={s.wordmarkRow}>
             <View style={[s.wordmarkDot, { backgroundColor: colors.brand }]} />
             <Text style={[TextStyles.badge, { color: colors.brand, letterSpacing: 4 }]}>LUMEN</Text>
           </View>
-          <Text style={[TextStyles.heading1, { color: colors.textPrimary, lineHeight: 48 }]}>Welcome{"\n"}back.</Text>
-          <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>Civic infrastructure, intelligently managed.</Text>
+          <Text style={[TextStyles.heading1, { color: colors.textPrimary, lineHeight: 48 }]}>
+            Welcome{"\n"}back.
+          </Text>
+          <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>
+            Civic infrastructure, intelligently managed.
+          </Text>
         </MotiView>
 
         {/* Glass Card */}
-        <MotiView from={{ opacity: 0, translateY: 40 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: "spring", delay: 200 }}>
+        <MotiView
+          from={{ opacity: 0, translateY: 40 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "spring", delay: 200 }}
+        >
           <BlurView intensity={25} tint={isDark ? "dark" : "light"} style={s.glassCard}>
-            <LinearGradient colors={[isDark ? "#1a1a2e30" : "#ffffff50", isDark ? "#1a1a2e15" : "#ffffff25"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-            
+            <LinearGradient
+              colors={[isDark ? "#1a1a2e30" : "#ffffff50", isDark ? "#1a1a2e15" : "#ffffff25"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+
             <View style={s.cardContent}>
               <Controller
                 control={control}
@@ -140,7 +173,7 @@ export default function LoginScreen() {
                   />
                 )}
               />
-              
+
               <View>
                 <Controller
                   control={control}
@@ -157,8 +190,13 @@ export default function LoginScreen() {
                     />
                   )}
                 />
-                <Pressable style={s.forgotLink} onPress={() => router.push("/Forget-password" as any)}>
-                  <Text style={[TextStyles.caption, { color: colors.brand, fontWeight: "600" }]}>Forgot password?</Text>
+                <Pressable
+                  style={s.forgotLink}
+                  onPress={() => router.push("/Forget-password" as any)}
+                >
+                  <Text style={[TextStyles.caption, { color: colors.brand, fontWeight: "600" }]}>
+                    Forgot password?
+                  </Text>
                 </Pressable>
               </View>
 
@@ -188,10 +226,10 @@ export default function LoginScreen() {
 
         <Pressable style={s.registerLink} onPress={() => router.push("/(auth)/Register" as any)}>
           <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
-            Don't have an account? <Text style={{ color: colors.brand, fontWeight: "600" }}>Register</Text>
+            Don't have an account?{" "}
+            <Text style={{ color: colors.brand, fontWeight: "600" }}>Register</Text>
           </Text>
         </Pressable>
-
       </ScrollView>
     </KeyboardAvoidingView>
   );

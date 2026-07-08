@@ -1,348 +1,197 @@
 // ============================================================
 // LUMEN — Premium Login Screen
-// Phase 2: Authentication
+// Phase 2: Authentication Redesign
 // ============================================================
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  Pressable,
+} from "react-native";
+import { router } from "expo-router";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { MotiView, AnimatePresence } from "moti";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/design-system/ThemeContext";
+import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
 import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
-import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { AuthService } from "@/services/auth.service";
+import * as Haptics from "expo-haptics";
+import * as LocalAuthentication from "expo-local-authentication";
 
-const { width: SCREEN_W } = Dimensions.get("window");
-type Role = "citizen" | "engineer";
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
-const DEMO = {
-  citizen: { email: "citizen@lumen.app", password: "demo1234" },
-  engineer: { email: "engineer@lumen.app", password: "demo1234" },
-};
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const { colors, isDark } = useTheme();
-  const [role, setRole] = useState<Role>("citizen");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [emailErr, setEmailErr] = useState("");
-  const [passErr, setPassErr] = useState("");
+  const [biometricSupported, setBiometricSupported] = useState(false);
 
-  // Entrance animations
-  const logoAnim = useRef(new Animated.Value(0)).current;
-  const cardAnim = useRef(new Animated.Value(40)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
-  // Orb float
-  const orbAnim = useRef(new Animated.Value(0)).current;
-  // Role pill indicator
-  const pillX = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    // Entrance sequence
-    Animated.sequence([
-      Animated.timing(logoAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.cubic),
-      }),
-      Animated.parallel([
-        Animated.spring(cardAnim, { toValue: 0, useNativeDriver: true, speed: 16, bounciness: 8 }),
-        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 16, bounciness: 8 }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-      ]),
-    ]).start();
-
-    // Floating orb loop
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(orbAnim, { toValue: 1, duration: 5000, useNativeDriver: true }),
-        Animated.timing(orbAnim, { toValue: 0, duration: 5000, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-
-  const setRoleAnimated = (r: Role) => {
-    setRole(r);
-    Animated.spring(pillX, {
-      toValue: r === "citizen" ? 0 : 1,
-      useNativeDriver: true,
-      speed: 30,
-      bounciness: 6,
-    }).start();
-    setEmailErr("");
-    setPassErr("");
-    setEmail("");
-    setPassword("");
-  };
-
-  const fillDemo = () => {
-    setEmail(DEMO[role].email);
-    setPassword(DEMO[role].password);
-    setEmailErr("");
-    setPassErr("");
-  };
-
-  const handleSignIn = async () => {
-    let valid = true;
-    if (!email) {
-      setEmailErr("Email is required");
-      valid = false;
-    }
-    if (!password) {
-      setPassErr("Password is required");
-      valid = false;
-    }
-    if (!valid) return;
-
-    const cred = DEMO[role];
-    if (email.trim().toLowerCase() !== cred.email || password !== cred.password) {
-      setEmailErr("Invalid credentials. Tap ✦ Fill Demo to auto-fill.");
-      return;
-    }
-
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setLoading(false);
-    router.replace((role === "citizen" ? "/(citizen)/Dashboard" : "/(engineer)/Dashboard") as any);
-  };
-
-  const orbTranslateY = orbAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -30] });
-  const pillTranslateX = pillX.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, (SCREEN_W - 48 - 24) / 2],
+  const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
   });
 
-  const ROLE_ICON = role === "citizen" ? "home" : "tool";
-  const ROLE_EMOJI = role === "citizen" ? "🏘" : "⚙️";
+  useEffect(() => {
+    (async () => {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      setBiometricSupported(compatible && enrolled);
+    })();
+  }, []);
+
+  const onLogin = async (data: LoginFormData) => {
+    setLoading(true);
+    try {
+      // await supabase.auth.signInWithPassword({ email: data.email, password: data.password });
+      await new Promise(r => setTimeout(r, 1000));
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // For demo, we just route to dashboard. Real app will listen to authStateChange.
+      router.replace("/(citizen)/Dashboard" as any);
+    } catch (err) {
+      console.error(err);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onBiometricAuth = async () => {
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Sign in to LUMEN",
+        fallbackLabel: "Use Password",
+      });
+      if (result.success) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        router.replace("/(citizen)/Dashboard" as any);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
-    <KeyboardAvoidingView
-      style={[s.root, { backgroundColor: colors.bgBase }]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <StatusBar
-        barStyle={isDark ? "light-content" : "dark-content"}
-        backgroundColor={colors.bgBase}
-      />
+    <KeyboardAvoidingView style={[s.root, { backgroundColor: colors.bgBase }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Decorative gradient orbs */}
-      <LinearGradient
-        colors={[colors.brand + "15", colors.brand + "05", "transparent"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={s.topGradient}
+      <LinearGradient colors={[colors.brand + "15", colors.brand + "05", "transparent"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGradient} />
+      
+      <MotiView
+        from={{ translateY: -20, opacity: 0.5 }}
+        animate={{ translateY: 20, opacity: 0.8 }}
+        transition={{ type: "timing", duration: 4000, loop: true, repeatReverse: true }}
+        style={[s.orbTopRight, { backgroundColor: colors.brand + "12" }]}
       />
-      <Animated.View
-        style={[
-          s.orbTopRight,
-          { backgroundColor: colors.brand + "12", transform: [{ translateY: orbTranslateY }] },
-        ]}
-      />
-      <Animated.View
-        style={[
-          s.orbBottomLeft,
-          {
-            backgroundColor: "#7C3AED10",
-            transform: [{ translateY: Animated.multiply(orbTranslateY, -1) }],
-          },
-        ]}
-      />
-      <Animated.View
-        style={[
-          s.orbMid,
-          { backgroundColor: "#12B76A08", transform: [{ translateY: orbTranslateY }] },
-        ]}
+      
+      <MotiView
+        from={{ translateY: 20, opacity: 0.4 }}
+        animate={{ translateY: -20, opacity: 0.6 }}
+        transition={{ type: "timing", duration: 5000, loop: true, repeatReverse: true }}
+        style={[s.orbBottomLeft, { backgroundColor: "#7C3AED10" }]}
       />
 
-      <ScrollView
-        contentContainerStyle={s.scroll}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        
         {/* Logo + Hero */}
-        <Animated.View style={[s.hero, { opacity: logoAnim }]}>
-          <View style={[s.wordmarkRow]}>
+        <MotiView from={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring" }} style={s.hero}>
+          <View style={s.wordmarkRow}>
             <View style={[s.wordmarkDot, { backgroundColor: colors.brand }]} />
             <Text style={[TextStyles.badge, { color: colors.brand, letterSpacing: 4 }]}>LUMEN</Text>
           </View>
-          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-            <Text style={[TextStyles.heading1, { color: colors.textPrimary, lineHeight: 50 }]}>
-              Welcome{"\n"}back.
-            </Text>
-          </Animated.View>
-          <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>
-            Civic infrastructure, intelligently managed.
-          </Text>
-        </Animated.View>
+          <Text style={[TextStyles.heading1, { color: colors.textPrimary, lineHeight: 48 }]}>Welcome{"\n"}back.</Text>
+          <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>Civic infrastructure, intelligently managed.</Text>
+        </MotiView>
 
         {/* Glass Card */}
-        <Animated.View
-          style={{
-            transform: [{ translateY: cardAnim }],
-            opacity: fadeAnim,
-          }}
-        >
+        <MotiView from={{ opacity: 0, translateY: 40 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: "spring", delay: 200 }}>
           <BlurView intensity={25} tint={isDark ? "dark" : "light"} style={s.glassCard}>
-            <LinearGradient
-              colors={[isDark ? "#1a1a2e30" : "#ffffff50", isDark ? "#1a1a2e15" : "#ffffff25"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
+            <LinearGradient colors={[isDark ? "#1a1a2e30" : "#ffffff50", isDark ? "#1a1a2e15" : "#ffffff25"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+            
             <View style={s.cardContent}>
-              {/* Role Selector */}
-              <View style={s.roleSection}>
-                <Text
-                  style={[
-                    TextStyles.label,
-                    { color: colors.textSecondary, marginBottom: Spacing[2] },
-                  ]}
-                >
-                  Sign in as
-                </Text>
-                <View
-                  style={[
-                    s.roleContainer,
-                    { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault },
-                  ]}
-                >
-                  {/* Animated pill */}
-                  <Animated.View
-                    style={[
-                      s.rolePill,
-                      {
-                        backgroundColor: colors.bgSurface,
-                        transform: [{ translateX: pillTranslateX }],
-                        width: (SCREEN_W - 48 - 24) / 2,
-                      },
-                    ]}
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    label="Email address"
+                    placeholder="you@lumen.app"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={value}
+                    onChangeText={onChange}
+                    error={errors.email?.message}
+                    iconLeft="email"
                   />
-                  {(["citizen", "engineer"] as Role[]).map((r) => (
-                    <Pressable
-                      key={r}
-                      style={s.roleBtn}
-                      onPress={() => setRoleAnimated(r)}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Sign in as ${r}`}
-                    >
-                      <View style={s.roleBtnContent}>
-                        <LumenIcon
-                          name={ROLE_ICON as any}
-                          size="sm"
-                          color={role === r ? colors.brand : colors.textTertiary}
-                          strokeWidth={2}
-                        />
-                        <Text
-                          style={[
-                            TextStyles.label,
-                            { color: role === r ? colors.brand : colors.textTertiary },
-                          ]}
-                        >
-                          {r === "citizen" ? "Citizen" : "Engineer"}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ))}
-                </View>
+                )}
+              />
+              
+              <View>
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      label="Password"
+                      placeholder="••••••••"
+                      secureTextEntry
+                      value={value}
+                      onChangeText={onChange}
+                      error={errors.password?.message}
+                      iconLeft="lock"
+                    />
+                  )}
+                />
+                <Pressable style={s.forgotLink} onPress={() => router.push("/Forget-password" as any)}>
+                  <Text style={[TextStyles.caption, { color: colors.brand, fontWeight: "600" }]}>Forgot password?</Text>
+                </Pressable>
               </View>
 
-              {/* Fields */}
-              <View style={s.fields}>
-                <Input
-                  label="Email address"
-                  value={email}
-                  onChangeText={(t) => {
-                    setEmail(t);
-                    setEmailErr("");
-                  }}
-                  placeholder={`${role}@lumen.app`}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  iconLeft="email"
-                  error={emailErr}
-                />
-                <Input
-                  label="Password"
-                  value={password}
-                  onChangeText={(t) => {
-                    setPassword(t);
-                    setPassErr("");
-                  }}
-                  placeholder="••••••••"
-                  secureTextEntry
-                  iconLeft="lock"
-                  error={passErr}
-                />
-              </View>
-
-              {/* Demo Fill */}
-              <Pressable
-                style={({ pressed }) => [
-                  s.demoBtn,
-                  {
-                    backgroundColor: colors.brandSoft,
-                    borderColor: colors.brandBorder,
-                    opacity: pressed ? 0.8 : 1,
-                    transform: [{ scale: pressed ? 0.98 : 1 }],
-                  },
-                ]}
-                onPress={fillDemo}
-                accessibilityLabel="Fill demo credentials"
-              >
-                <LumenIcon name="spark" size="sm" color={colors.brand} strokeWidth={2} />
-                <Text style={[TextStyles.label, { color: colors.brand }]}>
-                  Fill demo credentials · {role}
-                </Text>
-              </Pressable>
-
-              {/* Sign In */}
               <Button
                 label={loading ? "Signing in…" : "Sign in"}
                 variant="primary"
                 size="lg"
                 fullWidth
                 loading={loading}
-                onPress={handleSignIn}
+                onPress={handleSubmit(onLogin)}
                 iconRight={loading ? undefined : "forward"}
               />
 
-              {/* Forgot */}
-              <Pressable style={s.forgot} accessibilityLabel="Forgot password">
-                <Text style={[TextStyles.bodySmall, { color: colors.textTertiary }]}>
-                  Forgot password?{" "}
-                  <Text style={{ color: colors.brand, fontWeight: "600" }}>Reset</Text>
-                </Text>
-              </Pressable>
+              {biometricSupported && (
+                <Button
+                  label="Sign in with Face ID / Touch ID"
+                  variant="outline"
+                  size="lg"
+                  fullWidth
+                  onPress={onBiometricAuth}
+                  // iconLeft="scanFace" // Assuming an icon exists, else default to generic
+                />
+              )}
             </View>
           </BlurView>
-        </Animated.View>
+        </MotiView>
 
-        {/* Footer */}
-        <Text
-          style={[
-            TextStyles.caption,
-            { color: colors.textTertiary, textAlign: "center", marginTop: Spacing[6] },
-          ]}
-        >
-          Demo mode · LUMEN v1.0 · No real data used
-        </Text>
+        <Pressable style={s.registerLink} onPress={() => router.push("/(auth)/Register" as any)}>
+          <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
+            Don't have an account? <Text style={{ color: colors.brand, fontWeight: "600" }}>Register</Text>
+          </Text>
+        </Pressable>
+
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -353,7 +202,7 @@ const s = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     paddingHorizontal: Spacing[6],
-    paddingTop: 60,
+    paddingTop: 80,
     paddingBottom: Spacing[12],
     gap: Spacing[8],
   },
@@ -366,27 +215,21 @@ const s = StyleSheet.create({
   },
   orbTopRight: {
     position: "absolute",
-    top: -100,
+    top: -50,
     right: -100,
-    width: 280,
-    height: 280,
-    borderRadius: 140,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    filter: "blur(30px)",
   },
   orbBottomLeft: {
     position: "absolute",
-    bottom: -120,
+    bottom: -50,
     left: -100,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-  },
-  orbMid: {
-    position: "absolute",
-    top: "40%",
-    right: -60,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    filter: "blur(30px)",
   },
   hero: { gap: Spacing[3] },
   wordmarkRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: Spacing[2] },
@@ -401,42 +244,12 @@ const s = StyleSheet.create({
     padding: Spacing[6],
     gap: Spacing[5],
   },
-  roleSection: {},
-  roleContainer: {
-    flexDirection: "row",
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    padding: 4,
-    position: "relative",
-    height: 48,
+  forgotLink: {
+    alignSelf: "flex-end",
+    marginTop: Spacing[2],
   },
-  rolePill: {
-    position: "absolute",
-    top: 4,
-    left: 4,
-    height: 40,
-    borderRadius: Radius.lg,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  roleBtn: { flex: 1, alignItems: "center", justifyContent: "center" },
-  roleBtnContent: {
-    flexDirection: "row",
+  registerLink: {
     alignItems: "center",
-    gap: Spacing[2],
+    marginTop: Spacing[2],
   },
-  fields: { gap: Spacing[4] },
-  demoBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing[2],
-    paddingVertical: Spacing[2.5],
-    borderRadius: Radius.full,
-    borderWidth: 1,
-  },
-  forgot: { alignItems: "center" },
 });

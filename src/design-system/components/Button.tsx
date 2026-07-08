@@ -15,7 +15,7 @@ import { LumenIcon, type LumenIconName } from "../icons/LumenIcon";
 import { useTheme } from "../ThemeContext";
 import { Radius, Spacing, TextStyles, TouchTarget } from "../tokens";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success" | "outline";
 export type ButtonSize = "sm" | "md" | "lg";
 
 export interface ButtonProps extends Omit<PressableProps, "style"> {
@@ -61,6 +61,7 @@ export function Button({
     ghost: "transparent",
     danger: "#F04438",
     success: "#12B76A",
+    outline: "transparent",
   };
 
   const textColor: Record<ButtonVariant, string> = {
@@ -69,6 +70,7 @@ export function Button({
     ghost: colors.brand,
     danger: "#FFFFFF",
     success: "#FFFFFF",
+    outline: colors.textPrimary,
   };
 
   const borderColor: Record<ButtonVariant, string> = {
@@ -77,6 +79,7 @@ export function Button({
     ghost: "transparent",
     danger: "transparent",
     success: "transparent",
+    outline: colors.borderDefault,
   };
 
   const height: Record<ButtonSize, number> = { sm: 36, md: TouchTarget.md, lg: TouchTarget.lg };

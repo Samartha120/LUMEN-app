@@ -13,6 +13,7 @@ import {
   Battery,
   Bell,
   Bookmark,
+  Bot,
   BrainCircuit,
   Building2,
   Calendar,
@@ -123,6 +124,7 @@ const LUMEN_ICONS = {
   filter: Filter,
   sliders: SlidersHorizontal,
   back: ArrowLeft,
+  arrowLeft: ArrowLeft,
   forward: ArrowRight,
   moreVertical: MoreVertical,
   moreHorizontal: MoreHorizontal,
@@ -178,6 +180,7 @@ const LUMEN_ICONS = {
 
   // AI
   ai: BrainCircuit,
+  robot: Bot,
   cpu: Cpu,
   spark: Sparkles,
 
@@ -192,6 +195,7 @@ const LUMEN_ICONS = {
   refresh: RefreshCw,
   reset: RotateCcw,
   success: CheckCircle2,
+  checkCircle: CheckCircle2,
   error: XCircle,
   warning: AlertCircle,
   info: Info,

@@ -1,399 +1,589 @@
-// ============================================================
-// LUMEN — Premium Registration Screen
-// Phase 2: Authentication (Onboarding)
-// ============================================================
+import React, { useState } from "react";
+import { View, StyleSheet, ScrollView, Text, KeyboardAvoidingView, Platform, StatusBar, Pressable } from "react-native";
+import { router } from "expo-router";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { AnimatePresence, MotiView } from "moti";
 import { useTheme } from "@/design-system/ThemeContext";
+import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
 import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
+import { PasswordStrengthMeter } from "@/design-system/components/PasswordStrengthMeter";
+import { AnimatedRoleCard } from "@/design-system/components/AnimatedRoleCard";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
-import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { AuthService } from "@/services/auth.service";
+import * as Haptics from "expo-haptics";
 
-const { width: SCREEN_W } = Dimensions.get("window");
-type Role = "citizen" | "engineer";
+// --- Validation Schemas ---
+const stepSchemas = [
+  z.object({ role: z.enum(["citizen", "engineer"]) }),
+  z.object({
+    fullName: z.string().min(2, "Full name must be at least 2 characters"),
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    phone: z.string().min(10, "Valid phone number required"),
+  }),
+  z.object({
+    country: z.string().min(1, "Country is required"),
+    city: z.string().min(1, "City is required"),
+    pincode: z.string().min(4, "Pincode is required"),
+  }),
+  z.object({
+    email: z.string().email("Invalid email address"),
+    password: z.string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Requires an uppercase letter")
+      .regex(/[a-z]/, "Requires a lowercase letter")
+      .regex(/[0-9]/, "Requires a number")
+      .regex(/[^A-Za-z0-9]/, "Requires a special character"),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  }),
+  z.object({
+    bio: z.string().optional(),
+    department: z.string().optional(), // Only for engineer
+  }),
+  z.object({
+    theme: z.enum(["light", "dark", "system"]),
+    language: z.string(),
+  }),
+  z.object({
+    locationPerm: z.boolean(),
+    cameraPerm: z.boolean(),
+    notificationPerm: z.boolean(),
+  }),
+];
+
+const registerSchema = z.object({
+  role: z.enum(["citizen", "engineer"]),
+  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  phone: z.string().min(10, "Valid phone number required"),
+  country: z.string().min(1, "Country is required"),
+  city: z.string().min(1, "City is required"),
+  pincode: z.string().min(4, "Pincode is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Requires an uppercase letter")
+    .regex(/[a-z]/, "Requires a lowercase letter")
+    .regex(/[0-9]/, "Requires a number")
+    .regex(/[^A-Za-z0-9]/, "Requires a special character"),
+  confirmPassword: z.string(),
+  bio: z.string().optional(),
+  department: z.string().optional(),
+  theme: z.enum(["light", "dark", "system"]),
+  language: z.string(),
+  locationPerm: z.boolean(),
+  cameraPerm: z.boolean(),
+  notificationPerm: z.boolean(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type RegisterFormData = z.infer<typeof registerSchema>;
+
+const TOTAL_STEPS = 8;
 
 export function RegisterScreen() {
   const { colors, isDark } = useTheme();
-  const [role, setRole] = useState<Role>("citizen");
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [nameErr, setNameErr] = useState("");
-  const [emailErr, setEmailErr] = useState("");
-  const [passErr, setPassErr] = useState("");
 
-  const logoAnim = useRef(new Animated.Value(0)).current;
-  const cardAnim = useRef(new Animated.Value(40)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
-  const pillX = useRef(new Animated.Value(0)).current;
-  const orbAnim = useRef(new Animated.Value(0)).current;
+  // Determine current schema for partial validation
+  const currentSchema = stepSchemas[step] || z.object({});
 
-  useEffect(() => {
-    Animated.sequence([
-      Animated.timing(logoAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.cubic),
-      }),
-      Animated.parallel([
-        Animated.spring(cardAnim, { toValue: 0, useNativeDriver: true, speed: 16, bounciness: 8 }),
-        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 16, bounciness: 8 }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-      ]),
-    ]).start();
-
-    // Floating orb animation
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(orbAnim, { toValue: 1, duration: 5000, useNativeDriver: true }),
-        Animated.timing(orbAnim, { toValue: 0, duration: 5000, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-
-  const setRoleAnimated = (r: Role) => {
-    setRole(r);
-    Animated.spring(pillX, {
-      toValue: r === "citizen" ? 0 : 1,
-      useNativeDriver: true,
-      speed: 30,
-      bounciness: 6,
-    }).start();
-  };
-
-  const handleRegister = async () => {
-    let valid = true;
-    if (!fullName) {
-      setNameErr("Full name is required");
-      valid = false;
-    }
-    if (!email) {
-      setEmailErr("Email is required");
-      valid = false;
-    }
-    if (!password) {
-      setPassErr("Password is required");
-      valid = false;
-    }
-    if (!valid) return;
-
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    // Go to verify email
-    router.replace("/Verify-email" as any);
-  };
-
-  const pillTranslateX = pillX.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, (SCREEN_W - 48 - 24) / 2],
+  const { control, handleSubmit, trigger, watch, formState: { errors } } = useForm<RegisterFormData>({
+    resolver: step < 7 ? zodResolver(currentSchema as any) : zodResolver(registerSchema as any),
+    mode: "onChange",
+    defaultValues: {
+      role: "citizen",
+      theme: "system",
+      language: "en",
+      locationPerm: false,
+      cameraPerm: false,
+      notificationPerm: false,
+    },
   });
-  const orbTranslateY = orbAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -30] });
-  const ROLE_ICON = role === "citizen" ? "home" : "tool";
 
-  return (
-    <KeyboardAvoidingView
-      style={[s.root, { backgroundColor: colors.bgBase }]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <StatusBar
-        barStyle={isDark ? "light-content" : "dark-content"}
-        backgroundColor={colors.bgBase}
-      />
+  const formData = watch();
 
-      {/* Decorative gradient orbs */}
-      <LinearGradient
-        colors={[colors.brand + "15", colors.brand + "05", "transparent"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={s.topGradient}
-      />
-      <Animated.View
-        style={[
-          s.orbTopRight,
-          { backgroundColor: colors.brand + "12", transform: [{ translateY: orbTranslateY }] },
-        ]}
-      />
-      <Animated.View
-        style={[
-          s.orbBottomLeft,
-          {
-            backgroundColor: "#7C3AED10",
-            transform: [{ translateY: Animated.multiply(orbTranslateY, -1) }],
-          },
-        ]}
-      />
-      <Animated.View
-        style={[
-          s.orbMid,
-          { backgroundColor: "#12B76A08", transform: [{ translateY: orbTranslateY }] },
-        ]}
-      />
+  const nextStep = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const isStepValid = await trigger();
+    if (isStepValid) {
+      setStep((prev) => Math.min(prev + 1, TOTAL_STEPS - 1));
+    }
+  };
 
-      <ScrollView
-        contentContainerStyle={s.scroll}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Logo + Hero */}
-        <Animated.View style={[s.hero, { opacity: logoAnim }]}>
-          <View style={[s.wordmarkRow]}>
-            <View style={[s.wordmarkDot, { backgroundColor: colors.brand }]} />
-            <Text style={[TextStyles.badge, { color: colors.brand, letterSpacing: 4 }]}>LUMEN</Text>
-          </View>
-          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-            <Text style={[TextStyles.heading1, { color: colors.textPrimary, lineHeight: 50 }]}>
-              Join LUMEN
+  const prevStep = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const onSubmit = async (data: RegisterFormData) => {
+    setLoading(true);
+    try {
+      // 1. Create account via Auth Service (Supabase)
+      // await AuthService.signUp(data.email, data.password);
+      
+      // 2. Save complete profile initialization
+      await AuthService.saveUserProfile(data);
+      
+      // 3. Show success animation then navigate
+      // Navigation is handled in authStore listener usually, but we can force it:
+      router.replace(data.role === "citizen" ? "/(citizen)/Dashboard" as any : "/(engineer)/Dashboard" as any);
+    } catch (err) {
+      console.error(err);
+      // Handle error gracefully
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (step) {
+      case 0: // Role
+        return (
+          <View style={s.stepContainer}>
+            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+              How will you use LUMEN?
             </Text>
-          </Animated.View>
-          <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>
-            Create your account to start building a smarter community.
-          </Text>
-        </Animated.View>
-
-        {/* Glass Card */}
-        <Animated.View
-          style={{
-            transform: [{ translateY: cardAnim }],
-            opacity: fadeAnim,
-          }}
-        >
-          <BlurView intensity={25} tint={isDark ? "dark" : "light"} style={s.glassCard}>
-            <LinearGradient
-              colors={[isDark ? "#1a1a2e30" : "#ffffff50", isDark ? "#1a1a2e15" : "#ffffff25"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={s.cardContent}>
-              {/* Role Selector */}
-              <View style={s.roleSection}>
-                <Text
-                  style={[
-                    TextStyles.label,
-                    { color: colors.textSecondary, marginBottom: Spacing[2] },
-                  ]}
-                >
-                  Register as
-                </Text>
-                <View
-                  style={[
-                    s.roleContainer,
-                    { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault },
-                  ]}
-                >
-                  <Animated.View
-                    style={[
-                      s.rolePill,
-                      {
-                        backgroundColor: colors.bgSurface,
-                        transform: [{ translateX: pillTranslateX }],
-                        width: (SCREEN_W - 48 - 24) / 2,
-                      },
-                    ]}
+            <Controller
+              control={control}
+              name="role"
+              render={({ field: { onChange, value } }) => (
+                <>
+                  <AnimatedRoleCard
+                    role="citizen"
+                    selected={value === "citizen"}
+                    onSelect={() => onChange("citizen")}
                   />
-                  {(["citizen", "engineer"] as Role[]).map((r) => (
-                    <Pressable
-                      key={r}
-                      style={s.roleBtn}
-                      onPress={() => setRoleAnimated(r)}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Register as ${r}`}
-                    >
-                      <View style={s.roleBtnContent}>
-                        <LumenIcon
-                          name={ROLE_ICON as any}
-                          size="sm"
-                          color={role === r ? colors.brand : colors.textTertiary}
-                          strokeWidth={2}
-                        />
-                        <Text
-                          style={[
-                            TextStyles.label,
-                            { color: role === r ? colors.brand : colors.textTertiary },
-                          ]}
-                        >
-                          {r === "citizen" ? "Citizen" : "Engineer"}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-
-              {/* Fields */}
-              <View style={s.fields}>
+                  <AnimatedRoleCard
+                    role="engineer"
+                    selected={value === "engineer"}
+                    onSelect={() => onChange("engineer")}
+                  />
+                </>
+              )}
+            />
+          </View>
+        );
+      case 1: // Personal
+        return (
+          <View style={s.stepContainer}>
+            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+              Personal Information
+            </Text>
+            <Controller
+              control={control}
+              name="fullName"
+              render={({ field: { onChange, value } }) => (
                 <Input
                   label="Full Name"
-                  value={fullName}
-                  onChangeText={(t) => {
-                    setFullName(t);
-                    setNameErr("");
-                  }}
-                  placeholder="Samuel Krishnamurthy"
-                  autoCapitalize="words"
+                  placeholder="John Doe"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.fullName?.message}
                   iconLeft="profile"
-                  error={nameErr}
                 />
+              )}
+            />
+            <Controller
+              control={control}
+              name="username"
+              render={({ field: { onChange, value } }) => (
                 <Input
-                  label="Email address"
-                  value={email}
-                  onChangeText={(t) => {
-                    setEmail(t);
-                    setEmailErr("");
-                  }}
-                  placeholder="yourname@lumen.app"
+                  label="Username"
+                  placeholder="johndoe"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.username?.message}
+                  iconLeft="profile"
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Phone Number"
+                  placeholder="+1 234 567 8900"
+                  keyboardType="phone-pad"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.phone?.message}
+                  iconLeft="spark"
+                />
+              )}
+            />
+          </View>
+        );
+      case 2: // Location
+        return (
+          <View style={s.stepContainer}>
+            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+              Where are you located?
+            </Text>
+            <Controller
+              control={control}
+              name="country"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Country"
+                  placeholder="United States"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.country?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="city"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="City"
+                  placeholder="New York"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.city?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="pincode"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Pincode / Zip Code"
+                  placeholder="10001"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.pincode?.message}
+                />
+              )}
+            />
+          </View>
+        );
+      case 3: // Account
+        return (
+          <View style={s.stepContainer}>
+            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+              Secure Your Account
+            </Text>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Email Address"
+                  placeholder="you@example.com"
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  autoComplete="email"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.email?.message}
                   iconLeft="email"
-                  error={emailErr}
                 />
+              )}
+            />
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, value } }) => (
+                <View>
+                  <Input
+                    label="Password"
+                    placeholder="Create a strong password"
+                    secureTextEntry
+                    value={value}
+                    onChangeText={onChange}
+                    error={errors.password?.message}
+                    iconLeft="lock"
+                  />
+                  <PasswordStrengthMeter password={value || ""} />
+                </View>
+              )}
+            />
+            <Controller
+              control={control}
+              name="confirmPassword"
+              render={({ field: { onChange, value } }) => (
                 <Input
-                  label="Password"
-                  value={password}
-                  onChangeText={(t) => {
-                    setPassword(t);
-                    setPassErr("");
-                  }}
-                  placeholder="Minimum 8 characters"
+                  label="Confirm Password"
+                  placeholder="Re-enter password"
                   secureTextEntry
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.confirmPassword?.message}
                   iconLeft="lock"
-                  error={passErr}
+                  containerStyle={{ marginTop: Spacing[4] }}
                 />
-              </View>
-
-              {/* Register Button */}
-              <Button
-                label={loading ? "Registering…" : "Create Account"}
-                variant="primary"
-                size="lg"
-                fullWidth
-                loading={loading}
-                onPress={handleRegister}
-                iconRight={loading ? undefined : "forward"}
+              )}
+            />
+          </View>
+        );
+      case 4: // Profile
+        return (
+          <View style={s.stepContainer}>
+            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+              Profile Setup
+            </Text>
+            <Controller
+              control={control}
+              name="bio"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Short Bio (Optional)"
+                  placeholder="Tell us about yourself"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.bio?.message}
+                  multiline
+                  containerStyle={{ height: 100 }}
+                />
+              )}
+            />
+            {formData.role === "engineer" && (
+              <Controller
+                control={control}
+                name="department"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    label="Department"
+                    placeholder="e.g. Public Works, Transportation"
+                    value={value}
+                    onChangeText={onChange}
+                    error={errors.department?.message}
+                    containerStyle={{ marginTop: Spacing[4] }}
+                  />
+                )}
               />
-
-              {/* Back to login */}
-              <Pressable
-                style={s.backToLogin}
-                onPress={() => router.push("/Login" as any)}
-                accessibilityLabel="Back to sign in"
-              >
-                <Text style={[TextStyles.bodySmall, { color: colors.textTertiary }]}>
-                  Already registered?{" "}
-                  <Text style={{ color: colors.brand, fontWeight: "600" }}>Sign In</Text>
-                </Text>
-              </Pressable>
+            )}
+          </View>
+        );
+      case 5: // Preferences
+        return (
+          <View style={s.stepContainer}>
+            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+              App Preferences
+            </Text>
+            <Text style={[TextStyles.body, { color: colors.textSecondary }]}>Theme & Language settings will go here (UI pending).</Text>
+            {/* For now we use the default values initialized in the form */}
+          </View>
+        );
+      case 6: // Permissions
+        return (
+          <View style={s.stepContainer}>
+            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>
+              Required Permissions
+            </Text>
+            <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[6] }]}>
+              LUMEN needs certain permissions to provide you with the best experience.
+            </Text>
+            
+            <View style={s.permissionItem}>
+              <View style={[s.permIcon, { backgroundColor: colors.brand + "20" }]}>
+                <LumenIcon name="map" size="md" color={colors.brand} />
+              </View>
+              <View style={s.permText}>
+                <Text style={[TextStyles.label, { color: colors.textPrimary }]}>Location Access</Text>
+                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Used to accurately pin the location of civic issues.</Text>
+              </View>
             </View>
-          </BlurView>
-        </Animated.View>
+
+            <View style={s.permissionItem}>
+              <View style={[s.permIcon, { backgroundColor: colors.brand + "20" }]}>
+                <LumenIcon name="camera" size="md" color={colors.brand} />
+              </View>
+              <View style={s.permText}>
+                <Text style={[TextStyles.label, { color: colors.textPrimary }]}>Camera & Gallery</Text>
+                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Required to attach evidence photos to your reports.</Text>
+              </View>
+            </View>
+
+            <View style={s.permissionItem}>
+              <View style={[s.permIcon, { backgroundColor: colors.brand + "20" }]}>
+                <LumenIcon name="notifications" size="md" color={colors.brand} />
+              </View>
+              <View style={s.permText}>
+                <Text style={[TextStyles.label, { color: colors.textPrimary }]}>Push Notifications</Text>
+                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Stay updated on the resolution status of your reports.</Text>
+              </View>
+            </View>
+          </View>
+        );
+      case 7: // Review
+        return (
+          <View style={s.stepContainer}>
+            <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}>
+              Review Information
+            </Text>
+            <View style={[s.reviewCard, { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault }]}>
+              <ReviewRow label="Role" value={formData.role} />
+              <ReviewRow label="Name" value={formData.fullName} />
+              <ReviewRow label="Email" value={formData.email} />
+              <ReviewRow label="Location" value={`${formData.city}, ${formData.country}`} />
+            </View>
+          </View>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView style={[s.root, { backgroundColor: colors.bgBase }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      
+      {/* Header */}
+      <View style={s.header}>
+        {step > 0 ? (
+          <Pressable onPress={prevStep} hitSlop={12} style={s.backBtn}>
+            <LumenIcon name="arrowLeft" size="md" color={colors.textPrimary} />
+          </Pressable>
+        ) : <View style={s.backBtn} />}
+        
+        <View style={s.progressContainer}>
+          <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Step {step + 1} of {TOTAL_STEPS}</Text>
+          <View style={[s.progressBar, { backgroundColor: colors.borderDefault }]}>
+            <MotiView
+              animate={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              style={[s.progressFill, { backgroundColor: colors.brand }]}
+            />
+          </View>
+        </View>
+        
+        <View style={s.backBtn} />
+      </View>
+
+      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <AnimatePresence exitBeforeEnter custom={step}>
+          <MotiView
+            key={`step-${step}`}
+            from={{ opacity: 0, translateX: 20 }}
+            animate={{ opacity: 1, translateX: 0 }}
+            exit={{ opacity: 0, translateX: -20 }}
+            transition={{ type: "timing", duration: 300 }}
+          >
+            {renderStepContent()}
+          </MotiView>
+        </AnimatePresence>
       </ScrollView>
+
+      <View style={[s.footer, { borderTopColor: colors.borderDefault }]}>
+        {step === TOTAL_STEPS - 1 ? (
+          <Button
+            label={loading ? "Creating Account..." : "Complete Registration"}
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={loading}
+            onPress={handleSubmit(onSubmit)}
+          />
+        ) : (
+          <Button
+            label="Continue"
+            variant="primary"
+            size="lg"
+            fullWidth
+            onPress={nextStep}
+          />
+        )}
+      </View>
     </KeyboardAvoidingView>
+  );
+}
+
+function ReviewRow({ label, value }: { label: string; value: string }) {
+  const { colors } = useTheme();
+  return (
+    <View style={s.reviewRow}>
+      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{label}</Text>
+      <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: "500" }]}>{value}</Text>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
   root: { flex: 1 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing[4],
+    paddingTop: 60,
+    paddingBottom: Spacing[4],
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  progressContainer: {
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  progressBar: {
+    width: "100%",
+    height: 4,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 2,
+  },
   scroll: {
     flexGrow: 1,
     paddingHorizontal: Spacing[6],
-    paddingTop: 60,
-    paddingBottom: Spacing[12],
-    gap: Spacing[8],
+    paddingTop: Spacing[4],
+    paddingBottom: Spacing[10],
   },
-  topGradient: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 300,
+  stepContainer: {
+    flex: 1,
   },
-  orbTopRight: {
-    position: "absolute",
-    top: -100,
-    right: -100,
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-  },
-  orbBottomLeft: {
-    position: "absolute",
-    bottom: -120,
-    left: -100,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-  },
-  orbMid: {
-    position: "absolute",
-    top: "40%",
-    right: -60,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-  },
-  hero: { gap: Spacing[3] },
-  wordmarkRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: Spacing[2] },
-  wordmarkDot: { width: 10, height: 10, borderRadius: 5 },
-  glassCard: {
-    borderRadius: Radius["3xl"],
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-  },
-  cardContent: {
+  footer: {
     padding: Spacing[6],
-    gap: Spacing[5],
+    paddingBottom: Spacing[10],
+    borderTopWidth: 1,
   },
-  roleSection: {},
-  roleContainer: {
-    flexDirection: "row",
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    padding: 4,
-    position: "relative",
-    height: 48,
-  },
-  rolePill: {
-    position: "absolute",
-    top: 4,
-    left: 4,
-    height: 40,
-    borderRadius: Radius.lg,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  roleBtn: { flex: 1, alignItems: "center", justifyContent: "center" },
-  roleBtnContent: {
+  permissionItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing[2],
+    gap: Spacing[4],
+    marginBottom: Spacing[6],
   },
-  fields: { gap: Spacing[4] },
-  backToLogin: { alignItems: "center", marginTop: Spacing[2] },
+  permIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.xl,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  permText: {
+    flex: 1,
+    gap: 2,
+  },
+  reviewCard: {
+    borderRadius: Radius.xl,
+    padding: Spacing[4],
+    borderWidth: 1,
+    gap: Spacing[4],
+  },
+  reviewRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
 });
 
 export default RegisterScreen;

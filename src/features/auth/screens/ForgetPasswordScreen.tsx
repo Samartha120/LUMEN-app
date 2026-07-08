@@ -1,163 +1,107 @@
-// ============================================================
-// LUMEN — Premium ForgetPassword Screen
-// Phase 2: Authentication (Recovery)
-// ============================================================
-import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Animated,
-  StatusBar,
-} from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet, ScrollView, Text, KeyboardAvoidingView, Platform, StatusBar } from "react-native";
 import { router } from "expo-router";
+import { MotiView } from "moti";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { useTheme } from "@/design-system/ThemeContext";
-import { Input } from "@/design-system/components/Input";
+import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
 import { Button } from "@/design-system/components/Button";
-import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
+import { Input } from "@/design-system/components/Input";
+import { LumenIcon } from "@/design-system/icons/LumenIcon";
+import * as Haptics from "expo-haptics";
 
-export function ForgetPasswordScreen() {
+const resetSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+export default function ForgetPasswordScreen() {
   const { colors, isDark } = useTheme();
-  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [emailErr, setEmailErr] = useState("");
-  const [success, setSuccess] = useState(false);
 
-  const logoAnim = useRef(new Animated.Value(0)).current;
-  const cardAnim = useRef(new Animated.Value(40)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const { control, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(resetSchema),
+    defaultValues: { email: "" },
+  });
 
-  useEffect(() => {
-    Animated.sequence([
-      Animated.timing(logoAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.parallel([
-        Animated.spring(cardAnim, { toValue: 0, useNativeDriver: true, speed: 20, bounciness: 4 }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-      ]),
-    ]).start();
-  }, []);
-
-  const handleSendLink = async () => {
-    if (!email) {
-      setEmailErr("Email is required");
-      return;
-    }
-    setEmailErr("");
+  const onRequestReset = async (data: { email: string }) => {
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setSuccess(true);
+    try {
+      await new Promise(r => setTimeout(r, 1000));
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // Route to OTP screen with email params
+      router.push({ pathname: "/Otp" as any, params: { email: data.email } });
+    } catch (err) {
+      console.error(err);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[s.root, { backgroundColor: colors.bgBase }]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <StatusBar
-        barStyle={isDark ? "light-content" : "dark-content"}
-        backgroundColor={colors.bgBase}
-      />
+    <KeyboardAvoidingView style={[s.root, { backgroundColor: colors.bgBase }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      <ScrollView
-        contentContainerStyle={s.scroll}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Logo + Hero */}
-        <Animated.View style={[s.hero, { opacity: logoAnim }]}>
-          <View style={[s.wordmarkRow]}>
-            <View style={[s.wordmarkDot, { backgroundColor: colors.brand }]} />
-            <Text style={[TextStyles.badge, { color: colors.brand, letterSpacing: 3 }]}>LUMEN</Text>
+      <LinearGradient colors={[colors.brand + "15", colors.brand + "05", "transparent"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.topGradient} />
+
+      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} style={s.hero}>
+          <View style={[s.iconWrapper, { backgroundColor: colors.brand + "20" }]}>
+            <LumenIcon name="lock" size="xl" color={colors.brand} />
           </View>
-          <Text style={[TextStyles.heading1, { color: colors.textPrimary }]}>Recover Access</Text>
-          <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>
-            Enter your email below and we'll send you an OTP code to reset your password.
+          <Text style={[TextStyles.heading2, { color: colors.textPrimary }]}>Forgot Password?</Text>
+          <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
+            No worries, we'll send you reset instructions.
           </Text>
-        </Animated.View>
+        </MotiView>
 
-        {/* Card */}
-        <Animated.View
-          style={[
-            s.card,
-            {
-              backgroundColor: colors.bgGlass,
-              borderColor: colors.borderGlass,
-              transform: [{ translateY: cardAnim }],
-              opacity: fadeAnim,
-            },
-          ]}
-        >
-          {success ? (
-            <View style={s.successContainer}>
-              <Text
-                style={[
-                  TextStyles.subtitle,
-                  { color: colors.textPrimary, textAlign: "center", marginBottom: Spacing[2] },
-                ]}
-              >
-                Check your Email
-              </Text>
-              <Text
-                style={[
-                  TextStyles.bodySmall,
-                  { color: colors.textSecondary, textAlign: "center", marginBottom: Spacing[5] },
-                ]}
-              >
-                We've sent a 6-digit OTP code to <Text style={{ fontWeight: "700" }}>{email}</Text>.
-                Please check your inbox.
-              </Text>
-              <Button
-                label="Enter OTP Code"
-                variant="primary"
-                size="lg"
-                fullWidth
-                onPress={() => router.replace("/Otp" as any)}
-                iconRight="forward"
+        <MotiView from={{ opacity: 0, translateY: 40 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 100 }}>
+          <BlurView intensity={25} tint={isDark ? "dark" : "light"} style={s.glassCard}>
+            <LinearGradient colors={[isDark ? "#1a1a2e30" : "#ffffff50", isDark ? "#1a1a2e15" : "#ffffff25"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+            <View style={s.cardContent}>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    label="Email address"
+                    placeholder="Enter the email associated with your account"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={value}
+                    onChangeText={onChange}
+                    error={errors.email?.message as string}
+                    iconLeft="email"
+                  />
+                )}
               />
-            </View>
-          ) : (
-            <View style={s.fields}>
-              <Input
-                label="Email address"
-                value={email}
-                onChangeText={(t) => {
-                  setEmail(t);
-                  setEmailErr("");
-                }}
-                placeholder="yourname@lumen.app"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                iconLeft="email"
-                error={emailErr}
-              />
+
               <Button
-                label={loading ? "Sending link…" : "Send Reset Code"}
+                label={loading ? "Sending..." : "Reset Password"}
                 variant="primary"
                 size="lg"
                 fullWidth
                 loading={loading}
-                onPress={handleSendLink}
+                onPress={handleSubmit(onRequestReset)}
               />
             </View>
-          )}
+          </BlurView>
+        </MotiView>
 
-          {/* Back to login */}
-          <Pressable
-            style={s.backToLogin}
-            onPress={() => router.replace("/Login" as any)}
-            accessibilityLabel="Back to sign in"
-          >
-            <Text style={[TextStyles.bodySmall, { color: colors.brand, fontWeight: "600" }]}>
-              Back to sign in
-            </Text>
-          </Pressable>
-        </Animated.View>
+        <Button
+          label="Back to Sign In"
+          variant="ghost"
+          size="md"
+          onPress={() => router.back()}
+          iconLeft="arrowLeft"
+          style={s.backBtn}
+        />
+
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -168,23 +112,26 @@ const s = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     paddingHorizontal: Spacing[6],
-    paddingTop: 80,
+    paddingTop: 100,
     paddingBottom: Spacing[12],
     gap: Spacing[8],
   },
-  hero: { gap: Spacing[3] },
-  wordmarkRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: Spacing[2] },
-  wordmarkDot: { width: 8, height: 8, borderRadius: 4 },
-  card: {
-    borderRadius: Radius["3xl"],
-    borderWidth: 1,
-    padding: Spacing[6],
-    gap: Spacing[5],
-    overflow: "hidden",
+  topGradient: { position: "absolute", top: 0, left: 0, right: 0, height: 300 },
+  hero: { gap: Spacing[4], alignItems: "center" },
+  iconWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: Radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing[2],
   },
-  fields: { gap: Spacing[4] },
-  successContainer: { alignItems: "center", paddingVertical: Spacing[2] },
-  backToLogin: { alignItems: "center", marginTop: Spacing[2] },
+  glassCard: {
+    borderRadius: Radius["3xl"],
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  cardContent: { padding: Spacing[6], gap: Spacing[6] },
+  backBtn: { marginTop: Spacing[4] },
 });
-
-export default ForgetPasswordScreen;

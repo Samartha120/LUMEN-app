@@ -15,7 +15,6 @@ const customStorage = {
     try {
       return await AsyncStorage.getItem(key);
     } catch (e) {
-      console.warn("AsyncStorage unavailable, using memory:", e);
       return memoryStorage[key] || null;
     }
   },

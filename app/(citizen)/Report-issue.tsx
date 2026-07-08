@@ -1,1 +1,1 @@
-﻿export { default } from "@/features/citizen/screens/ReportIssueScreen";
+export { default } from "@/features/reports/screens/CreateReportWizard";

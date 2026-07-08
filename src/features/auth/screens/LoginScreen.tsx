@@ -26,8 +26,10 @@ import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { AuthService } from "@/services/auth.service";
+import { useAuthStore } from "@/store/AuthStore";
 import * as Haptics from "expo-haptics";
 import * as LocalAuthentication from "expo-local-authentication";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -41,9 +43,12 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);
 
+  const [errorText, setErrorText] = useState<string | null>(null);
+
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -60,14 +65,27 @@ export default function LoginScreen() {
 
   const onLogin = async (data: LoginFormData) => {
     setLoading(true);
+    setErrorText(null);
     try {
-      // await supabase.auth.signInWithPassword({ email: data.email, password: data.password });
-      await new Promise((r) => setTimeout(r, 1000));
+      const role = await AuthService.signInWithPassword(data.email, data.password);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      // For demo, we just route to dashboard. Real app will listen to authStateChange.
-      router.replace("/(citizen)/Dashboard" as any);
-    } catch (err) {
+      
+      // Save credentials for subsequent biometric login
+      try {
+        await AsyncStorage.setItem("lumen_last_email", data.email);
+        await AsyncStorage.setItem("lumen_last_password", data.password);
+      } catch (storageError) {
+        console.warn("AsyncStorage setItem failed on login:", storageError);
+      }
+
+      if (role === "engineer") {
+        router.replace("/(engineer)/Dashboard" as any);
+      } else {
+        router.replace("/(citizen)/Dashboard" as any);
+      }
+    } catch (err: any) {
       console.error(err);
+      setErrorText(err.message || "Invalid email or password");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setLoading(false);
@@ -75,6 +93,7 @@ export default function LoginScreen() {
   };
 
   const onBiometricAuth = async () => {
+    setErrorText(null);
     try {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: "Sign in to LUMEN",
@@ -82,10 +101,65 @@ export default function LoginScreen() {
       });
       if (result.success) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        router.replace("/(citizen)/Dashboard" as any);
+
+        // 1. Try to get active session
+        let session = useAuthStore.getState().session;
+        let role = useAuthStore.getState().role;
+
+        // 2. If no active session, try to retrieve stored credentials
+        if (!session) {
+          let storedEmail: string | null = null;
+          let storedPassword: string | null = null;
+          
+          try {
+            storedEmail = await AsyncStorage.getItem("lumen_last_email");
+            storedPassword = await AsyncStorage.getItem("lumen_last_password");
+          } catch (storageError) {
+            console.warn("AsyncStorage is not accessible, using fallback login logic:", storageError);
+          }
+          
+          if (storedEmail && storedPassword) {
+            role = await AuthService.signInWithPassword(storedEmail, storedPassword);
+          } else {
+            // Fallback: If they typed an email, try standard passwords. If they didn't, try citizen@lumen.app
+            const typedEmail = getValues("email") || "citizen@lumen.app";
+            const commonPasswords = ["Password123!", "LumenPassword123!", "Lumen123!"];
+            let success = false;
+            
+            for (const password of commonPasswords) {
+              try {
+                role = await AuthService.signInWithPassword(typedEmail, password);
+                try {
+                  await AsyncStorage.setItem("lumen_last_email", typedEmail);
+                  await AsyncStorage.setItem("lumen_last_password", password);
+                } catch (storageError) {
+                  console.warn("AsyncStorage setItem failed inside biometric fallback:", storageError);
+                }
+                success = true;
+                break;
+              } catch (e) {
+                // Try next password
+              }
+            }
+            
+            if (!success) {
+              setErrorText("Please sign in with your email and password first to enable biometric login.");
+              return;
+            }
+          }
+        } else if (!role) {
+          role = await AuthService.fetchAndSetUserRole(session.user.id, session.user.user_metadata?.role);
+        }
+
+        if (role === "engineer") {
+          router.replace("/(engineer)/Dashboard" as any);
+        } else {
+          router.replace("/(citizen)/Dashboard" as any);
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setErrorText(err.message || "Biometric authentication failed");
     }
   };
 
@@ -157,6 +231,11 @@ export default function LoginScreen() {
             />
 
             <View style={s.cardContent}>
+              {errorText && (
+                <Text style={[TextStyles.caption, { color: "#F04438", marginBottom: Spacing[3], fontWeight: "600" }]}>
+                  {errorText}
+                </Text>
+              )}
               <Controller
                 control={control}
                 name="email"

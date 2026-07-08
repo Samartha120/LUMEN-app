@@ -19,14 +19,13 @@ import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
 import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
 import { PasswordStrengthMeter } from "@/design-system/components/PasswordStrengthMeter";
-import { AnimatedRoleCard } from "@/design-system/components/AnimatedRoleCard";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { AuthService } from "@/services/auth.service";
 import * as Haptics from "expo-haptics";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // --- Validation Schemas ---
 const stepSchemas = [
-  z.object({ role: z.enum(["citizen", "engineer"]) }),
   z.object({
     fullName: z.string().min(2, "Full name must be at least 2 characters"),
     username: z.string().min(3, "Username must be at least 3 characters"),
@@ -101,7 +100,7 @@ const registerSchema = z
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 7;
 
 export function RegisterScreen() {
   const { colors, isDark } = useTheme();
@@ -118,7 +117,7 @@ export function RegisterScreen() {
     watch,
     formState: { errors },
   } = useForm<RegisterFormData>({
-    resolver: step < 7 ? zodResolver(currentSchema as any) : zodResolver(registerSchema as any),
+    resolver: step < 6 ? zodResolver(currentSchema as any) : zodResolver(registerSchema as any),
     mode: "onChange",
     defaultValues: {
       role: "citizen",
@@ -149,19 +148,25 @@ export function RegisterScreen() {
     setLoading(true);
     try {
       // 1. Create account via Auth Service (Supabase)
-      // await AuthService.signUp(data.email, data.password);
+      await AuthService.signUp(data.email, data.password, data.role);
 
       // 2. Save complete profile initialization
       await AuthService.saveUserProfile(data);
 
-      // 3. Show success animation then navigate
-      // Navigation is handled in authStore listener usually, but we can force it:
+      // Save credentials for subsequent biometric login
+      try {
+        await AsyncStorage.setItem("lumen_last_email", data.email);
+        await AsyncStorage.setItem("lumen_last_password", data.password);
+      } catch (storageError) {
+        console.warn("AsyncStorage setItem failed on register:", storageError);
+      }
+
+      // 3. Navigate
       router.replace(
         data.role === "citizen" ? ("/(citizen)/Dashboard" as any) : ("/(engineer)/Dashboard" as any)
       );
     } catch (err) {
       console.error(err);
-      // Handle error gracefully
     } finally {
       setLoading(false);
     }
@@ -169,35 +174,7 @@ export function RegisterScreen() {
 
   const renderStepContent = () => {
     switch (step) {
-      case 0: // Role
-        return (
-          <View style={s.stepContainer}>
-            <Text
-              style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[6] }]}
-            >
-              How will you use LUMEN?
-            </Text>
-            <Controller
-              control={control}
-              name="role"
-              render={({ field: { onChange, value } }) => (
-                <>
-                  <AnimatedRoleCard
-                    role="citizen"
-                    selected={value === "citizen"}
-                    onSelect={() => onChange("citizen")}
-                  />
-                  <AnimatedRoleCard
-                    role="engineer"
-                    selected={value === "engineer"}
-                    onSelect={() => onChange("engineer")}
-                  />
-                </>
-              )}
-            />
-          </View>
-        );
-      case 1: // Personal
+      case 0: // Personal
         return (
           <View style={s.stepContainer}>
             <Text
@@ -250,7 +227,7 @@ export function RegisterScreen() {
             />
           </View>
         );
-      case 2: // Location
+      case 1: // Location
         return (
           <View style={s.stepContainer}>
             <Text
@@ -299,7 +276,7 @@ export function RegisterScreen() {
             />
           </View>
         );
-      case 3: // Account
+      case 2: // Account
         return (
           <View style={s.stepContainer}>
             <Text
@@ -359,7 +336,7 @@ export function RegisterScreen() {
             />
           </View>
         );
-      case 4: // Profile
+      case 3: // Profile
         return (
           <View style={s.stepContainer}>
             <Text
@@ -400,7 +377,7 @@ export function RegisterScreen() {
             )}
           </View>
         );
-      case 5: // Preferences
+      case 4: // Preferences
         return (
           <View style={s.stepContainer}>
             <Text
@@ -414,7 +391,7 @@ export function RegisterScreen() {
             {/* For now we use the default values initialized in the form */}
           </View>
         );
-      case 6: // Permissions
+      case 5: // Permissions
         return (
           <View style={s.stepContainer}>
             <Text
@@ -471,7 +448,7 @@ export function RegisterScreen() {
             </View>
           </View>
         );
-      case 7: // Review
+      case 6: // Review
         return (
           <View style={s.stepContainer}>
             <Text

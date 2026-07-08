@@ -4,8 +4,8 @@ import "react-native-url-polyfill/auto";
 
 // TODO: Replace these with actual Supabase URL and Anon Key from your project settings.
 // These should ideally be loaded from environment variables (e.g., process.env.EXPO_PUBLIC_SUPABASE_URL)
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || "https://your-project.supabase.co";
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "your-anon-key";
+export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || "https://your-project.supabase.co";
+export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "your-anon-key";
 
 // Fallback in-memory storage for Expo Go without native modules built
 const memoryStorage: Record<string, string> = {};

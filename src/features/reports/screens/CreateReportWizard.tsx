@@ -147,6 +147,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingBottom: 100, // Make room for absolute BottomNavigation
   },
   stepContainer: {
     flex: 1,

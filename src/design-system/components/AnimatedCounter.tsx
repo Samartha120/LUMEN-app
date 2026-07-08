@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { useTheme } from "../ThemeContext";
 
 interface AnimatedCounterProps {

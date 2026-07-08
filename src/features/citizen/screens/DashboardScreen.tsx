@@ -642,54 +642,43 @@ function ActionCard({ action, colors, isDark, idx }: { action: any; colors: any;
 
 // ── Report Card Component ─────────────────────────────────────
 function ReportCard({ report, colors, isDark }: { report: MockReport; colors: any; isDark: boolean }) {
-  const status = STATUS_CONFIG[report.status];
-  const gradient = CATEGORY_GRADIENT[report.category] ?? (["#667EEA", "#764BA2"] as [string, string]);
+  const statusConfig = {
+    pending: { label: "Pending", color: "#C2410C", bg: "#FFEDD5" },
+    in_progress: { label: "In Progress", color: "#0F766E", bg: "#CCFBF1" },
+    resolved: { label: "Resolved", color: "#15803D", bg: "#DCFCE7" },
+  };
+
+  const status = statusConfig[report.status as keyof typeof statusConfig] || statusConfig.pending;
+  const priorityColor = PRIORITY_COLOR[report.priority] || "#F79009";
 
   return (
     <Pressable
       onPress={() => router.push("/(citizen)/Report-details" as any)}
       style={({ pressed }) => [rc.card, {
-        backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.92)",
-        borderColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+        backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#FDFDFD",
         opacity: pressed ? 0.85 : 1,
         transform: [{ scale: pressed ? 0.985 : 1 }],
       }]}
     >
-      {/* Priority accent bar */}
-      <View style={[rc.priorityBar, { backgroundColor: PRIORITY_COLOR[report.priority] }]} />
-
       <View style={rc.cardInner}>
-        {/* Icon */}
-        <LinearGradient colors={gradient} style={rc.categoryIcon}>
-          <LumenIcon name={CATEGORY_ICON[report.category]} size="md" color="#FFFFFF" strokeWidth={2} />
-        </LinearGradient>
+        {/* Left Icon */}
+        <View style={[rc.iconWrap, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#F2F4F7" }]}>
+          <LumenIcon name={CATEGORY_ICON[report.category] || "report"} size="sm" color={isDark ? "#FFFFFF" : "#1D2939"} strokeWidth={2} />
+        </View>
 
-        {/* Info */}
-        <View style={rc.info}>
+        {/* Center Info */}
+        <View style={rc.infoWrap}>
           <Text style={[rc.title, { color: colors.textPrimary }]} numberOfLines={1}>{report.title}</Text>
-          <Text style={[rc.dept, { color: colors.textSecondary }]} numberOfLines={1}>{report.dept}</Text>
-
-          {/* Progress Bar */}
-          <View style={[rc.progressTrack, { backgroundColor: colors.borderDefault }]}>
-            <LinearGradient
-              colors={report.status === "resolved" ? ["#12B76A", "#059669"] : [colors.brand, colors.brand + "80"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[rc.progressFill, { width: `${report.progress}%` as any }]}
-            />
-          </View>
-
           <View style={rc.metaRow}>
-            <View style={[rc.statusBadge, { backgroundColor: status.bg }]}>
-              <View style={[rc.statusDot, { backgroundColor: status.color }]} />
-              <Text style={[rc.statusText, { color: status.color }]}>{status.label}</Text>
+            <View style={[rc.statusBadge, { backgroundColor: isDark ? status.color + "20" : status.bg }]}>
+              <Text style={[rc.statusText, { color: isDark ? "#FFFFFF" : status.color }]}>{status.label}</Text>
             </View>
-            <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{report.time}</Text>
+            <Text style={[rc.timeText, { color: colors.textTertiary }]}>{report.time}</Text>
           </View>
         </View>
 
-        {/* Arrow */}
-        <LumenIcon name="chevronRight" size="sm" color={colors.textTertiary} />
+        {/* Right Dot */}
+        <View style={[rc.priorityDot, { backgroundColor: priorityColor }]} />
       </View>
     </Pressable>
   );
@@ -824,27 +813,56 @@ const ac = StyleSheet.create({
 // ── Report Card Styles ────────────────────────────────────────
 const rc = StyleSheet.create({
   card: {
-    borderRadius: 20,
-    borderWidth: 1,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 1,
+    borderRadius: 24,
+    marginBottom: 12,
   },
-  priorityBar: { height: 3, width: "100%" },
-  cardInner: { flexDirection: "row", alignItems: "center", padding: 16, gap: 12 },
-  categoryIcon: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  info: { flex: 1, gap: 6 },
-  title: { fontSize: 14, fontWeight: "700" },
-  dept: { fontSize: 12, fontWeight: "500" },
-  progressTrack: { height: 4, borderRadius: 2, overflow: "hidden" },
-  progressFill: { height: "100%", borderRadius: 2 },
-  metaRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  statusBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { fontSize: 11, fontWeight: "700" },
+  cardInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    gap: 16,
+  },
+  iconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  infoWrap: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 6,
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  timeText: {
+    fontSize: 12,
+    fontWeight: "400",
+  },
+  priorityDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
 });
 
 // ── Metric Cell Styles ────────────────────────────────────────

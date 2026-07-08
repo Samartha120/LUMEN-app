@@ -122,6 +122,7 @@ const STATUS_CONFIG: Record<ReportStatus, { label: string; color: string; bg: st
   resolved: { label: "Resolved", color: "#12B76A", bg: "#ECFDF3" },
 };
 
+
 const QUICK_ACTIONS = [
   {
     icon: "report" as const,
@@ -533,52 +534,25 @@ export default function CitizenDashboardScreen() {
         {/* ANALYTICS TEASER                               */}
         {/* ═══════════════════════════════════════════════ */}
         <Animated.View style={[s.section, { opacity: fadeIn }]}>
-          <BlurView intensity={isDark ? 30 : 15} tint={isDark ? "dark" : "light"} style={[s.analyticsCard, { borderColor: colors.borderDefault }]}>
-            <LinearGradient
-              colors={isDark ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={s.analyticsInner}>
-              <View style={s.sectionHeader}>
-                <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>Performance</Text>
-                <View style={[s.timePillRow, { backgroundColor: colors.bgSubtle, borderRadius: 20 }]}>
-                  {["7D", "30D", "90D"].map((t, i) => (
-                    <Pressable key={t} style={[s.timePill, i === 0 && { backgroundColor: colors.brand }]}>
-                      <Text style={[TextStyles.caption, { color: i === 0 ? "#FFFFFF" : colors.textTertiary, fontWeight: "700" }]}>{t}</Text>
-                    </Pressable>
-                  ))}
+          <Pressable onPress={() => router.push("/(citizen)/Analytics" as any)}>
+            <BlurView intensity={isDark ? 30 : 15} tint={isDark ? "dark" : "light"} style={[s.analyticsCard, { borderColor: colors.borderDefault }]}>
+              <LinearGradient
+                colors={isDark ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={s.analyticsInner}>
+                <View style={[s.sectionHeader, { marginBottom: 0 }]}>
+                  <View style={{ flex: 1, paddingRight: 16 }}>
+                    <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>Analytics & Insights</Text>
+                    <Text style={[TextStyles.caption, { color: colors.textSecondary, marginTop: 4 }]}>Tap to view your detailed civic performance dashboard</Text>
+                  </View>
+                  <View style={[s.timePill, { backgroundColor: colors.brand }]}>
+                    <LumenIcon name="chevronRight" size="xs" color="#FFFFFF" />
+                  </View>
                 </View>
               </View>
-
-              {/* Bar chart visual */}
-              <View style={s.barsContainer}>
-                {[40, 65, 45, 80, 60, 95, 70].map((h, i) => (
-                  <View key={i} style={s.barWrap}>
-                    <LinearGradient
-                      colors={[colors.brand, colors.brand + "60"]}
-                      style={[s.bar, { height: h * 1.4, borderRadius: 6 }]}
-                    />
-                    <Text style={[s.barLabel, { color: colors.textTertiary }]}>
-                      {["M", "T", "W", "T", "F", "S", "S"][i]}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-
-              <View style={s.analyticsStats}>
-                {[
-                  { label: "Avg Response", value: "3.2 hrs", color: colors.brand },
-                  { label: "Resolution Rate", value: "89%", color: "#12B76A" },
-                  { label: "Satisfaction", value: "4.7★", color: "#F79009" },
-                ].map((stat) => (
-                  <View key={stat.label} style={s.analyticsStat}>
-                    <Text style={[s.analyticsStatValue, { color: stat.color }]}>{stat.value}</Text>
-                    <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{stat.label}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          </BlurView>
+            </BlurView>
+          </Pressable>
         </Animated.View>
 
         {/* Bottom padding for FAB */}

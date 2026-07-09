@@ -1,7 +1,3 @@
-// ============================================================
-// LUMEN — Profile Screen (Citizen)
-// Premium "Command Center" Design
-// ============================================================
 import React, { useEffect, useRef } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, StatusBar, Dimensions } from "react-native";
 import { router } from "expo-router";
@@ -14,6 +10,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import * as ImagePicker from "expo-image-picker";
 
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
@@ -21,6 +18,7 @@ import { Avatar } from "@/design-system/components/Avatar";
 import { Badge } from "@/design-system/components/Badge";
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
 import type { LumenIconName } from "@/design-system";
+import { useAuthStore } from "@/store/AuthStore";
 
 const { width: W } = Dimensions.get("window");
 
@@ -35,11 +33,30 @@ interface MenuItem {
 
 export default function ProfileScreen() {
   const { colors, isDark, mode, setMode } = useTheme();
+  const { user, userAvatars, setAvatarUri } = useAuthStore();
+
+  const userId = user?.id || "mock-user-id";
+  const avatarUri = userAvatars[userId] || null;
+  const userEmail = user?.email || "citizen@lumen.app";
+  const userFullName = user?.user_metadata?.full_name || "Samuel Krishnamurthy";
 
   const handleThemeToggle = () => {
     if (mode === "system") setMode("light");
     else if (mode === "light") setMode("dark");
     else setMode("system");
+  };
+
+  const pickAvatar = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setAvatarUri(userId, result.assets[0].uri);
+    }
   };
 
   const menuSections: { title: string; items: MenuItem[] }[] = [
@@ -49,10 +66,10 @@ export default function ProfileScreen() {
         {
           icon: "profile",
           label: "Personal Information",
-          value: "Samuel K.",
+          value: userFullName.split(" ")[0] || "Samuel K.",
           route: "/(citizen)/Settings",
         },
-        { icon: "email", label: "Email Address", value: "citizen@lumen.app" },
+        { icon: "email", label: "Email Address", value: userEmail },
         { icon: "phone", label: "Phone Number", value: "+91 98765 43210" },
         { icon: "shield", label: "Verification", value: "Verified" },
       ],
@@ -138,10 +155,17 @@ export default function ProfileScreen() {
         {/* ── Hero Profile ── */}
         <Animated.View entering={FadeInDown.delay(150).springify().damping(20)} style={s.hero}>
           <View style={s.avatarContainer}>
-            <View style={[s.avatarRing, { borderColor: colors.brand + "40" }]}>
-              <Avatar name="Samuel Krishnamurthy" size="xl" role="citizen" />
-            </View>
             <Pressable
+              onPress={pickAvatar}
+              style={({ pressed }) => [
+                s.avatarRing,
+                { borderColor: colors.brand + "40", opacity: pressed ? 0.8 : 1 },
+              ]}
+            >
+              <Avatar name={userFullName} size="xl" role="citizen" uri={avatarUri} />
+            </Pressable>
+            <Pressable
+              onPress={pickAvatar}
               style={({ pressed }) => [
                 s.editAvatarBtn,
                 { backgroundColor: colors.brand, transform: [{ scale: pressed ? 0.9 : 1 }] },
@@ -152,11 +176,9 @@ export default function ProfileScreen() {
           </View>
 
           <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginTop: Spacing[4] }]}>
-            Samuel Krishnamurthy
+            {userFullName}
           </Text>
-          <Text style={[TextStyles.bodyMedium, { color: colors.textSecondary }]}>
-            citizen@lumen.app
-          </Text>
+          <Text style={[TextStyles.bodyMedium, { color: colors.textSecondary }]}>{userEmail}</Text>
 
           <View style={s.heroTags}>
             <Badge label="Citizen" variant="brand" dot />

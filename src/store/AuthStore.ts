@@ -14,11 +14,13 @@ interface AuthState {
     theme: "light" | "dark" | "system";
     language: string;
   };
+  userAvatars: Record<string, string>;
   setSession: (session: Session | null) => void;
   setUser: (user: User | null) => void;
   setRole: (role: Role) => void;
   completeOnboarding: () => void;
   updatePreferences: (prefs: Partial<AuthState["preferences"]>) => void;
+  setAvatarUri: (userId: string, uri: string | null) => void;
   logout: () => void;
 }
 
@@ -59,12 +61,23 @@ export const useAuthStore = create<AuthState>()(
         theme: "system",
         language: "en",
       },
+      userAvatars: {},
       setSession: (session) => set({ session, user: session?.user || null }),
       setUser: (user) => set({ user }),
       setRole: (role) => set({ role }),
       completeOnboarding: () => set({ isOnboardingComplete: true }),
       updatePreferences: (prefs) =>
         set((state) => ({ preferences: { ...state.preferences, ...prefs } })),
+      setAvatarUri: (userId, uri) =>
+        set((state) => {
+          const nextAvatars = { ...state.userAvatars };
+          if (uri) {
+            nextAvatars[userId] = uri;
+          } else {
+            delete nextAvatars[userId];
+          }
+          return { userAvatars: nextAvatars };
+        }),
       logout: () =>
         set({
           session: null,

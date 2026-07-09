@@ -1,10 +1,8 @@
-// ============================================================
-// LUMEN — Profile Screen (Engineer)
-// Phase 4: Engineer Experience
-// ============================================================
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, StatusBar, Switch } from "react-native";
 import { router } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { Card } from "@/design-system/components/Card";
@@ -13,6 +11,7 @@ import { Avatar } from "@/design-system/components/Avatar";
 import { StatCard } from "@/design-system/components/StatCard";
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
 import type { LumenIconName } from "@/design-system";
+import { useAuthStore } from "@/store/AuthStore";
 
 interface MenuItem {
   icon: LumenIconName;
@@ -23,40 +22,28 @@ interface MenuItem {
   danger?: boolean;
 }
 
-const MENU_SECTIONS: { title: string; items: MenuItem[] }[] = [
-  {
-    title: "Duty & Schedule",
-    items: [
-      { icon: "calendar", label: "Shift Schedule", value: "08:00 - 17:00" },
-      { icon: "mapPin", label: "Assigned Zone", value: "Zone B (Central)" },
-      { icon: "tools", label: "Tool Inventory", value: "12 Assets" },
-    ],
-  },
-  {
-    title: "Account & Preferences",
-    items: [
-      { icon: "profile", label: "Personal Information", value: "Rajesh K." },
-      { icon: "email", label: "Email Address", value: "engineer@lumen.app" },
-      { icon: "phone", label: "Contact Phone", value: "+91 99887 76655" },
-      { icon: "sun", label: "App Theme", value: "Dark Mode" },
-    ],
-  },
-  {
-    title: "Support",
-    items: [
-      { icon: "help", label: "Safety Regulations" },
-      { icon: "comment", label: "Report App Bug" },
-    ],
-  },
-  {
-    title: "",
-    items: [{ icon: "logout", label: "Sign Out", danger: true }],
-  },
-];
-
 export default function EngineerProfileScreen() {
   const { colors, isDark, shadows } = useTheme();
   const [onDuty, setOnDuty] = useState(true);
+  const { user, userAvatars, setAvatarUri } = useAuthStore();
+
+  const userId = user?.id || "mock-user-id";
+  const avatarUri = userAvatars[userId] || null;
+  const userEmail = user?.email || "engineer@lumen.app";
+  const userFullName = user?.user_metadata?.full_name || "Rajesh Kumar";
+
+  const pickAvatar = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setAvatarUri(userId, result.assets[0].uri);
+    }
+  };
 
   const handleItem = (item: MenuItem) => {
     if (item.danger) {
@@ -65,6 +52,41 @@ export default function EngineerProfileScreen() {
     }
     if (item.route) router.push(item.route as any);
   };
+
+  const menuSections: { title: string; items: MenuItem[] }[] = [
+    {
+      title: "Duty & Schedule",
+      items: [
+        { icon: "calendar", label: "Shift Schedule", value: "08:00 - 17:00" },
+        { icon: "mapPin", label: "Assigned Zone", value: "Zone B (Central)" },
+        { icon: "tools", label: "Tool Inventory", value: "12 Assets" },
+      ],
+    },
+    {
+      title: "Account & Preferences",
+      items: [
+        {
+          icon: "profile",
+          label: "Personal Information",
+          value: userFullName.split(" ")[0] || "Rajesh K.",
+        },
+        { icon: "email", label: "Email Address", value: userEmail },
+        { icon: "phone", label: "Contact Phone", value: "+91 99887 76655" },
+        { icon: "sun", label: "App Theme", value: "Dark Mode" },
+      ],
+    },
+    {
+      title: "Support",
+      items: [
+        { icon: "help", label: "Safety Regulations" },
+        { icon: "comment", label: "Report App Bug" },
+      ],
+    },
+    {
+      title: "",
+      items: [{ icon: "logout", label: "Sign Out", danger: true }],
+    },
+  ];
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
@@ -93,13 +115,24 @@ export default function EngineerProfileScreen() {
           ]}
         >
           <View style={s.avatarRow}>
-            <Avatar name="Rajesh Kumar" size="xl" role="engineer" online={onDuty} />
-            <Pressable style={[s.editAvatarBtn, { backgroundColor: colors.brand }]}>
+            <Pressable onPress={pickAvatar}>
+              <Avatar
+                name={userFullName}
+                size="xl"
+                role="engineer"
+                online={onDuty}
+                uri={avatarUri}
+              />
+            </Pressable>
+            <Pressable
+              onPress={pickAvatar}
+              style={[s.editAvatarBtn, { backgroundColor: colors.brand }]}
+            >
               <LumenIcon name="camera" size="xs" color="#FFF" strokeWidth={2.5} />
             </Pressable>
           </View>
-          <Text style={[TextStyles.title, { color: colors.textPrimary }]}>Rajesh Kumar</Text>
-          <Text style={[TextStyles.body, { color: colors.textSecondary }]}>engineer@lumen.app</Text>
+          <Text style={[TextStyles.title, { color: colors.textPrimary }]}>{userFullName}</Text>
+          <Text style={[TextStyles.body, { color: colors.textSecondary }]}>{userEmail}</Text>
           <View style={s.heroTags}>
             <Badge label="Field Engineer" variant="neutral" dot />
             <Badge label="Zone B" variant="brand" />
@@ -137,7 +170,7 @@ export default function EngineerProfileScreen() {
         </View>
 
         {/* Menu Sections */}
-        {MENU_SECTIONS.map((section, si) => (
+        {menuSections.map((section, si) => (
           <View key={si} style={s.section}>
             {section.title ? (
               <Text

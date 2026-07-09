@@ -2,7 +2,7 @@
 // LUMEN DS — Avatar Component
 // ============================================================
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Image } from "react-native";
 import { useTheme } from "../ThemeContext";
 import { Radius, TextStyles } from "../tokens";
 
@@ -14,6 +14,7 @@ export interface AvatarProps {
   color?: string;
   online?: boolean;
   role?: "citizen" | "engineer" | "admin";
+  uri?: string | null;
 }
 
 const SIZES: Record<AvatarSize, number> = { xs: 28, sm: 36, md: 44, lg: 56, xl: 72 };
@@ -25,7 +26,7 @@ const ROLE_COLORS: Record<string, [string, string]> = {
   admin: ["#D97706", "#B45309"],
 };
 
-export function Avatar({ name = "?", size = "md", color, online = false, role }: AvatarProps) {
+export function Avatar({ name = "?", size = "md", color, online = false, role, uri }: AvatarProps) {
   const { colors } = useTheme();
   const dim = SIZES[size];
   const fontSize = FONT_SIZES[size];
@@ -45,9 +46,17 @@ export function Avatar({ name = "?", size = "md", color, online = false, role }:
 
   return (
     <View style={[s.root, { width: dim, height: dim, borderRadius: dim / 2, backgroundColor: bg }]}>
-      <Text style={[TextStyles.label, { fontSize, color: "#FFFFFF", fontWeight: "700" }]}>
-        {initials}
-      </Text>
+      {uri ? (
+        <Image
+          source={{ uri }}
+          style={{ width: dim, height: dim, borderRadius: dim / 2 }}
+          resizeMode="cover"
+        />
+      ) : (
+        <Text style={[TextStyles.label, { fontSize, color: "#FFFFFF", fontWeight: "700" }]}>
+          {initials}
+        </Text>
+      )}
       {online && (
         <View
           style={[

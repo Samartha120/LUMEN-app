@@ -23,7 +23,8 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": true,
+      "onDemandFilesystem": true
     }
   }
 }

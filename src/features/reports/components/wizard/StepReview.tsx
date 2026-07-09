@@ -25,40 +25,120 @@ export function StepReview({ data, onSubmit }: StepProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={[TextStyles.heading2, { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] }]}>
+      <Text
+        style={[
+          TextStyles.heading2,
+          { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] },
+        ]}
+      >
         Review & Submit
       </Text>
-      <Text style={[TextStyles.body, { color: colors.textSecondary, paddingHorizontal: Spacing[5], marginTop: Spacing[2], marginBottom: Spacing[4] }]}>
-        Ensure all details are correct before sending this to the {mapping.department.replace(/_/g, " ")}.
+      <Text
+        style={[
+          TextStyles.body,
+          {
+            color: colors.textSecondary,
+            paddingHorizontal: Spacing[5],
+            marginTop: Spacing[2],
+            marginBottom: Spacing[4],
+          },
+        ]}
+      >
+        Ensure all details are correct before sending this to the{" "}
+        {mapping.department.replace(/_/g, " ")}.
       </Text>
 
-      <ScrollView style={styles.content} contentContainerStyle={{ paddingHorizontal: Spacing[5], paddingBottom: Spacing[6] }}>
-        
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={{ paddingHorizontal: Spacing[5], paddingBottom: Spacing[6] }}
+      >
         <View style={{ marginBottom: Spacing[5] }}>
-          <Text style={[TextStyles.bodyMedium, { fontWeight: "bold", color: colors.textPrimary, marginBottom: Spacing[2] }]}>Location</Text>
-          <View style={[styles.card, { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault, borderRadius: Radius.md }]}>
+          <Text
+            style={[
+              TextStyles.bodyMedium,
+              { fontWeight: "bold", color: colors.textPrimary, marginBottom: Spacing[2] },
+            ]}
+          >
+            Location
+          </Text>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.bgSurface,
+                borderColor: colors.borderDefault,
+                borderRadius: Radius.md,
+              },
+            ]}
+          >
             <View style={[styles.row, { gap: Spacing[2] }]}>
               <LumenIcon name="map" size="sm" color={colors.brand} />
-              <Text style={[TextStyles.body, { color: colors.textPrimary, flex: 1 }]} numberOfLines={2}>{data.location?.address}</Text>
+              <Text
+                style={[TextStyles.body, { color: colors.textPrimary, flex: 1 }]}
+                numberOfLines={2}
+              >
+                {data.location?.address}
+              </Text>
             </View>
           </View>
         </View>
 
         <View style={{ marginBottom: Spacing[5] }}>
-          <Text style={[TextStyles.bodyMedium, { fontWeight: "bold", color: colors.textPrimary, marginBottom: Spacing[2] }]}>Issue Details</Text>
-          <View style={[styles.card, { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault, borderRadius: Radius.md }]}>
+          <Text
+            style={[
+              TextStyles.bodyMedium,
+              { fontWeight: "bold", color: colors.textPrimary, marginBottom: Spacing[2] },
+            ]}
+          >
+            Issue Details
+          </Text>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.bgSurface,
+                borderColor: colors.borderDefault,
+                borderRadius: Radius.md,
+              },
+            ]}
+          >
             <View style={[styles.row, { gap: Spacing[2] }]}>
-              <Text style={[styles.label, TextStyles.bodySmall, { color: colors.textSecondary }]}>Type:</Text>
-              <Text style={[TextStyles.body, { color: colors.textPrimary, flex: 1 }]}>{data.issueType}</Text>
+              <Text style={[styles.label, TextStyles.bodySmall, { color: colors.textSecondary }]}>
+                Type:
+              </Text>
+              <Text style={[TextStyles.body, { color: colors.textPrimary, flex: 1 }]}>
+                {data.issueType}
+              </Text>
             </View>
-            <View style={[styles.divider, { backgroundColor: colors.borderDefault, marginVertical: Spacing[2] }]} />
+            <View
+              style={[
+                styles.divider,
+                { backgroundColor: colors.borderDefault, marginVertical: Spacing[2] },
+              ]}
+            />
             <View style={[styles.row, { gap: Spacing[2] }]}>
-              <Text style={[styles.label, TextStyles.bodySmall, { color: colors.textSecondary }]}>Priority:</Text>
-              <Text style={[TextStyles.body, { color: colors.textPrimary, flex: 1, textTransform: "capitalize" }]}>{data.priority}</Text>
+              <Text style={[styles.label, TextStyles.bodySmall, { color: colors.textSecondary }]}>
+                Priority:
+              </Text>
+              <Text
+                style={[
+                  TextStyles.body,
+                  { color: colors.textPrimary, flex: 1, textTransform: "capitalize" },
+                ]}
+              >
+                {data.priority}
+              </Text>
             </View>
-            <View style={[styles.divider, { backgroundColor: colors.borderDefault, marginVertical: Spacing[2] }]} />
+            <View
+              style={[
+                styles.divider,
+                { backgroundColor: colors.borderDefault, marginVertical: Spacing[2] },
+              ]}
+            />
             <View style={styles.column}>
-              <Text style={[styles.label, TextStyles.bodySmall, { color: colors.textSecondary }]}>Description:</Text>
+              <Text style={[styles.label, TextStyles.bodySmall, { color: colors.textSecondary }]}>
+                Description:
+              </Text>
               <Text style={[TextStyles.body, { color: colors.textPrimary, marginTop: Spacing[1] }]}>
                 {data.description.written || "No written description provided."}
               </Text>
@@ -68,15 +148,25 @@ export function StepReview({ data, onSubmit }: StepProps) {
 
         {data.media.length > 0 && (
           <View style={{ marginBottom: Spacing[5] }}>
-            <Text style={[TextStyles.bodyMedium, { fontWeight: "bold", color: colors.textPrimary, marginBottom: Spacing[2] }]}>Evidence ({data.media.length})</Text>
+            <Text
+              style={[
+                TextStyles.bodyMedium,
+                { fontWeight: "bold", color: colors.textPrimary, marginBottom: Spacing[2] },
+              ]}
+            >
+              Evidence ({data.media.length})
+            </Text>
             <View style={[styles.mediaRow, { gap: Spacing[2] }]}>
               {data.media.map((m, i) => (
-                <Image key={i} source={{ uri: m.uri }} style={[styles.thumbnail, { borderRadius: Radius.sm }]} />
+                <Image
+                  key={i}
+                  source={{ uri: m.uri }}
+                  style={[styles.thumbnail, { borderRadius: Radius.sm }]}
+                />
               ))}
             </View>
           </View>
         )}
-
       </ScrollView>
 
       <View style={[styles.footer, { padding: Spacing[5], borderTopColor: colors.borderDefault }]}>

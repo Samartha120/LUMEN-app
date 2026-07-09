@@ -69,7 +69,7 @@ export default function LoginScreen() {
     try {
       const role = await AuthService.signInWithPassword(data.email, data.password);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      
+
       // Save credentials for subsequent biometric login
       try {
         await AsyncStorage.setItem("lumen_last_email", data.email);
@@ -110,14 +110,17 @@ export default function LoginScreen() {
         if (!session) {
           let storedEmail: string | null = null;
           let storedPassword: string | null = null;
-          
+
           try {
             storedEmail = await AsyncStorage.getItem("lumen_last_email");
             storedPassword = await AsyncStorage.getItem("lumen_last_password");
           } catch (storageError) {
-            console.warn("AsyncStorage is not accessible, using fallback login logic:", storageError);
+            console.warn(
+              "AsyncStorage is not accessible, using fallback login logic:",
+              storageError
+            );
           }
-          
+
           if (storedEmail && storedPassword) {
             role = await AuthService.signInWithPassword(storedEmail, storedPassword);
           } else {
@@ -125,7 +128,7 @@ export default function LoginScreen() {
             const typedEmail = getValues("email") || "citizen@lumen.app";
             const commonPasswords = ["Password123!", "LumenPassword123!", "Lumen123!"];
             let success = false;
-            
+
             for (const password of commonPasswords) {
               try {
                 role = await AuthService.signInWithPassword(typedEmail, password);
@@ -133,7 +136,10 @@ export default function LoginScreen() {
                   await AsyncStorage.setItem("lumen_last_email", typedEmail);
                   await AsyncStorage.setItem("lumen_last_password", password);
                 } catch (storageError) {
-                  console.warn("AsyncStorage setItem failed inside biometric fallback:", storageError);
+                  console.warn(
+                    "AsyncStorage setItem failed inside biometric fallback:",
+                    storageError
+                  );
                 }
                 success = true;
                 break;
@@ -141,14 +147,19 @@ export default function LoginScreen() {
                 // Try next password
               }
             }
-            
+
             if (!success) {
-              setErrorText("Please sign in with your email and password first to enable biometric login.");
+              setErrorText(
+                "Please sign in with your email and password first to enable biometric login."
+              );
               return;
             }
           }
         } else if (!role) {
-          role = await AuthService.fetchAndSetUserRole(session.user.id, session.user.user_metadata?.role);
+          role = await AuthService.fetchAndSetUserRole(
+            session.user.id,
+            session.user.user_metadata?.role
+          );
         }
 
         if (role === "engineer") {
@@ -232,7 +243,12 @@ export default function LoginScreen() {
 
             <View style={s.cardContent}>
               {errorText && (
-                <Text style={[TextStyles.caption, { color: "#F04438", marginBottom: Spacing[3], fontWeight: "600" }]}>
+                <Text
+                  style={[
+                    TextStyles.caption,
+                    { color: "#F04438", marginBottom: Spacing[3], fontWeight: "600" },
+                  ]}
+                >
                   {errorText}
                 </Text>
               )}

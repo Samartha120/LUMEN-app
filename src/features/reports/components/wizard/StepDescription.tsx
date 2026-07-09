@@ -14,10 +14,25 @@ export function StepDescription({ data, updateData, onNext }: StepProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={[TextStyles.heading2, { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] }]}>
+      <Text
+        style={[
+          TextStyles.heading2,
+          { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] },
+        ]}
+      >
         Describe the issue
       </Text>
-      <Text style={[TextStyles.body, { color: colors.textSecondary, paddingHorizontal: Spacing[5], marginTop: Spacing[2], marginBottom: Spacing[5] }]}>
+      <Text
+        style={[
+          TextStyles.body,
+          {
+            color: colors.textSecondary,
+            paddingHorizontal: Spacing[5],
+            marginTop: Spacing[2],
+            marginBottom: Spacing[5],
+          },
+        ]}
+      >
         Provide any extra details that might help the department resolve this faster.
       </Text>
 
@@ -26,19 +41,44 @@ export function StepDescription({ data, updateData, onNext }: StepProps) {
           style={[
             styles.textInput,
             TextStyles.bodyMedium,
-            { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault, borderRadius: Radius.md, color: colors.textPrimary, padding: Spacing[4] }
+            {
+              backgroundColor: colors.bgSurface,
+              borderColor: colors.borderDefault,
+              borderRadius: Radius.md,
+              color: colors.textPrimary,
+              padding: Spacing[4],
+            },
           ]}
           multiline
           placeholder="E.g., The pipe burst yesterday and water is flooding the street..."
           placeholderTextColor={colors.textTertiary}
           value={data.description.written}
-          onChangeText={(text) => updateData({ description: { ...data.description, written: text } })}
+          onChangeText={(text) =>
+            updateData({ description: { ...data.description, written: text } })
+          }
           textAlignVertical="top"
         />
 
-            <TouchableOpacity style={[styles.voiceBtn, { backgroundColor: `${colors.brand}10`, borderRadius: Radius.md, padding: Spacing[4], marginTop: Spacing[5] }]}>
+        <TouchableOpacity
+          style={[
+            styles.voiceBtn,
+            {
+              backgroundColor: `${colors.brand}10`,
+              borderRadius: Radius.md,
+              padding: Spacing[4],
+              marginTop: Spacing[5],
+            },
+          ]}
+        >
           <LumenIcon name="circle" size="md" color={colors.brand} />
-          <Text style={[TextStyles.body, { color: colors.brand, fontWeight: "bold", marginLeft: Spacing[2] }]}>Record Voice Description</Text>
+          <Text
+            style={[
+              TextStyles.body,
+              { color: colors.brand, fontWeight: "bold", marginLeft: Spacing[2] },
+            ]}
+          >
+            Record Voice Description
+          </Text>
         </TouchableOpacity>
       </View>
 

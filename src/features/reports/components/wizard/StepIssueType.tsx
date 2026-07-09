@@ -16,14 +16,32 @@ export function StepIssueType({ data, updateData, onNext }: StepProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={[TextStyles.heading2, { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] }]}>
+      <Text
+        style={[
+          TextStyles.heading2,
+          { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] },
+        ]}
+      >
         What kind of issue are you reporting?
       </Text>
-      <Text style={[TextStyles.body, { color: colors.textSecondary, paddingHorizontal: Spacing[5], marginTop: Spacing[2], marginBottom: Spacing[5] }]}>
+      <Text
+        style={[
+          TextStyles.body,
+          {
+            color: colors.textSecondary,
+            paddingHorizontal: Spacing[5],
+            marginTop: Spacing[2],
+            marginBottom: Spacing[5],
+          },
+        ]}
+      >
         Select the category that best fits the problem.
       </Text>
 
-      <ScrollView style={styles.list} contentContainerStyle={{ paddingHorizontal: Spacing[5], paddingBottom: Spacing[6] }}>
+      <ScrollView
+        style={styles.list}
+        contentContainerStyle={{ paddingHorizontal: Spacing[5], paddingBottom: Spacing[6] }}
+      >
         {categories.map((cat) => {
           const isSelected = data.issueType === cat;
           return (
@@ -31,14 +49,24 @@ export function StepIssueType({ data, updateData, onNext }: StepProps) {
               key={cat}
               style={[
                 styles.card,
-                { backgroundColor: colors.bgSurface, marginBottom: Spacing[2], borderRadius: Radius.md },
-                isSelected && { borderColor: colors.brand, backgroundColor: `${colors.brand}10` }
+                {
+                  backgroundColor: colors.bgSurface,
+                  marginBottom: Spacing[2],
+                  borderRadius: Radius.md,
+                },
+                isSelected && { borderColor: colors.brand, backgroundColor: `${colors.brand}10` },
               ]}
               onPress={() => updateData({ issueType: cat })}
               activeOpacity={0.7}
             >
               <View style={styles.cardHeader}>
-                <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }, isSelected && { color: colors.brand, fontWeight: "bold" }]}>
+                <Text
+                  style={[
+                    TextStyles.bodyMedium,
+                    { color: colors.textPrimary },
+                    isSelected && { color: colors.brand, fontWeight: "bold" },
+                  ]}
+                >
                   {cat}
                 </Text>
                 {isSelected && <LumenIcon name="checkCircle" size="md" color={colors.brand} />}
@@ -49,12 +77,7 @@ export function StepIssueType({ data, updateData, onNext }: StepProps) {
       </ScrollView>
 
       <View style={[styles.footer, { borderTopColor: colors.borderDefault }]}>
-        <Button
-          label="Continue"
-          onPress={onNext}
-          disabled={!data.issueType}
-          fullWidth
-        />
+        <Button label="Continue" onPress={onNext} disabled={!data.issueType} fullWidth />
       </View>
     </View>
   );

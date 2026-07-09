@@ -66,17 +66,42 @@ const REPORT = {
 
 const TIMELINE = [
   { step: "Report Submitted", time: "Today, 9:14 AM", done: true, desc: "Logged by Samuel K." },
-  { step: "Under Review", time: "Today, 9:30 AM", done: true, desc: "Reviewed by City Works Dept." },
+  {
+    step: "Under Review",
+    time: "Today, 9:30 AM",
+    done: true,
+    desc: "Reviewed by City Works Dept.",
+  },
   { step: "Engineer Assigned", time: "Today, 10:45 AM", done: true, desc: "Rajesh Kumar assigned" },
   { step: "In Progress", time: "Today, 11:30 AM", done: true, desc: "Work commenced on site" },
   { step: "Resolved", time: "Estimated: Tomorrow", done: false, desc: "Pending completion" },
 ];
 
 const ACTIVITY = [
-  { time: "11:30 AM", action: "Rajesh K. started work on site", icon: "tools" as const, color: "#208AEF" },
-  { time: "10:45 AM", action: "Task assigned to Rajesh Kumar", icon: "engineer" as const, color: "#7C3AED" },
-  { time: "9:30 AM", action: "Report reviewed by supervisor", icon: "check" as const, color: "#12B76A" },
-  { time: "9:14 AM", action: "Report submitted by Samuel K.", icon: "report" as const, color: "#F79009" },
+  {
+    time: "11:30 AM",
+    action: "Rajesh K. started work on site",
+    icon: "tools" as const,
+    color: "#208AEF",
+  },
+  {
+    time: "10:45 AM",
+    action: "Task assigned to Rajesh Kumar",
+    icon: "engineer" as const,
+    color: "#7C3AED",
+  },
+  {
+    time: "9:30 AM",
+    action: "Report reviewed by supervisor",
+    icon: "check" as const,
+    color: "#12B76A",
+  },
+  {
+    time: "9:14 AM",
+    action: "Report submitted by Samuel K.",
+    icon: "report" as const,
+    color: "#F79009",
+  },
 ];
 
 const DETAILS = [
@@ -116,7 +141,12 @@ function CounterText({
     };
   }, [target]);
 
-  return <Text style={style}>{display}{suffix}</Text>;
+  return (
+    <Text style={style}>
+      {display}
+      {suffix}
+    </Text>
+  );
 }
 
 // ── Timeline Step ─────────────────────────────────────────────
@@ -161,9 +191,7 @@ function TimelineStep({
   const dotBg = done ? dotColor : colors.bgSubtle;
 
   return (
-    <Animated.View
-      style={[tl.row, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
-    >
+    <Animated.View style={[tl.row, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
       {/* Dot + Line column */}
       <View style={tl.leftCol}>
         <View style={[tl.dotWrap, { borderColor: dotColor, backgroundColor: dotBg }]}>
@@ -171,9 +199,7 @@ function TimelineStep({
             <LumenIcon name="check" size="xs" color="#FFFFFF" strokeWidth={3} />
           )}
           {isCurrent && (
-            <Animated.View
-              style={[tl.currentInner, { transform: [{ scale: pulseAnim }] }]}
-            />
+            <Animated.View style={[tl.currentInner, { transform: [{ scale: pulseAnim }] }]} />
           )}
         </View>
         {!isLast && (
@@ -308,20 +334,34 @@ export default function ReportDetailsScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
 
       {/* ════════════════════════════════════════ */}
       {/* HEADER                                  */}
       {/* ════════════════════════════════════════ */}
       <SafeAreaView
         edges={["top"]}
-        style={[s.header, { backgroundColor: colors.bgBase, borderBottomColor: colors.borderDefault }]}
+        style={[
+          s.header,
+          { backgroundColor: colors.bgBase, borderBottomColor: colors.borderDefault },
+        ]}
       >
         <Animated.View style={[s.headerInner, { opacity: headerAnim }]}>
           <Pressable
             onPress={() => router.back()}
             hitSlop={16}
-            style={({ pressed }) => [s.iconCircle, { backgroundColor: colors.bgSubtle, opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.92 : 1 }] }]}
+            style={({ pressed }) => [
+              s.iconCircle,
+              {
+                backgroundColor: colors.bgSubtle,
+                opacity: pressed ? 0.6 : 1,
+                transform: [{ scale: pressed ? 0.92 : 1 }],
+              },
+            ]}
           >
             <LumenIcon name="back" size="md" color={colors.textPrimary} strokeWidth={2.5} />
           </Pressable>
@@ -333,23 +373,25 @@ export default function ReportDetailsScreen() {
           <Pressable
             onPress={handleShare}
             hitSlop={16}
-            style={({ pressed }) => [s.iconCircle, { backgroundColor: colors.bgSubtle, opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.92 : 1 }] }]}
+            style={({ pressed }) => [
+              s.iconCircle,
+              {
+                backgroundColor: colors.bgSubtle,
+                opacity: pressed ? 0.6 : 1,
+                transform: [{ scale: pressed ? 0.92 : 1 }],
+              },
+            ]}
           >
             <LumenIcon name="share" size="md" color={colors.textSecondary} strokeWidth={2} />
           </Pressable>
         </Animated.View>
       </SafeAreaView>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={s.scroll}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
         {/* ════════════════════════════════════════ */}
         {/* HERO — WORKING MAP                      */}
         {/* ════════════════════════════════════════ */}
-        <Animated.View
-          style={[s.heroContainer, { transform: [{ scale: heroScaleAnim }] }]}
-        >
+        <Animated.View style={[s.heroContainer, { transform: [{ scale: heroScaleAnim }] }]}>
           <MapView
             provider={PROVIDER_GOOGLE}
             style={StyleSheet.absoluteFill}
@@ -371,13 +413,8 @@ export default function ReportDetailsScreen() {
             >
               {/* Custom animated marker */}
               <View style={s.markerWrapper}>
-                <Animated.View
-                  style={[s.markerRipple, { transform: [{ scale: pulseAnim }] }]}
-                />
-                <LinearGradient
-                  colors={["#F04438", "#DC2626"]}
-                  style={s.markerPin}
-                >
+                <Animated.View style={[s.markerRipple, { transform: [{ scale: pulseAnim }] }]} />
+                <LinearGradient colors={["#F04438", "#DC2626"]} style={s.markerPin}>
                   <LumenIcon name="alert" size="xs" color="#FFFFFF" strokeWidth={2.5} />
                 </LinearGradient>
                 <View style={s.markerTip} />
@@ -386,15 +423,10 @@ export default function ReportDetailsScreen() {
           </MapView>
 
           {/* Live status badge + Report ID — bottom overlay */}
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.72)"]}
-            style={s.heroGradient}
-          >
+          <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={s.heroGradient}>
             <View style={s.heroOverlayContent}>
               <View style={s.liveChip}>
-                <Animated.View
-                  style={[s.liveDot, { transform: [{ scale: pulseAnim }] }]}
-                />
+                <Animated.View style={[s.liveDot, { transform: [{ scale: pulseAnim }] }]} />
                 <Text style={s.liveText}>ENGINEER ON SITE</Text>
               </View>
               <Text style={s.heroReportId}>{REPORT.trackingId}</Text>
@@ -406,12 +438,9 @@ export default function ReportDetailsScreen() {
         {/* All cards fade in after hero            */}
         {/* ════════════════════════════════════════ */}
         <Animated.View style={{ opacity: contentAnim }}>
-
           {/* TITLE & STATUS CHIPS */}
           <View style={s.titleSection}>
-            <Text style={[s.issueTitle, { color: colors.textPrimary }]}>
-              {REPORT.title}
-            </Text>
+            <Text style={[s.issueTitle, { color: colors.textPrimary }]}>{REPORT.title}</Text>
             <View style={s.chipsRow}>
               <Badge label="In Progress" variant="info" icon="timer" />
               <Badge label="High Priority" variant="error" icon="alert" />
@@ -424,9 +453,7 @@ export default function ReportDetailsScreen() {
           {/* ════════════════════════════════════════ */}
           <View style={[s.card, { backgroundColor: colors.bgSurface, ...shadows.lg }, s.mx]}>
             <View style={s.progressHeaderRow}>
-              <Text style={[s.cardTitle, { color: colors.textPrimary }]}>
-                Resolution Progress
-              </Text>
+              <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Resolution Progress</Text>
               <CounterText
                 target={REPORT.progress}
                 suffix="%"
@@ -483,7 +510,9 @@ export default function ReportDetailsScreen() {
                 <View style={s.engineerBadgeRow}>
                   <View style={[s.onSiteBadge, { backgroundColor: colors.successBg }]}>
                     <View style={s.onSiteDot} />
-                    <Text style={[TextStyles.caption, { color: colors.successText, fontWeight: "700" }]}>
+                    <Text
+                      style={[TextStyles.caption, { color: colors.successText, fontWeight: "700" }]}
+                    >
                       {REPORT.engineer.status}
                     </Text>
                   </View>
@@ -493,7 +522,11 @@ export default function ReportDetailsScreen() {
                 onPress={handleCall}
                 style={({ pressed }) => [
                   s.callBtn,
-                  { backgroundColor: colors.successBg, opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.92 : 1 }] },
+                  {
+                    backgroundColor: colors.successBg,
+                    opacity: pressed ? 0.7 : 1,
+                    transform: [{ scale: pressed ? 0.92 : 1 }],
+                  },
                 ]}
                 accessibilityLabel="Call engineer"
               >
@@ -541,7 +574,14 @@ export default function ReportDetailsScreen() {
           {/* ════════════════════════════════════════ */}
           {/* MAP LOCATION — WORKING MAP              */}
           {/* ════════════════════════════════════════ */}
-          <View style={[s.card, { backgroundColor: colors.bgSurface, ...shadows.lg }, s.mx, { padding: 0, overflow: "hidden" }]}>
+          <View
+            style={[
+              s.card,
+              { backgroundColor: colors.bgSurface, ...shadows.lg },
+              s.mx,
+              { padding: 0, overflow: "hidden" },
+            ]}
+          >
             {/* Embedded working map */}
             <View style={s.inlineMapWrap}>
               <MapView
@@ -599,7 +639,13 @@ export default function ReportDetailsScreen() {
               Activity Log
             </Text>
             {ACTIVITY.map((a, i) => (
-              <ActivityRow key={i} item={a} colors={colors} delay={i * 80} isLast={i === ACTIVITY.length - 1} />
+              <ActivityRow
+                key={i}
+                item={a}
+                colors={colors}
+                delay={i * 80}
+                isLast={i === ACTIVITY.length - 1}
+              />
             ))}
           </View>
 
@@ -832,7 +878,13 @@ const s = StyleSheet.create({
   // Details
   detailRow: { flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 8 },
   detailLabel: { fontSize: 13, width: 96, flexShrink: 0 },
-  detailValueRow: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "flex-end" },
+  detailValueRow: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    justifyContent: "flex-end",
+  },
   detailValue: { fontSize: 14, fontWeight: "600", textAlign: "right" },
 
   // Inline map

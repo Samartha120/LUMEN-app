@@ -7,7 +7,13 @@ import { View, Text, StyleSheet, ScrollView, Pressable, StatusBar, Dimensions } 
 import { router } from "expo-router";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
@@ -54,13 +60,17 @@ export default function ProfileScreen() {
     {
       title: "Preferences",
       items: [
-        { icon: "notifications", label: "Notification Settings", route: "/(citizen)/Notifications" },
+        {
+          icon: "notifications",
+          label: "Notification Settings",
+          route: "/(citizen)/Notifications",
+        },
         { icon: "globe", label: "Language", value: "English" },
-        { 
-          icon: "sun", 
-          label: "Theme", 
-          value: mode.charAt(0).toUpperCase() + mode.slice(1), 
-          onAction: handleThemeToggle 
+        {
+          icon: "sun",
+          label: "Theme",
+          value: mode.charAt(0).toUpperCase() + mode.slice(1),
+          onAction: handleThemeToggle,
         },
       ],
     },
@@ -80,8 +90,12 @@ export default function ProfileScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
-      
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
+
       {/* Background Ambient Glow */}
       <View style={s.bgGlowWrap}>
         <LinearGradient
@@ -95,15 +109,27 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* ── Header ── */}
         <Animated.View entering={FadeIn.delay(100).duration(400)} style={s.header}>
-          <Pressable 
-            onPress={() => router.back()} 
-            style={({ pressed }) => [s.iconBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", opacity: pressed ? 0.7 : 1 }]}
+          <Pressable
+            onPress={() => router.back()}
+            style={({ pressed }) => [
+              s.iconBtn,
+              {
+                backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
           >
             <LumenIcon name="back" size="md" color={colors.textPrimary} strokeWidth={2.5} />
           </Pressable>
           <Text style={[TextStyles.title, { color: colors.textPrimary }]}>Profile</Text>
-          <Pressable 
-            style={({ pressed }) => [s.iconBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", opacity: pressed ? 0.7 : 1 }]}
+          <Pressable
+            style={({ pressed }) => [
+              s.iconBtn,
+              {
+                backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
           >
             <LumenIcon name="settings" size="md" color={colors.textPrimary} strokeWidth={2} />
           </Pressable>
@@ -115,16 +141,23 @@ export default function ProfileScreen() {
             <View style={[s.avatarRing, { borderColor: colors.brand + "40" }]}>
               <Avatar name="Samuel Krishnamurthy" size="xl" role="citizen" />
             </View>
-            <Pressable style={({ pressed }) => [s.editAvatarBtn, { backgroundColor: colors.brand, transform: [{ scale: pressed ? 0.9 : 1 }] }]}>
+            <Pressable
+              style={({ pressed }) => [
+                s.editAvatarBtn,
+                { backgroundColor: colors.brand, transform: [{ scale: pressed ? 0.9 : 1 }] },
+              ]}
+            >
               <LumenIcon name="camera" size="xs" color="#FFF" strokeWidth={2.5} />
             </Pressable>
           </View>
-          
+
           <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginTop: Spacing[4] }]}>
             Samuel Krishnamurthy
           </Text>
-          <Text style={[TextStyles.bodyMedium, { color: colors.textSecondary }]}>citizen@lumen.app</Text>
-          
+          <Text style={[TextStyles.bodyMedium, { color: colors.textSecondary }]}>
+            citizen@lumen.app
+          </Text>
+
           <View style={s.heroTags}>
             <Badge label="Citizen" variant="brand" dot />
             <Badge label="Zone B" variant="neutral" />
@@ -134,21 +167,50 @@ export default function ProfileScreen() {
 
         {/* ── Premium Squircle Stats ── */}
         <Animated.View entering={FadeInDown.delay(200).springify().damping(20)} style={s.statsRow}>
-          <SquircleStat label="Reports" value="12" icon="report" color={colors.brand} isDark={isDark} />
+          <SquircleStat
+            label="Reports"
+            value="12"
+            icon="report"
+            color={colors.brand}
+            isDark={isDark}
+          />
           <SquircleStat label="Resolved" value="9" icon="success" color="#12B76A" isDark={isDark} />
           <SquircleStat label="Points" value="240" icon="star" color="#F79009" isDark={isDark} />
         </Animated.View>
 
         {/* ── Menu Sections ── */}
         {menuSections.map((section, si) => (
-          <Animated.View key={`sec-${si}`} entering={FadeInDown.delay(250 + si * 50).springify().damping(20)} style={s.section}>
+          <Animated.View
+            key={`sec-${si}`}
+            entering={FadeInDown.delay(250 + si * 50)
+              .springify()
+              .damping(20)}
+            style={s.section}
+          >
             {section.title ? (
-              <Text style={[TextStyles.label, { color: colors.textTertiary, marginBottom: Spacing[3], paddingHorizontal: Spacing[5] }]}>
+              <Text
+                style={[
+                  TextStyles.label,
+                  {
+                    color: colors.textTertiary,
+                    marginBottom: Spacing[3],
+                    paddingHorizontal: Spacing[5],
+                  },
+                ]}
+              >
                 {section.title}
               </Text>
             ) : null}
-            
-            <View style={[s.menuCard, { backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#FFFFFF", borderColor: colors.borderDefault }]}>
+
+            <View
+              style={[
+                s.menuCard,
+                {
+                  backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#FFFFFF",
+                  borderColor: colors.borderDefault,
+                },
+              ]}
+            >
               {section.items.map((item, ii) => (
                 <MenuRow
                   key={`item-${ii}`}
@@ -167,7 +229,19 @@ export default function ProfileScreen() {
 }
 
 // ── Squircle Stat Card Component ─────────────────────────────────────
-function SquircleStat({ label, value, icon, color, isDark }: { label: string; value: string; icon: any; color: string; isDark: boolean }) {
+function SquircleStat({
+  label,
+  value,
+  icon,
+  color,
+  isDark,
+}: {
+  label: string;
+  value: string;
+  icon: any;
+  color: string;
+  isDark: boolean;
+}) {
   const scale = useSharedValue(1);
 
   const style = useAnimatedStyle(() => ({
@@ -182,16 +256,33 @@ function SquircleStat({ label, value, icon, color, isDark }: { label: string; va
       onPressOut={() => (scale.value = withSpring(1, { damping: 15 }))}
     >
       <Animated.View style={[style, { width: STAT_SIZE }]}>
-        <BlurView 
-          intensity={isDark ? 20 : 40} 
-          tint={isDark ? "dark" : "light"} 
-          style={[s.squircle, { backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.8)", borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)" }]}
+        <BlurView
+          intensity={isDark ? 20 : 40}
+          tint={isDark ? "dark" : "light"}
+          style={[
+            s.squircle,
+            {
+              backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.8)",
+              borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)",
+            },
+          ]}
         >
           <View style={[s.squircleIcon, { backgroundColor: color + "15" }]}>
             <LumenIcon name={icon} size="sm" color={color} />
           </View>
-          <Text style={[TextStyles.heading2, { color: isDark ? "#FFF" : "#111", marginVertical: 4 }]}>{value}</Text>
-          <Text style={[TextStyles.caption, { color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)", fontWeight: "600" }]}>{label}</Text>
+          <Text
+            style={[TextStyles.heading2, { color: isDark ? "#FFF" : "#111", marginVertical: 4 }]}
+          >
+            {value}
+          </Text>
+          <Text
+            style={[
+              TextStyles.caption,
+              { color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)", fontWeight: "600" },
+            ]}
+          >
+            {label}
+          </Text>
         </BlurView>
       </Animated.View>
     </Pressable>
@@ -199,7 +290,17 @@ function SquircleStat({ label, value, icon, color, isDark }: { label: string; va
 }
 
 // ── Menu Row Component ─────────────────────────────────────
-function MenuRow({ item, isLast, colors, isDark }: { item: MenuItem; isLast: boolean; colors: any; isDark: boolean }) {
+function MenuRow({
+  item,
+  isLast,
+  colors,
+  isDark,
+}: {
+  item: MenuItem;
+  isLast: boolean;
+  colors: any;
+  isDark: boolean;
+}) {
   const scale = useSharedValue(1);
 
   const style = useAnimatedStyle(() => ({
@@ -226,15 +327,38 @@ function MenuRow({ item, isLast, colors, isDark }: { item: MenuItem; isLast: boo
       onPressOut={() => (scale.value = withSpring(1, { damping: 15 }))}
       onPress={handlePress}
     >
-      <Animated.View style={[
-        s.menuRow, 
-        style,
-        { borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.borderDefault }
-      ]}>
-        <View style={[s.menuIcon, { backgroundColor: item.danger ? "#FEE4E2" : (isDark ? "rgba(255,255,255,0.08)" : colors.bgSubtle) }]}>
-          <LumenIcon name={item.icon} size="sm" color={item.danger ? "#D92D20" : colors.textSecondary} strokeWidth={2} />
+      <Animated.View
+        style={[
+          s.menuRow,
+          style,
+          { borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.borderDefault },
+        ]}
+      >
+        <View
+          style={[
+            s.menuIcon,
+            {
+              backgroundColor: item.danger
+                ? "#FEE4E2"
+                : isDark
+                  ? "rgba(255,255,255,0.08)"
+                  : colors.bgSubtle,
+            },
+          ]}
+        >
+          <LumenIcon
+            name={item.icon}
+            size="sm"
+            color={item.danger ? "#D92D20" : colors.textSecondary}
+            strokeWidth={2}
+          />
         </View>
-        <Text style={[TextStyles.bodyMedium, { color: item.danger ? "#D92D20" : colors.textPrimary, flex: 1, fontWeight: "500" }]}>
+        <Text
+          style={[
+            TextStyles.bodyMedium,
+            { color: item.danger ? "#D92D20" : colors.textPrimary, flex: 1, fontWeight: "500" },
+          ]}
+        >
           {item.label}
         </Text>
         {item.value && (
@@ -252,7 +376,7 @@ function MenuRow({ item, isLast, colors, isDark }: { item: MenuItem; isLast: boo
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  bgGlowWrap: { ...StyleSheet.absoluteFill as any, overflow: "hidden", pointerEvents: "none" },
+  bgGlowWrap: { ...(StyleSheet.absoluteFill as any), overflow: "hidden", pointerEvents: "none" },
   glowOrb: { width: W, height: W, position: "absolute", top: -W / 3, opacity: 0.6 },
   header: {
     flexDirection: "row",
@@ -297,10 +421,10 @@ const s = StyleSheet.create({
     borderColor: "#FFF",
   },
   heroTags: { flexDirection: "row", gap: Spacing[2], marginTop: Spacing[4] },
-  
-  statsRow: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
+
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: Spacing[5],
     marginBottom: Spacing[8],
     zIndex: 10,
@@ -324,8 +448,8 @@ const s = StyleSheet.create({
 
   section: { marginBottom: Spacing[6], zIndex: 10 },
   menuCard: {
-    marginHorizontal: Spacing[5], 
-    borderRadius: 20, 
+    marginHorizontal: Spacing[5],
+    borderRadius: 20,
     borderWidth: 1,
     overflow: "hidden",
   },

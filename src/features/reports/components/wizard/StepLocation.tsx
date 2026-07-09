@@ -27,8 +27,8 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission denied');
+      if (status !== "granted") {
+        setErrorMsg("Permission denied");
         setLoading(false);
         return;
       }
@@ -41,9 +41,15 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
           longitudeDelta: 0.005,
         };
         setRegion(newRegion);
-        updateData({ location: { latitude: newRegion.latitude, longitude: newRegion.longitude, address: "Fetching..." } });
+        updateData({
+          location: {
+            latitude: newRegion.latitude,
+            longitude: newRegion.longitude,
+            address: "Fetching...",
+          },
+        });
       } catch (err) {
-        setErrorMsg('Failed to get location');
+        setErrorMsg("Failed to get location");
       } finally {
         setLoading(false);
       }
@@ -52,29 +58,55 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
 
   const handleRegionChangeComplete = async (newRegion: Region) => {
     setRegion(newRegion);
-    updateData({ 
-      location: { 
-        latitude: newRegion.latitude, 
-        longitude: newRegion.longitude, 
-        address: "123 Smart City Blvd, Tech District" // Mock Address
-      } 
+    updateData({
+      location: {
+        latitude: newRegion.latitude,
+        longitude: newRegion.longitude,
+        address: "123 Smart City Blvd, Tech District", // Mock Address
+      },
     });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={[TextStyles.heading2, { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] }]}>
+      <Text
+        style={[
+          TextStyles.heading2,
+          { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] },
+        ]}
+      >
         Where is the issue?
       </Text>
-      <Text style={[TextStyles.body, { color: colors.textSecondary, paddingHorizontal: Spacing[5], marginTop: Spacing[2], marginBottom: Spacing[4] }]}>
+      <Text
+        style={[
+          TextStyles.body,
+          {
+            color: colors.textSecondary,
+            paddingHorizontal: Spacing[5],
+            marginTop: Spacing[2],
+            marginBottom: Spacing[4],
+          },
+        ]}
+      >
         Drag the map to pin the exact location.
       </Text>
 
-      <View style={[styles.mapContainer, { marginHorizontal: Spacing[5], borderRadius: Radius.lg, borderColor: colors.borderDefault }]}>
+      <View
+        style={[
+          styles.mapContainer,
+          {
+            marginHorizontal: Spacing[5],
+            borderRadius: Radius.lg,
+            borderColor: colors.borderDefault,
+          },
+        ]}
+      >
         {loading ? (
           <View style={[styles.loadingContainer, { backgroundColor: colors.bgSurface }]}>
             <ActivityIndicator size="large" color={colors.brand} />
-            <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: Spacing[4] }]}>Finding your location...</Text>
+            <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: Spacing[4] }]}>
+              Finding your location...
+            </Text>
           </View>
         ) : (
           <>
@@ -87,7 +119,12 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
               showsMyLocationButton
             />
             <View style={styles.centerPinContainer} pointerEvents="none">
-              <View style={[styles.centerPin, { backgroundColor: "#F04438", borderColor: colors.bgBase }]} />
+              <View
+                style={[
+                  styles.centerPin,
+                  { backgroundColor: "#F04438", borderColor: colors.bgBase },
+                ]}
+              />
               <View style={styles.centerPinShadow} />
             </View>
           </>
@@ -95,8 +132,20 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
       </View>
 
       <View style={{ padding: Spacing[5] }}>
-        <Text style={[TextStyles.bodySmall, { color: colors.textSecondary, textTransform: "uppercase" }]}>Selected Location</Text>
-        <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, marginTop: Spacing[1], fontWeight: "500" }]}>
+        <Text
+          style={[
+            TextStyles.bodySmall,
+            { color: colors.textSecondary, textTransform: "uppercase" },
+          ]}
+        >
+          Selected Location
+        </Text>
+        <Text
+          style={[
+            TextStyles.bodyMedium,
+            { color: colors.textPrimary, marginTop: Spacing[1], fontWeight: "500" },
+          ]}
+        >
           {data.location?.address || (errorMsg ? errorMsg : "Locating...")}
         </Text>
       </View>
@@ -127,6 +176,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   centerPin: { width: 30, height: 30, borderWidth: 3, borderRadius: 15 },
-  centerPinShadow: { width: 10, height: 4, backgroundColor: "rgba(0,0,0,0.3)", borderRadius: 2, marginTop: 2 },
+  centerPinShadow: {
+    width: 10,
+    height: 4,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 2,
+    marginTop: 2,
+  },
   footer: { borderTopWidth: 1 },
 });

@@ -33,28 +33,83 @@ export function StepAiSuggestion({ data, updateData, onNext }: StepProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={[TextStyles.heading2, { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] }]}>
+      <Text
+        style={[
+          TextStyles.heading2,
+          { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] },
+        ]}
+      >
         LUMEN AI Analysis
       </Text>
-      <Text style={[TextStyles.body, { color: colors.textSecondary, paddingHorizontal: Spacing[5], marginTop: Spacing[2], marginBottom: Spacing[5] }]}>
+      <Text
+        style={[
+          TextStyles.body,
+          {
+            color: colors.textSecondary,
+            paddingHorizontal: Spacing[5],
+            marginTop: Spacing[2],
+            marginBottom: Spacing[5],
+          },
+        ]}
+      >
         We use AI to route your issue to the correct department automatically.
       </Text>
 
       <View style={[styles.content, { padding: Spacing[5] }]}>
         {analyzing ? (
-          <View style={[styles.centerCard, { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault, borderRadius: Radius.lg }]}>
+          <View
+            style={[
+              styles.centerCard,
+              {
+                backgroundColor: colors.bgSurface,
+                borderColor: colors.borderDefault,
+                borderRadius: Radius.lg,
+              },
+            ]}
+          >
             <ActivityIndicator size="large" color={colors.brand} />
-            <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: Spacing[4] }]}>Analyzing report metadata...</Text>
+            <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: Spacing[4] }]}>
+              Analyzing report metadata...
+            </Text>
           </View>
         ) : (
-          <View style={[styles.centerCard, { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault, borderRadius: Radius.lg }]}>
-            <View style={[styles.iconCircle, { backgroundColor: `${colors.brand}15`, marginBottom: Spacing[4] }]}>
+          <View
+            style={[
+              styles.centerCard,
+              {
+                backgroundColor: colors.bgSurface,
+                borderColor: colors.borderDefault,
+                borderRadius: Radius.lg,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.iconCircle,
+                { backgroundColor: `${colors.brand}15`, marginBottom: Spacing[4] },
+              ]}
+            >
               <LumenIcon name="circle" size="md" color={colors.brand} />
             </View>
-            <Text style={[TextStyles.bodySmall, { color: colors.textSecondary, textTransform: "uppercase" }]}>Suggested Category</Text>
-            <Text style={[TextStyles.title, { color: colors.brand, marginTop: Spacing[1], marginBottom: Spacing[2] }]}>{suggestion}</Text>
+            <Text
+              style={[
+                TextStyles.bodySmall,
+                { color: colors.textSecondary, textTransform: "uppercase" },
+              ]}
+            >
+              Suggested Category
+            </Text>
+            <Text
+              style={[
+                TextStyles.title,
+                { color: colors.brand, marginTop: Spacing[1], marginBottom: Spacing[2] },
+              ]}
+            >
+              {suggestion}
+            </Text>
             <Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center" }]}>
-              This matches your manual selection of "{data.issueType}". This will be routed to the appropriate department.
+              This matches your manual selection of "{data.issueType}". This will be routed to the
+              appropriate department.
             </Text>
           </View>
         )}

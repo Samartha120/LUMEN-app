@@ -26,7 +26,7 @@ export const AuthService = {
    */
   async fetchAndSetUserRole(userId: string, metadataRole?: string) {
     let role: "citizen" | "engineer" = (metadataRole as any) || "citizen";
-    
+
     if (SUPABASE_URL.includes("your-project") || SUPABASE_URL === "") {
       useAuthStore.getState().setRole(role);
       return role;
@@ -57,7 +57,7 @@ export const AuthService = {
       role = "engineer";
     }
     useAuthStore.getState().setRole(role);
-    
+
     // Create a mock session that passes validation checks
     const mockSession = {
       access_token: "mock-token",
@@ -92,7 +92,7 @@ export const AuthService = {
         password,
       });
       if (error) throw error;
-      
+
       let role: "citizen" | "engineer" = "citizen";
       if (data.user) {
         role = await this.fetchAndSetUserRole(data.user.id, data.user.user_metadata?.role);
@@ -101,8 +101,8 @@ export const AuthService = {
     } catch (e: any) {
       // Graceful host/network failure fallback to let local testing work fine for every email
       if (
-        e.message?.includes("fetch failed") || 
-        e.message?.includes("Network request failed") || 
+        e.message?.includes("fetch failed") ||
+        e.message?.includes("Network request failed") ||
         e.message?.includes("UnknownHostException")
       ) {
         console.warn("Supabase network request failed, falling back to mock sign in");
@@ -134,8 +134,8 @@ export const AuthService = {
       return data;
     } catch (e: any) {
       if (
-        e.message?.includes("fetch failed") || 
-        e.message?.includes("Network request failed") || 
+        e.message?.includes("fetch failed") ||
+        e.message?.includes("Network request failed") ||
         e.message?.includes("UnknownHostException")
       ) {
         console.warn("Supabase network request failed, falling back to mock sign up");
@@ -201,7 +201,9 @@ export const AuthService = {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated user found");
 
       const { error } = await supabase.from("profiles").upsert([
@@ -227,8 +229,8 @@ export const AuthService = {
       useAuthStore.getState().completeOnboarding();
     } catch (e: any) {
       if (
-        e.message?.includes("fetch failed") || 
-        e.message?.includes("Network request failed") || 
+        e.message?.includes("fetch failed") ||
+        e.message?.includes("Network request failed") ||
         e.message?.includes("UnknownHostException")
       ) {
         console.warn("Supabase profiles upsert failed, skipping table updates in mock mode");

@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Text } from "react-native";
+import {
+  View,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+  Text,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MotiView, AnimatePresence } from "moti";
 import { useTheme, LumenIcon, Spacing, TextStyles } from "@/design-system";
@@ -76,7 +83,10 @@ export default function CreateReportWizard() {
   const progress = currentStep / TOTAL_STEPS;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgBase }]} edges={["top", "bottom"]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.bgBase }]}
+      edges={["top", "bottom"]}
+    >
       {/* Header */}
       <View style={[styles.header, { paddingHorizontal: Spacing[5], paddingVertical: Spacing[4] }]}>
         <TouchableOpacity
@@ -86,13 +96,24 @@ export default function CreateReportWizard() {
           <LumenIcon name="chevronLeft" size="md" color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={[TextStyles.title, { color: colors.textPrimary }]}>
-          {currentStep === TOTAL_STEPS ? "Review & Submit" : `Step ${currentStep} of ${TOTAL_STEPS}`}
+          {currentStep === TOTAL_STEPS
+            ? "Review & Submit"
+            : `Step ${currentStep} of ${TOTAL_STEPS}`}
         </Text>
         <View style={{ width: 40 }} />
       </View>
 
       {/* Progress Bar */}
-      <View style={[styles.progressContainer, { backgroundColor: colors.bgSurface, marginHorizontal: Spacing[5], marginBottom: Spacing[5] }]}>
+      <View
+        style={[
+          styles.progressContainer,
+          {
+            backgroundColor: colors.bgSurface,
+            marginHorizontal: Spacing[5],
+            marginBottom: Spacing[5],
+          },
+        ]}
+      >
         <MotiView
           style={[styles.progressBar, { backgroundColor: colors.brand }]}
           animate={{ width: `${progress * 100}%` }}

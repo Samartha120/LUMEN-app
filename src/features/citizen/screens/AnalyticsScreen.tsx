@@ -61,7 +61,7 @@ const CATEGORIES = [
 
 export default function AnalyticsScreen() {
   const { colors, isDark } = useTheme();
-  
+
   // Enter animations
   const fadeHeader = useRef(new Animated.Value(0)).current;
   const fadeContent = useRef(new Animated.Value(0)).current;
@@ -70,8 +70,19 @@ export default function AnalyticsScreen() {
   useEffect(() => {
     Animated.timing(fadeHeader, { toValue: 1, duration: 400, useNativeDriver: true }).start();
     Animated.parallel([
-      Animated.timing(fadeContent, { toValue: 1, duration: 600, delay: 150, useNativeDriver: true }),
-      Animated.spring(slideContent, { toValue: 0, delay: 150, useNativeDriver: true, friction: 8, tension: 40 }),
+      Animated.timing(fadeContent, {
+        toValue: 1,
+        duration: 600,
+        delay: 150,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideContent, {
+        toValue: 0,
+        delay: 150,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 40,
+      }),
     ]).start();
   }, []);
 
@@ -81,7 +92,11 @@ export default function AnalyticsScreen() {
 
       {/* ── Background Elements ── */}
       <View style={s.bgGlowWrap}>
-        <BlurView intensity={isDark ? 80 : 40} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill}>
+        <BlurView
+          intensity={isDark ? 80 : 40}
+          tint={isDark ? "dark" : "light"}
+          style={StyleSheet.absoluteFill}
+        >
           <View style={[s.glowOrb, { backgroundColor: colors.brand, top: -100, right: -50 }]} />
           <View style={[s.glowOrb, { backgroundColor: "#7C3AED", top: 200, left: -100 }]} />
         </BlurView>
@@ -89,19 +104,20 @@ export default function AnalyticsScreen() {
 
       {/* ── Header ── */}
       <Animated.View style={[s.header, { opacity: fadeHeader }]}>
-        <Pressable onPress={() => router.back()} style={({ pressed }) => [s.backBtn, pressed && { opacity: 0.7 }]}>
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => [s.backBtn, pressed && { opacity: 0.7 }]}
+        >
           <LumenIcon name="arrowLeft" size="sm" color={colors.textPrimary} />
         </Pressable>
         <Text style={[s.headerTitle, { color: colors.textPrimary }]}>Analytics & Insights</Text>
         <View style={s.backBtn} />
       </Animated.View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={s.scrollContent}
-      >
-        <Animated.View style={{ opacity: fadeContent, transform: [{ translateY: slideContent }], gap: 24 }}>
-          
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
+        <Animated.View
+          style={{ opacity: fadeContent, transform: [{ translateY: slideContent }], gap: 24 }}
+        >
           {/* Civic Score Card */}
           <CivicScoreCard colors={colors} isDark={isDark} />
 
@@ -110,7 +126,6 @@ export default function AnalyticsScreen() {
 
           {/* Breakdown by Category */}
           <CategoryBreakdownCard colors={colors} isDark={isDark} />
-
         </Animated.View>
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -122,21 +137,33 @@ export default function AnalyticsScreen() {
 
 function CivicScoreCard({ colors, isDark }: { colors: any; isDark: boolean }) {
   const scale = useRef(new Animated.Value(0.95)).current;
-  
+
   useEffect(() => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 30, friction: 6, delay: 300 }).start();
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 30,
+      friction: 6,
+      delay: 300,
+    }).start();
   }, []);
 
   return (
     <Animated.View style={[s.card, { borderColor: colors.borderDefault, transform: [{ scale }] }]}>
       <LinearGradient
-        colors={isDark ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]}
+        colors={
+          isDark
+            ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"]
+            : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]
+        }
         style={StyleSheet.absoluteFill}
       />
       <View style={s.scoreInner}>
         <View style={s.scoreInfo}>
           <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Your Civic Score</Text>
-          <Text style={[TextStyles.body, { color: colors.textSecondary }]}>You are in the top 5% of active citizens in your district.</Text>
+          <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
+            You are in the top 5% of active citizens in your district.
+          </Text>
         </View>
         <View style={[s.scoreBadge, { backgroundColor: "rgba(32, 138, 239, 0.15)" }]}>
           <LumenIcon name="spark" size="md" color="#208AEF" />
@@ -151,12 +178,16 @@ function CategoryBreakdownCard({ colors, isDark }: { colors: any; isDark: boolea
   return (
     <View style={[s.card, { borderColor: colors.borderDefault }]}>
       <LinearGradient
-        colors={isDark ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]}
+        colors={
+          isDark
+            ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"]
+            : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]
+        }
         style={StyleSheet.absoluteFill}
       />
       <View style={s.cardInner}>
         <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Issue Breakdown</Text>
-        
+
         <View style={s.progressRow}>
           {CATEGORIES.map((cat, i) => (
             <AnimatedCategoryBar key={cat.label} category={cat} index={i} />
@@ -164,10 +195,12 @@ function CategoryBreakdownCard({ colors, isDark }: { colors: any; isDark: boolea
         </View>
 
         <View style={s.legendGrid}>
-          {CATEGORIES.map(cat => (
+          {CATEGORIES.map((cat) => (
             <View key={cat.label} style={s.legendItem}>
               <View style={[s.legendDot, { backgroundColor: cat.color }]} />
-              <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>{cat.label} ({cat.value}%)</Text>
+              <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
+                {cat.label} ({cat.value}%)
+              </Text>
             </View>
           ))}
         </View>
@@ -183,7 +216,7 @@ function AnimatedCategoryBar({ category, index }: { category: any; index: number
     Animated.timing(widthAnim, {
       toValue: category.value,
       duration: 800,
-      delay: 400 + (index * 100),
+      delay: 400 + index * 100,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
     }).start();
@@ -196,12 +229,11 @@ function AnimatedCategoryBar({ category, index }: { category: any; index: number
         {
           backgroundColor: category.color,
           width: widthAnim.interpolate({ inputRange: [0, 100], outputRange: ["0%", "100%"] }),
-        }
+        },
       ]}
     />
   );
 }
-
 
 function DynamicPerformanceGraph({ colors, isDark }: { colors: any; isDark: boolean }) {
   const [timeRange, setTimeRange] = useState<"Daily" | "Monthly" | "Yearly">("Daily");
@@ -211,7 +243,11 @@ function DynamicPerformanceGraph({ colors, isDark }: { colors: any; isDark: bool
   return (
     <View style={[s.card, { borderColor: colors.borderDefault }]}>
       <LinearGradient
-        colors={isDark ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]}
+        colors={
+          isDark
+            ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"]
+            : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]
+        }
         style={StyleSheet.absoluteFill}
       />
       <View style={s.cardInner}>
@@ -224,7 +260,12 @@ function DynamicPerformanceGraph({ colors, isDark }: { colors: any; isDark: bool
                 style={[s.timePill, timeRange === t && { backgroundColor: colors.brand }]}
                 onPress={() => setTimeRange(t)}
               >
-                <Text style={[TextStyles.caption, { color: timeRange === t ? "#FFFFFF" : colors.textTertiary, fontWeight: "700" }]}>
+                <Text
+                  style={[
+                    TextStyles.caption,
+                    { color: timeRange === t ? "#FFFFFF" : colors.textTertiary, fontWeight: "700" },
+                  ]}
+                >
                   {t}
                 </Text>
               </Pressable>
@@ -232,10 +273,20 @@ function DynamicPerformanceGraph({ colors, isDark }: { colors: any; isDark: bool
           </View>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 16 }}
+        >
           <View style={s.chartScrollArea}>
             {data.values.map((val, i) => (
-              <AnimatedBar key={`${timeRange}-${i}`} value={val} max={maxVal} label={data.labels[i]} colors={colors} />
+              <AnimatedBar
+                key={`${timeRange}-${i}`}
+                value={val}
+                max={maxVal}
+                label={data.labels[i]}
+                colors={colors}
+              />
             ))}
           </View>
         </ScrollView>
@@ -250,7 +301,17 @@ function DynamicPerformanceGraph({ colors, isDark }: { colors: any; isDark: bool
   );
 }
 
-function AnimatedBar({ value, max, label, colors }: { value: number; max: number; label: string; colors: any }) {
+function AnimatedBar({
+  value,
+  max,
+  label,
+  colors,
+}: {
+  value: number;
+  max: number;
+  label: string;
+  colors: any;
+}) {
   const heightAnim = useRef(new Animated.Value(0)).current;
   const targetHeight = Math.max(8, (value / max) * 160);
 
@@ -267,10 +328,20 @@ function AnimatedBar({ value, max, label, colors }: { value: number; max: number
     <View style={s.barColumn}>
       <View style={[s.barTrack, { backgroundColor: colors.bgSubtle }]}>
         <Animated.View style={[s.barFill, { backgroundColor: colors.brand, height: heightAnim }]}>
-          <LinearGradient colors={[colors.brand, colors.brand + "60"]} style={StyleSheet.absoluteFill} />
+          <LinearGradient
+            colors={[colors.brand, colors.brand + "60"]}
+            style={StyleSheet.absoluteFill}
+          />
         </Animated.View>
       </View>
-      <Text style={[TextStyles.caption, { color: colors.textTertiary, fontSize: 11, fontWeight: "600" }]}>{label}</Text>
+      <Text
+        style={[
+          TextStyles.caption,
+          { color: colors.textTertiary, fontSize: 11, fontWeight: "600" },
+        ]}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -298,37 +369,96 @@ function AnimatedStat({ stat, colors }: { stat: any; colors: any }) {
 
 const s = StyleSheet.create({
   container: { flex: 1 },
-  bgGlowWrap: { ...StyleSheet.absoluteFill as any, overflow: "hidden", pointerEvents: "none" },
-  glowOrb: { width: 300, height: 300, borderRadius: 150, position: "absolute", opacity: 0.15, filter: "blur(50px)" as any },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20, zIndex: 10 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(150,150,150,0.1)" },
+  bgGlowWrap: { ...(StyleSheet.absoluteFill as any), overflow: "hidden", pointerEvents: "none" },
+  glowOrb: {
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    position: "absolute",
+    opacity: 0.15,
+    filter: "blur(50px)" as any,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+    zIndex: 10,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(150,150,150,0.1)",
+  },
   headerTitle: { fontSize: 18, fontWeight: "700" },
   scrollContent: { paddingHorizontal: 16, paddingBottom: 100, paddingTop: 10 },
-  
+
   card: { borderRadius: 24, borderWidth: 1, overflow: "hidden", marginBottom: 20 },
   cardInner: { padding: 20 },
   cardTitle: { fontSize: 18, fontWeight: "700", marginBottom: 4 },
-  
+
   // Civic Score
   scoreInner: { flexDirection: "row", alignItems: "center", padding: 20, gap: 16 },
   scoreInfo: { flex: 1 },
-  scoreBadge: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20 },
+  scoreBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
   scoreText: { fontSize: 24, fontWeight: "800", color: "#208AEF" },
 
   // Graph
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
   timePillRow: { flexDirection: "row", padding: 4 },
   timePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
-  chartScrollArea: { flexDirection: "row", alignItems: "flex-end", height: 190, gap: 14, minWidth: "100%", justifyContent: "space-between" },
+  chartScrollArea: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    height: 190,
+    gap: 14,
+    minWidth: "100%",
+    justifyContent: "space-between",
+  },
   barColumn: { alignItems: "center", justifyContent: "flex-end", height: 190, width: 34, gap: 8 },
-  barTrack: { height: 160, justifyContent: "flex-end", width: "100%", borderRadius: 8, overflow: "hidden" },
+  barTrack: {
+    height: 160,
+    justifyContent: "flex-end",
+    width: "100%",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
   barFill: { width: "100%" },
-  analyticsStats: { flexDirection: "row", justifyContent: "space-between", marginTop: 24, paddingHorizontal: 10 },
+  analyticsStats: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 24,
+    paddingHorizontal: 10,
+  },
   analyticsStat: { alignItems: "center", gap: 4 },
   analyticsStatValue: { fontSize: 16, fontWeight: "800" },
 
   // Breakdown
-  progressRow: { flexDirection: "row", height: 12, borderRadius: 6, overflow: "hidden", marginTop: 24, marginBottom: 24 },
+  progressRow: {
+    flexDirection: "row",
+    height: 12,
+    borderRadius: 6,
+    overflow: "hidden",
+    marginTop: 24,
+    marginBottom: 24,
+  },
   segment: { height: "100%" },
   legendGrid: { flexDirection: "row", flexWrap: "wrap", gap: 16 },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 6, width: "45%" },

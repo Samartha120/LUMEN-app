@@ -12,12 +12,32 @@ interface StepProps {
 
 export function StepPriority({ data, updateData, onNext }: StepProps) {
   const { colors } = useTheme();
-  
+
   const priorities = [
-    { id: "low", label: "Low", desc: "No immediate danger or major inconvenience.", color: "#0BA5EC" },
-    { id: "medium", label: "Medium", desc: "Causes inconvenience but not dangerous.", color: "#F79009" },
-    { id: "high", label: "High", desc: "Significant disruption to services or traffic.", color: "#F04438" },
-    { id: "critical", label: "Critical", desc: "Immediate danger to life or property.", color: "#7A271A" }, 
+    {
+      id: "low",
+      label: "Low",
+      desc: "No immediate danger or major inconvenience.",
+      color: "#0BA5EC",
+    },
+    {
+      id: "medium",
+      label: "Medium",
+      desc: "Causes inconvenience but not dangerous.",
+      color: "#F79009",
+    },
+    {
+      id: "high",
+      label: "High",
+      desc: "Significant disruption to services or traffic.",
+      color: "#F04438",
+    },
+    {
+      id: "critical",
+      label: "Critical",
+      desc: "Immediate danger to life or property.",
+      color: "#7A271A",
+    },
   ] as const;
 
   const defaultMapping = RoutingEngine.determineRouting(data.issueType);
@@ -25,11 +45,27 @@ export function StepPriority({ data, updateData, onNext }: StepProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={[TextStyles.heading2, { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] }]}>
+      <Text
+        style={[
+          TextStyles.heading2,
+          { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] },
+        ]}
+      >
         Set Priority
       </Text>
-      <Text style={[TextStyles.body, { color: colors.textSecondary, paddingHorizontal: Spacing[5], marginTop: Spacing[2], marginBottom: Spacing[5] }]}>
-        Our system suggested '{suggestedPriority}' based on the issue type, but you can override it if needed.
+      <Text
+        style={[
+          TextStyles.body,
+          {
+            color: colors.textSecondary,
+            paddingHorizontal: Spacing[5],
+            marginTop: Spacing[2],
+            marginBottom: Spacing[5],
+          },
+        ]}
+      >
+        Our system suggested '{suggestedPriority}' based on the issue type, but you can override it
+        if needed.
       </Text>
 
       <View style={[styles.content, { paddingHorizontal: Spacing[5] }]}>
@@ -40,8 +76,12 @@ export function StepPriority({ data, updateData, onNext }: StepProps) {
               key={p.id}
               style={[
                 styles.card,
-                { backgroundColor: colors.bgSurface, borderRadius: Radius.md, marginBottom: Spacing[4] },
-                isSelected && { borderColor: p.color, backgroundColor: `${p.color}10` }
+                {
+                  backgroundColor: colors.bgSurface,
+                  borderRadius: Radius.md,
+                  marginBottom: Spacing[4],
+                },
+                isSelected && { borderColor: p.color, backgroundColor: `${p.color}10` },
               ]}
               onPress={() => updateData({ priority: p.id })}
               activeOpacity={0.7}
@@ -49,24 +89,30 @@ export function StepPriority({ data, updateData, onNext }: StepProps) {
               <View style={[styles.cardHeader, { marginBottom: Spacing[1] }]}>
                 <View style={[styles.headerLeft, { gap: Spacing[2] }]}>
                   <LumenIcon name="alert" size="sm" color={p.color} />
-                  <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, textTransform: "capitalize" }, isSelected && { color: p.color, fontWeight: "bold" }]}>
+                  <Text
+                    style={[
+                      TextStyles.bodyMedium,
+                      { color: colors.textPrimary, textTransform: "capitalize" },
+                      isSelected && { color: p.color, fontWeight: "bold" },
+                    ]}
+                  >
                     {p.label} {suggestedPriority === p.id && "(Suggested)"}
                   </Text>
                 </View>
                 {isSelected && <LumenIcon name="checkCircle" size="sm" color={p.color} />}
               </View>
-              <Text style={[TextStyles.bodySmall, { color: colors.textSecondary, paddingLeft: 28 }]}>{p.desc}</Text>
+              <Text
+                style={[TextStyles.bodySmall, { color: colors.textSecondary, paddingLeft: 28 }]}
+              >
+                {p.desc}
+              </Text>
             </TouchableOpacity>
           );
         })}
       </View>
 
       <View style={[styles.footer, { padding: Spacing[5], borderTopColor: colors.borderDefault }]}>
-        <Button
-          label="Review Report"
-          onPress={onNext}
-          fullWidth
-        />
+        <Button label="Review Report" onPress={onNext} fullWidth />
       </View>
     </View>
   );

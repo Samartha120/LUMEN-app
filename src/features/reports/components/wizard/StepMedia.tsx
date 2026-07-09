@@ -35,10 +35,25 @@ export function StepMedia({ data, updateData, onNext }: StepProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={[TextStyles.heading2, { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] }]}>
+      <Text
+        style={[
+          TextStyles.heading2,
+          { color: colors.textPrimary, paddingHorizontal: Spacing[5], marginTop: Spacing[4] },
+        ]}
+      >
         Add Evidence
       </Text>
-      <Text style={[TextStyles.body, { color: colors.textSecondary, paddingHorizontal: Spacing[5], marginTop: Spacing[2], marginBottom: Spacing[5] }]}>
+      <Text
+        style={[
+          TextStyles.body,
+          {
+            color: colors.textSecondary,
+            paddingHorizontal: Spacing[5],
+            marginTop: Spacing[2],
+            marginBottom: Spacing[5],
+          },
+        ]}
+      >
         Upload photos or videos of the issue. (Optional but recommended)
       </Text>
 
@@ -54,12 +69,21 @@ export function StepMedia({ data, updateData, onNext }: StepProps) {
           ))}
 
           {data.media.length < 4 && (
-            <TouchableOpacity 
-              style={[styles.uploadBtn, { borderRadius: Radius.md, borderColor: colors.borderDefault, backgroundColor: `${colors.brand}05` }]} 
+            <TouchableOpacity
+              style={[
+                styles.uploadBtn,
+                {
+                  borderRadius: Radius.md,
+                  borderColor: colors.borderDefault,
+                  backgroundColor: `${colors.brand}05`,
+                },
+              ]}
               onPress={pickImage}
             >
               <LumenIcon name="camera" size="lg" color={colors.brand} />
-              <Text style={[TextStyles.bodySmall, { color: colors.brand, marginTop: Spacing[2] }]}>Add Photo</Text>
+              <Text style={[TextStyles.bodySmall, { color: colors.brand, marginTop: Spacing[2] }]}>
+                Add Photo
+              </Text>
             </TouchableOpacity>
           )}
         </View>

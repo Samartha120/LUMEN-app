@@ -1,0 +1,145 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+enum Role {
+  CITIZEN
+  ENGINEER
+  DEPARTMENT
+  SUPERVISOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      Role     @default(CITIZEN)
+  phone     String?
+  firstName String?
+  lastName  String?
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  preferences       Json?
+  savedLocations    Json?
+  emergencyContacts Json?
+
+  reportedComplaints Complaint[]         @relation("ReportedComplaints")
+  performedActions   ComplaintTimeline[] @relation("PerformedActions")
+  assignments        Assignment[]        @relation("EngineerAssignments")
+  auditLogs          AuditLog[]
+
+  @@map("users")
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ComplaintStatus {
+  PENDING
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  REJECTED
+}
+
+enum AssignmentStatus {
+  ASSIGNED
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model Complaint {
+  id          String   @id @default(uuid())
+  trackingId  String   @unique
+  title       String
+  description String
+  category    String
+  priority    Priority @default(MEDIUM)
+  status      ComplaintStatus @default(PENDING)
+  
+  latitude    Float?
+  longitude   Float?
+  location    Unsupported("geometry(Point, 4326)")?
+
+  photos      String[] @default([])
+  photoUrl    String?
+  
+  reporterId  String
+  reporter    User     @relation("ReportedComplaints", fields: [reporterId], references: [id])
+
+  assignments Assignment[]
+  timeline    ComplaintTimeline[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("complaints")
+}
+
+model ComplaintTimeline {
+  id          String   @id @default(uuid())
+  
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+  
+  status      ComplaintStatus
+  notes       String?
+  
+  performedById String
+  performedBy   User     @relation("PerformedActions", fields: [performedById], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@map("complaint_timelines")
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+  
+  engineerId  String
+  engineer    User     @relation("EngineerAssignments", fields: [engineerId], references: [id])
+  
+  status      AssignmentStatus @default(ASSIGNED)
+  notes       String?
+  photoUrl    String?
+  
+  assignedAt  DateTime @default(now())
+  completedAt DateTime?
+
+  @@map("assignments")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  entity      String
+  entityId    String?
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  details     Json?
+  
+  createdAt   DateTime @default(now())
+
+  @@map("audit_logs")
+}

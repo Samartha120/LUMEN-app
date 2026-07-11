@@ -1,4 +1,3 @@
-// eslint.config.js
 module.exports = [
   {
     ignores: ["node_modules/", ".expo/", "dist/", "web-build/", "example/", "**/*.d.ts"],

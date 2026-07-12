@@ -12,4 +12,5 @@ module.exports = {
     "!src/**/*.constants.ts",
   ],
   setupFilesAfterEnv: ["@testing-library/jest-native/extend-expect"],
+  testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/backend/"],
 };

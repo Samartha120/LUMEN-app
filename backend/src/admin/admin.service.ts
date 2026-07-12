@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -9,9 +13,11 @@ export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getDashboard() {
-    const totalUsers = await this.prisma.user.count({ where: { isDeleted: false } });
+    const totalUsers = await this.prisma.user.count({
+      where: { isDeleted: false },
+    });
     const totalComplaints = await this.prisma.complaint.count();
-    
+
     const usersByRole = await this.prisma.user.groupBy({
       by: ['role'],
       where: { isDeleted: false },
@@ -42,12 +48,14 @@ export class AdminService {
         role: true,
         isActive: true,
         createdAt: true,
-      }
+      },
     });
   }
 
   async createUser(adminId: string, dto: CreateUserDto) {
-    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const existing = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
     if (existing) throw new ConflictException('Email already in use');
 
     const user = await this.prisma.user.create({
@@ -57,16 +65,21 @@ export class AdminService {
         lastName: dto.lastName,
         phone: dto.phone,
         role: dto.role,
-      }
+      },
     });
 
-    await this.logAudit(adminId, 'CREATE_USER', 'User', user.id, { email: dto.email, role: dto.role });
+    await this.logAudit(adminId, 'CREATE_USER', 'User', user.id, {
+      email: dto.email,
+      role: dto.role,
+    });
 
     return user;
   }
 
   async updateUser(adminId: string, userId: string, dto: UpdateUserDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId, isDeleted: false } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId, isDeleted: false },
+    });
     if (!user) throw new NotFoundException('User not found');
 
     const updated = await this.prisma.user.update({
@@ -80,7 +93,9 @@ export class AdminService {
   }
 
   async deleteUser(adminId: string, userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId, isDeleted: false } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId, isDeleted: false },
+    });
     if (!user) throw new NotFoundException('User not found');
 
     await this.prisma.user.update({
@@ -88,7 +103,9 @@ export class AdminService {
       data: { isDeleted: true, isActive: false },
     });
 
-    await this.logAudit(adminId, 'DELETE_USER', 'User', user.id, { reason: 'Soft deleted by admin' });
+    await this.logAudit(adminId, 'DELETE_USER', 'User', user.id, {
+      reason: 'Soft deleted by admin',
+    });
 
     return { success: true, message: 'User deleted successfully' };
   }
@@ -100,9 +117,9 @@ export class AdminService {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { user: { select: { email: true, role: true } } }
+        include: { user: { select: { email: true, role: true } } },
       }),
-      this.prisma.auditLog.count()
+      this.prisma.auditLog.count(),
     ]);
 
     return {
@@ -111,11 +128,17 @@ export class AdminService {
         total,
         page,
         lastPage: Math.ceil(total / limit),
-      }
+      },
     };
   }
 
-  private async logAudit(userId: string, action: string, entity: string, entityId: string, details?: any) {
+  private async logAudit(
+    userId: string,
+    action: string,
+    entity: string,
+    entityId: string,
+    details?: any,
+  ) {
     return this.prisma.auditLog.create({
       data: {
         userId,
@@ -123,7 +146,7 @@ export class AdminService {
         entity,
         entityId,
         details: details || {},
-      }
+      },
     });
   }
 }

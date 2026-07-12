@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { UpdateCitizenProfileDto } from './dto/update-citizen-profile.dto';
 
@@ -14,7 +18,9 @@ export class CitizenService {
     });
 
     const total = complaints.reduce((acc, curr) => acc + curr._count._all, 0);
-    const resolved = complaints.find(c => c.status === 'RESOLVED' || c.status === 'CLOSED')?._count._all || 0;
+    const resolved =
+      complaints.find((c) => c.status === 'RESOLVED' || c.status === 'CLOSED')
+        ?._count._all || 0;
     const pending = total - resolved;
 
     return { total, resolved, pending, statusBreakdown: complaints };
@@ -33,7 +39,7 @@ export class CitizenService {
         savedLocations: true,
         emergencyContacts: true,
         createdAt: true,
-      }
+      },
     });
 
     if (!user) throw new NotFoundException('User not found');
@@ -52,7 +58,7 @@ export class CitizenService {
         preferences: true,
         savedLocations: true,
         emergencyContacts: true,
-      }
+      },
     });
   }
 
@@ -66,13 +72,15 @@ export class CitizenService {
   async getComplaintTracking(userId: string, complaintId: string) {
     const complaint = await this.prisma.complaint.findUnique({
       where: { id: complaintId },
-      include: { 
-        timeline: { 
-          orderBy: { createdAt: 'desc' }, 
-          include: { 
-            performedBy: { select: { firstName: true, lastName: true, role: true } } 
-          } 
-        } 
+      include: {
+        timeline: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            performedBy: {
+              select: { firstName: true, lastName: true, role: true },
+            },
+          },
+        },
       },
     });
 

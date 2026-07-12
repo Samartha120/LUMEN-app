@@ -1,5 +1,20 @@
-import { Controller, Get, Post, Patch, Delete, Body, UseGuards, Param, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  UseGuards,
+  Param,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -33,10 +48,7 @@ export class AdminController {
 
   @Post('users')
   @ApiOperation({ summary: 'Create a new user (provision internal users)' })
-  async createUser(
-    @CurrentUser() admin: User,
-    @Body() dto: CreateUserDto
-  ) {
+  async createUser(@CurrentUser() admin: User, @Body() dto: CreateUserDto) {
     return this.adminService.createUser(admin.id, dto);
   }
 
@@ -45,17 +57,14 @@ export class AdminController {
   async updateUser(
     @CurrentUser() admin: User,
     @Param('id') userId: string,
-    @Body() dto: UpdateUserDto
+    @Body() dto: UpdateUserDto,
   ) {
     return this.adminService.updateUser(admin.id, userId, dto);
   }
 
   @Delete('users/:id')
   @ApiOperation({ summary: 'Soft delete a user' })
-  async deleteUser(
-    @CurrentUser() admin: User,
-    @Param('id') userId: string
-  ) {
+  async deleteUser(@CurrentUser() admin: User, @Param('id') userId: string) {
     return this.adminService.deleteUser(admin.id, userId);
   }
 
@@ -65,8 +74,11 @@ export class AdminController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getAuditLogs(
     @Query('page') page?: number,
-    @Query('limit') limit?: number
+    @Query('limit') limit?: number,
   ) {
-    return this.adminService.getAuditLogs(Number(page) || 1, Number(limit) || 50);
+    return this.adminService.getAuditLogs(
+      Number(page) || 1,
+      Number(limit) || 50,
+    );
   }
 }

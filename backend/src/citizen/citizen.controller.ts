@@ -30,25 +30,31 @@ export class CitizenController {
   }
 
   @Patch('profile')
-  @ApiOperation({ summary: 'Update citizen profile, preferences, or saved locations' })
+  @ApiOperation({
+    summary: 'Update citizen profile, preferences, or saved locations',
+  })
   async updateProfile(
     @CurrentUser() user: User,
-    @Body() updateDto: UpdateCitizenProfileDto
+    @Body() updateDto: UpdateCitizenProfileDto,
   ) {
     return this.citizenService.updateProfile(user.id, updateDto);
   }
 
   @Get('complaints')
-  @ApiOperation({ summary: 'Get history of complaints reported by the citizen' })
+  @ApiOperation({
+    summary: 'Get history of complaints reported by the citizen',
+  })
   async getComplaints(@CurrentUser() user: User) {
     return this.citizenService.getComplaints(user.id);
   }
 
   @Get('complaints/:id/tracking')
-  @ApiOperation({ summary: 'Get the tracking timeline of a specific complaint' })
+  @ApiOperation({
+    summary: 'Get the tracking timeline of a specific complaint',
+  })
   async getComplaintTracking(
     @CurrentUser() user: User,
-    @Param('id') complaintId: string
+    @Param('id') complaintId: string,
   ) {
     return this.citizenService.getComplaintTracking(user.id, complaintId);
   }

@@ -1,5 +1,19 @@
-import { Controller, Get, Patch, Post, Body, UseGuards, Param, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Body,
+  UseGuards,
+  Param,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { DepartmentService } from './department.service';
 import { AllocateEngineerDto } from './dto/allocate-engineer.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
@@ -19,7 +33,10 @@ export class DepartmentController {
   constructor(private readonly departmentService: DepartmentService) {}
 
   @Get('dashboard')
-  @ApiOperation({ summary: 'Get department dashboard statistics (SLAs, engineers, complaints)' })
+  @ApiOperation({
+    summary:
+      'Get department dashboard statistics (SLAs, engineers, complaints)',
+  })
   async getDashboard() {
     return this.departmentService.getDashboard();
   }
@@ -32,7 +49,9 @@ export class DepartmentController {
   }
 
   @Get('escalations')
-  @ApiOperation({ summary: 'Get escalated complaints (critical or SLA breached)' })
+  @ApiOperation({
+    summary: 'Get escalated complaints (critical or SLA breached)',
+  })
   async getEscalations() {
     return this.departmentService.getEscalations();
   }
@@ -48,7 +67,7 @@ export class DepartmentController {
   async allocateEngineer(
     @CurrentUser() user: User,
     @Param('complaintId') complaintId: string,
-    @Body() dto: AllocateEngineerDto
+    @Body() dto: AllocateEngineerDto,
   ) {
     return this.departmentService.allocateEngineer(complaintId, user.id, dto);
   }
@@ -60,11 +79,10 @@ export class DepartmentController {
   }
 
   @Patch('zones')
-  @ApiOperation({ summary: 'Update zones and ward configurations for the department' })
-  async updateZones(
-    @CurrentUser() user: User,
-    @Body() dto: UpdateZoneDto
-  ) {
+  @ApiOperation({
+    summary: 'Update zones and ward configurations for the department',
+  })
+  async updateZones(@CurrentUser() user: User, @Body() dto: UpdateZoneDto) {
     return this.departmentService.updateZones(user.id, dto);
   }
 }

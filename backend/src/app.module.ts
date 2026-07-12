@@ -42,10 +42,12 @@ import { UsersModule } from './users/users.module';
             : undefined,
       },
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 100, // Max 100 requests per minute globally
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100, // Max 100 requests per minute globally
+      },
+    ]),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -85,7 +87,7 @@ import { UsersModule } from './users/users.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
-    }
+    },
   ],
 })
 export class AppModule {}

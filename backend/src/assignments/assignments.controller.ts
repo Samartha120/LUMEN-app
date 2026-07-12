@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { AssignmentsService } from './assignments.service';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/update-assignment.dto';
@@ -20,7 +28,10 @@ export class AssignmentsController {
   @Post()
   @Roles(Role.ADMIN, Role.DEPARTMENT, Role.SUPERVISOR)
   @ApiOperation({ summary: 'Assign a complaint to an engineer' })
-  create(@Body() createAssignmentDto: CreateAssignmentDto, @CurrentUser() user: User) {
+  create(
+    @Body() createAssignmentDto: CreateAssignmentDto,
+    @CurrentUser() user: User,
+  ) {
     return this.assignmentsService.create(createAssignmentDto, user);
   }
 
@@ -33,11 +44,13 @@ export class AssignmentsController {
 
   @Patch(':id/status')
   @Roles(Role.ENGINEER, Role.SUPERVISOR)
-  @ApiOperation({ summary: 'Update assignment status (e.g., IN_PROGRESS, COMPLETED)' })
+  @ApiOperation({
+    summary: 'Update assignment status (e.g., IN_PROGRESS, COMPLETED)',
+  })
   updateStatus(
-    @Param('id') id: string, 
+    @Param('id') id: string,
     @Body() updateAssignmentDto: UpdateAssignmentDto,
-    @CurrentUser() user: User
+    @CurrentUser() user: User,
   ) {
     return this.assignmentsService.updateStatus(id, updateAssignmentDto, user);
   }

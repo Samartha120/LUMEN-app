@@ -14,20 +14,31 @@ export interface PushNotificationData {
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
 
-  constructor(@InjectQueue('notifications') private readonly notificationsQueue: Queue) {
+  constructor(
+    @InjectQueue('notifications') private readonly notificationsQueue: Queue,
+  ) {
     if (getApps().length === 0) {
       try {
-        if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+        if (
+          process.env.FIREBASE_PROJECT_ID &&
+          process.env.FIREBASE_CLIENT_EMAIL &&
+          process.env.FIREBASE_PRIVATE_KEY
+        ) {
           initializeApp({
             credential: cert({
               projectId: process.env.FIREBASE_PROJECT_ID,
               clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-              privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+              privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(
+                /\\n/g,
+                '\n',
+              ),
             }),
           });
           this.logger.log('Firebase Admin SDK initialized successfully');
         } else {
-          this.logger.warn('Firebase Admin SDK config missing. Notifications will not be sent.');
+          this.logger.warn(
+            'Firebase Admin SDK config missing. Notifications will not be sent.',
+          );
         }
       } catch (error) {
         this.logger.error('Failed to initialize Firebase Admin SDK', error);

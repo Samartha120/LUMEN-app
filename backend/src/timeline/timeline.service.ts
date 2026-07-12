@@ -9,7 +9,9 @@ export class TimelineService {
     return this.prisma.complaintTimeline.findMany({
       where: { complaintId },
       include: {
-        performedBy: { select: { id: true, firstName: true, lastName: true, role: true } },
+        performedBy: {
+          select: { id: true, firstName: true, lastName: true, role: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });

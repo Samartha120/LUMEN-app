@@ -7,7 +7,7 @@ export class AnalyticsService {
 
   async getDashboardStats() {
     const totalComplaints = await this.prisma.complaint.count();
-    
+
     const complaintsByStatus = await this.prisma.complaint.groupBy({
       by: ['status'],
       _count: { _all: true },
@@ -20,8 +20,14 @@ export class AnalyticsService {
 
     return {
       totalComplaints,
-      complaintsByStatus: complaintsByStatus.map(s => ({ status: s.status, count: s._count._all })),
-      complaintsByPriority: complaintsByPriority.map(p => ({ priority: p.priority, count: p._count._all })),
+      complaintsByStatus: complaintsByStatus.map((s) => ({
+        status: s.status,
+        count: s._count._all,
+      })),
+      complaintsByPriority: complaintsByPriority.map((p) => ({
+        priority: p.priority,
+        count: p._count._all,
+      })),
     };
   }
 
@@ -30,7 +36,10 @@ export class AnalyticsService {
       by: ['engineerId'],
       _count: { _all: true },
     });
-    
-    return workload.map(w => ({ engineerId: w.engineerId, assignedTasks: w._count._all }));
+
+    return workload.map((w) => ({
+      engineerId: w.engineerId,
+      assignedTasks: w._count._all,
+    }));
   }
 }

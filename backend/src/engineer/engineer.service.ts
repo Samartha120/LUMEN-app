@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { UpdateAssignmentStatusDto } from './dto/update-assignment-status.dto';
 import { UpdateEngineerStatusDto } from './dto/update-engineer-status.dto';
@@ -16,22 +20,35 @@ export class EngineerService {
     });
 
     const total = assignments.reduce((acc, curr) => acc + curr._count._all, 0);
-    const completed = assignments.find(a => a.status === 'COMPLETED')?._count._all || 0;
-    const pending = assignments.find(a => a.status === 'ASSIGNED' || a.status === 'ACCEPTED' || a.status === 'IN_PROGRESS')?._count._all || 0;
+    const completed =
+      assignments.find((a) => a.status === 'COMPLETED')?._count._all || 0;
+    const pending =
+      assignments.find(
+        (a) =>
+          a.status === 'ASSIGNED' ||
+          a.status === 'ACCEPTED' ||
+          a.status === 'IN_PROGRESS',
+      )?._count._all || 0;
 
     const user = await this.prisma.user.findUnique({
       where: { id: engineerId },
-      select: { preferences: true }
+      select: { preferences: true },
     });
 
-    return { total, completed, pending, shiftStatus: user?.preferences || {}, statusBreakdown: assignments };
+    return {
+      total,
+      completed,
+      pending,
+      shiftStatus: user?.preferences || {},
+      statusBreakdown: assignments,
+    };
   }
 
   async getCurrentAssignments(engineerId: string) {
     return this.prisma.assignment.findMany({
-      where: { 
-        engineerId, 
-        status: { in: ['ASSIGNED', 'ACCEPTED', 'IN_PROGRESS'] } 
+      where: {
+        engineerId,
+        status: { in: ['ASSIGNED', 'ACCEPTED', 'IN_PROGRESS'] },
       },
       include: { complaint: true },
       orderBy: { assignedAt: 'desc' },
@@ -41,7 +58,7 @@ export class EngineerService {
   async getTodayAssignments(engineerId: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     return this.prisma.assignment.findMany({
       where: {
         engineerId,
@@ -54,23 +71,28 @@ export class EngineerService {
 
   async getAssignmentHistory(engineerId: string) {
     return this.prisma.assignment.findMany({
-      where: { 
+      where: {
         engineerId,
-        status: { in: ['COMPLETED', 'FAILED'] }
+        status: { in: ['COMPLETED', 'FAILED'] },
       },
       include: { complaint: true },
       orderBy: { completedAt: 'desc' },
     });
   }
 
-  async updateAssignmentStatus(engineerId: string, assignmentId: string, data: UpdateAssignmentStatusDto) {
+  async updateAssignmentStatus(
+    engineerId: string,
+    assignmentId: string,
+    data: UpdateAssignmentStatusDto,
+  ) {
     const assignment = await this.prisma.assignment.findUnique({
       where: { id: assignmentId },
       include: { complaint: true },
     });
 
     if (!assignment) throw new NotFoundException('Assignment not found');
-    if (assignment.engineerId !== engineerId) throw new ForbiddenException('Not authorized for this assignment');
+    if (assignment.engineerId !== engineerId)
+      throw new ForbiddenException('Not authorized for this assignment');
 
     const updateData: any = { ...data };
     if (data.status === 'COMPLETED' || data.status === 'FAILED') {
@@ -94,13 +116,15 @@ export class EngineerService {
           status: ComplaintStatus.RESOLVED,
           notes: 'Job completed by engineer',
           performedById: engineerId,
-        }
+        },
       });
     } else if (data.status) {
       let complaintStatus: ComplaintStatus = assignment.complaint.status;
-      if (data.status === 'IN_PROGRESS') complaintStatus = ComplaintStatus.IN_PROGRESS;
-      else if (data.status === 'ACCEPTED') complaintStatus = ComplaintStatus.ASSIGNED;
-      
+      if (data.status === 'IN_PROGRESS')
+        complaintStatus = ComplaintStatus.IN_PROGRESS;
+      else if (data.status === 'ACCEPTED')
+        complaintStatus = ComplaintStatus.ASSIGNED;
+
       if (complaintStatus !== assignment.complaint.status) {
         await this.prisma.complaint.update({
           where: { id: assignment.complaintId },
@@ -112,12 +136,20 @@ export class EngineerService {
     return updatedAssignment;
   }
 
-  async updateEngineerStatus(engineerId: string, data: UpdateEngineerStatusDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: engineerId } });
+  async updateEngineerStatus(
+    engineerId: string,
+    data: UpdateEngineerStatusDto,
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: engineerId },
+    });
     if (!user) throw new NotFoundException('Engineer not found');
 
     const currentPreferences = (user.preferences as Record<string, any>) || {};
-    const updatedPreferences = { ...currentPreferences, engineer: { ...currentPreferences.engineer, ...data } };
+    const updatedPreferences = {
+      ...currentPreferences,
+      engineer: { ...currentPreferences.engineer, ...data },
+    };
 
     return this.prisma.user.update({
       where: { id: engineerId },
@@ -127,7 +159,7 @@ export class EngineerService {
         firstName: true,
         lastName: true,
         preferences: true,
-      }
+      },
     });
   }
 }

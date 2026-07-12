@@ -23,7 +23,9 @@ export class NotificationProcessor extends WorkerHost {
         this.logger.log(`Successfully sent message: ${response}`);
         return response;
       } else {
-        this.logger.warn('Firebase not initialized. Skipped push notification.');
+        this.logger.warn(
+          'Firebase not initialized. Skipped push notification.',
+        );
       }
     } catch (error) {
       this.logger.error(`Error sending message: ${error.message}`);

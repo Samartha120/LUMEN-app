@@ -7,7 +7,7 @@ export class MapsService {
 
   async getComplaintsGeoJSON(status?: string) {
     const whereClause = status ? { status: status as any } : {};
-    
+
     const complaints = await this.prisma.complaint.findMany({
       where: {
         ...whereClause,
@@ -23,12 +23,12 @@ export class MapsService {
         status: true,
         latitude: true,
         longitude: true,
-      }
+      },
     });
 
     return {
       type: 'FeatureCollection',
-      features: complaints.map(complaint => ({
+      features: complaints.map((complaint) => ({
         type: 'Feature',
         geometry: {
           type: 'Point',

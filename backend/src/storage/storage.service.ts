@@ -11,13 +11,18 @@ export class StorageService {
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
     if (!supabaseUrl || !supabaseKey) {
-      this.logger.warn('Supabase URL or Key is missing. File uploads will fail.');
+      this.logger.warn(
+        'Supabase URL or Key is missing. File uploads will fail.',
+      );
     } else {
       this.supabase = createClient(supabaseUrl, supabaseKey);
     }
   }
 
-  async uploadFile(file: Express.Multer.File, bucket: string = 'complaints'): Promise<string> {
+  async uploadFile(
+    file: Express.Multer.File,
+    bucket: string = 'complaints',
+  ): Promise<string> {
     if (!this.supabase) {
       throw new Error('Storage service is not configured properly.');
     }

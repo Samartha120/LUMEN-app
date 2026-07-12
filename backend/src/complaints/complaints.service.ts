@@ -9,16 +9,20 @@ import { StorageService } from '../storage/storage.service';
 export class ComplaintsService {
   constructor(
     private prisma: PrismaService,
-    private storageService: StorageService
+    private storageService: StorageService,
   ) {}
 
-  async create(createComplaintDto: CreateComplaintDto, user: User, files?: Express.Multer.File[]) {
+  async create(
+    createComplaintDto: CreateComplaintDto,
+    user: User,
+    files?: Express.Multer.File[],
+  ) {
     let uploadedUrls: string[] = [];
-    
+
     if (files && files.length > 0) {
       // Upload all files concurrently
       uploadedUrls = await Promise.all(
-        files.map(file => this.storageService.uploadFile(file))
+        files.map((file) => this.storageService.uploadFile(file)),
       );
     }
 
@@ -71,7 +75,8 @@ export class ComplaintsService {
       where: { id },
       include: { reporter: { select: { firstName: true, lastName: true } } },
     });
-    if (!complaint) throw new NotFoundException(`Complaint with ID ${id} not found`);
+    if (!complaint)
+      throw new NotFoundException(`Complaint with ID ${id} not found`);
     return complaint;
   }
 

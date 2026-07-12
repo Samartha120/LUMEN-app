@@ -1,4 +1,11 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 
 @Catch()
@@ -19,12 +26,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message = typeof res === 'string' ? res : (res as any).message || res;
     } else if (exception instanceof Error) {
       this.logger.error(`[${request.method}] ${request.url}`, exception.stack);
-      
+
       if (exception.name.includes('Prisma')) {
         status = HttpStatus.BAD_REQUEST;
-        message = 'Database operation failed due to invalid schema or constraint violation.';
+        message =
+          'Database operation failed due to invalid schema or constraint violation.';
       } else {
-        message = process.env.NODE_ENV === 'production' ? 'Internal server error' : exception.message;
+        message =
+          process.env.NODE_ENV === 'production'
+            ? 'Internal server error'
+            : exception.message;
       }
     }
 

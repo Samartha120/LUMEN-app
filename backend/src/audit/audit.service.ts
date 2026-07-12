@@ -5,7 +5,13 @@ import { PrismaService } from '../database/prisma.service';
 export class AuditService {
   constructor(private prisma: PrismaService) {}
 
-  async logAction(action: string, entity: string, entityId?: string, userId?: string, details?: any) {
+  async logAction(
+    action: string,
+    entity: string,
+    entityId?: string,
+    userId?: string,
+    details?: any,
+  ) {
     return this.prisma.auditLog.create({
       data: {
         action,
@@ -21,7 +27,9 @@ export class AuditService {
     return this.prisma.auditLog.findMany({
       take: limit,
       orderBy: { createdAt: 'desc' },
-      include: { user: { select: { firstName: true, lastName: true, role: true } } },
+      include: {
+        user: { select: { firstName: true, lastName: true, role: true } },
+      },
     });
   }
 }

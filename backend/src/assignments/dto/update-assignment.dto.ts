@@ -9,7 +9,7 @@ export class UpdateAssignmentDto {
   @IsString()
   @IsOptional()
   notes?: string;
-  
+
   @IsString()
   @IsOptional()
   photoUrl?: string;

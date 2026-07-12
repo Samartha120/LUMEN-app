@@ -43,20 +43,28 @@ export class EngineerController {
   }
 
   @Patch('assignments/:id')
-  @ApiOperation({ summary: 'Update an assignment (add notes, photo, change status)' })
+  @ApiOperation({
+    summary: 'Update an assignment (add notes, photo, change status)',
+  })
   async updateAssignmentStatus(
     @CurrentUser() user: User,
     @Param('id') assignmentId: string,
-    @Body() updateDto: UpdateAssignmentStatusDto
+    @Body() updateDto: UpdateAssignmentStatusDto,
   ) {
-    return this.engineerService.updateAssignmentStatus(user.id, assignmentId, updateDto);
+    return this.engineerService.updateAssignmentStatus(
+      user.id,
+      assignmentId,
+      updateDto,
+    );
   }
 
   @Patch('status')
-  @ApiOperation({ summary: 'Update engineer shift status, location, and availability' })
+  @ApiOperation({
+    summary: 'Update engineer shift status, location, and availability',
+  })
   async updateEngineerStatus(
     @CurrentUser() user: User,
-    @Body() updateDto: UpdateEngineerStatusDto
+    @Body() updateDto: UpdateEngineerStatusDto,
   ) {
     return this.engineerService.updateEngineerStatus(user.id, updateDto);
   }

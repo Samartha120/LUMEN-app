@@ -18,14 +18,19 @@ export class HealthService {
     private readonly configService: ConfigService,
     @InjectQueue('notifications') private readonly notificationsQueue: Queue,
   ) {
-    const redisHost = this.configService.get<string>('REDIS_HOST') || 'localhost';
+    const redisHost =
+      this.configService.get<string>('REDIS_HOST') || 'localhost';
     const redisPort = this.configService.get<number>('REDIS_PORT') || 6379;
-    this.redisClient = new Redis({ host: redisHost, port: redisPort, maxRetriesPerRequest: 1 });
+    this.redisClient = new Redis({
+      host: redisHost,
+      port: redisPort,
+      maxRetriesPerRequest: 1,
+    });
   }
 
   async checkHealth() {
     const startTime = Date.now();
-    
+
     const [db, redis, queue] = await Promise.all([
       this.checkDatabase(),
       this.checkRedis(),
@@ -82,7 +87,10 @@ export class HealthService {
 
   private checkFirebase() {
     const isInitialized = getApps().length > 0;
-    return { status: isInitialized ? 'up' : 'down', initialized: isInitialized };
+    return {
+      status: isInitialized ? 'up' : 'down',
+      initialized: isInitialized,
+    };
   }
 
   private checkSupabase() {
@@ -94,7 +102,7 @@ export class HealthService {
 
   private checkMapsApi() {
     const key = this.configService.get<string>('GOOGLE_MAPS_API_KEY');
-    return { status: !!key ? 'up' : 'down', configured: !!key };
+    return { status: key ? 'up' : 'down', configured: !!key };
   }
 
   private getSystemHealth() {
@@ -103,7 +111,8 @@ export class HealthService {
 
     try {
       if (fs.statfsSync) {
-        const rootPath = os.platform() === 'win32' ? process.cwd().substring(0, 3) : '/';
+        const rootPath =
+          os.platform() === 'win32' ? process.cwd().substring(0, 3) : '/';
         const stats = fs.statfsSync(rootPath);
         const total = stats.blocks * stats.bsize;
         const free = stats.bfree * stats.bsize;

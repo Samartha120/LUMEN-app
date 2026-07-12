@@ -13,7 +13,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('SUPABASE_ANON_KEY') || 'your-anon-key',
+      secretOrKey:
+        configService.get<string>('SUPABASE_ANON_KEY') || 'your-anon-key',
     });
   }
 
@@ -21,9 +22,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // Supabase JWT payload includes the user email
     const email = payload.email;
     if (!email) throw new UnauthorizedException('Invalid token payload');
-    
+
     let user = await this.usersService.findByEmail(email);
-    
+
     // Automatically sync/create user if not exists in PostgreSQL
     if (!user) {
       user = await this.usersService.create({

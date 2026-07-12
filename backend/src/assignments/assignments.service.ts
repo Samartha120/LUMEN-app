@@ -12,7 +12,7 @@ export class AssignmentsService {
     const assignment = await this.prisma.assignment.create({
       data: createAssignmentDto,
     });
-    
+
     // Update complaint status
     await this.prisma.complaint.update({
       where: { id: createAssignmentDto.complaintId },
@@ -40,18 +40,27 @@ export class AssignmentsService {
     });
   }
 
-  async updateStatus(id: string, updateAssignmentDto: UpdateAssignmentDto, user: User) {
+  async updateStatus(
+    id: string,
+    updateAssignmentDto: UpdateAssignmentDto,
+    user: User,
+  ) {
     const assignment = await this.prisma.assignment.update({
       where: { id },
       data: {
         ...updateAssignmentDto,
-        completedAt: updateAssignmentDto.status === AssignmentStatus.COMPLETED ? new Date() : undefined,
+        completedAt:
+          updateAssignmentDto.status === AssignmentStatus.COMPLETED
+            ? new Date()
+            : undefined,
       },
     });
 
     let newComplaintStatus: ComplaintStatus | undefined = undefined;
-    if (updateAssignmentDto.status === AssignmentStatus.IN_PROGRESS) newComplaintStatus = ComplaintStatus.IN_PROGRESS;
-    if (updateAssignmentDto.status === AssignmentStatus.COMPLETED) newComplaintStatus = ComplaintStatus.RESOLVED;
+    if (updateAssignmentDto.status === AssignmentStatus.IN_PROGRESS)
+      newComplaintStatus = ComplaintStatus.IN_PROGRESS;
+    if (updateAssignmentDto.status === AssignmentStatus.COMPLETED)
+      newComplaintStatus = ComplaintStatus.RESOLVED;
 
     if (newComplaintStatus) {
       await this.prisma.complaint.update({

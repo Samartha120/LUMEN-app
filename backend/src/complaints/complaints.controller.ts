@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Query, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+  Query,
+  UseInterceptors,
+  UploadedFiles,
+} from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ComplaintsService } from './complaints.service';
 import { CreateComplaintDto } from './dto/create-complaint.dto';
@@ -6,7 +17,13 @@ import { UpdateComplaintDto } from './dto/update-complaint.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { User } from '@prisma/client';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 
 @ApiTags('Complaints')
 @ApiBearerAuth()
@@ -20,9 +37,9 @@ export class ComplaintsController {
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Report a new complaint with up to 3 photos' })
   create(
-    @Body() createComplaintDto: CreateComplaintDto, 
+    @Body() createComplaintDto: CreateComplaintDto,
     @CurrentUser() user: User,
-    @UploadedFiles() files?: Express.Multer.File[]
+    @UploadedFiles() files?: Express.Multer.File[],
   ) {
     // Note: DTO values from multipart/form-data come as strings.
     // They may need casting/transformation (e.g., latitude to number), which ValidationPipe with transform: true handles.
@@ -42,7 +59,11 @@ export class ComplaintsController {
     @Query('lng') lng: number,
     @Query('radius') radius: number,
   ) {
-    return this.complaintsService.findNearby(lat, lng, radius ? Number(radius) : 5);
+    return this.complaintsService.findNearby(
+      lat,
+      lng,
+      radius ? Number(radius) : 5,
+    );
   }
 
   @Get(':id')
@@ -53,7 +74,10 @@ export class ComplaintsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a complaint' })
-  update(@Param('id') id: string, @Body() updateComplaintDto: UpdateComplaintDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateComplaintDto: UpdateComplaintDto,
+  ) {
     return this.complaintsService.update(id, updateComplaintDto);
   }
 }

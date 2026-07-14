@@ -1,10 +1,21 @@
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet } from "react-native";
+import { StyleSheet, LogBox } from "react-native";
 import { ThemeProvider } from "@/design-system";
+import { useEffect } from "react";
+
+LogBox.ignoreLogs(["SafeAreaView has been deprecated", "setLayoutAnimationEnabledExperimental"]);
 
 export default function RootLayout() {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname) {
+      console.log(`[NAVIGATION] Screen changed to: ${pathname}`);
+    }
+  }, [pathname]);
+
   return (
     <GestureHandlerRootView style={s.root}>
       <ThemeProvider>

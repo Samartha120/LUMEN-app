@@ -27,14 +27,23 @@ export class ApiClient {
       requestHeaders.set("Authorization", `Bearer ${token}`);
     }
 
+    const method = options.method || "GET";
+    console.log(`[API REQUEST] ${method} ${url}`);
+
     const response = await fetch(url, {
       headers: requestHeaders,
       ...restOptions,
+      method,
     });
 
     if (!response.ok) {
+      console.log(
+        `[API ERROR] ${method} ${url} - Status: ${response.status} (${response.statusText})`
+      );
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
+
+    console.log(`[API SUCCESS] ${method} ${url} - Status: ${response.status}`);
 
     if (response.status === 204) {
       return {} as T;

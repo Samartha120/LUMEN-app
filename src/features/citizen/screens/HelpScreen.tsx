@@ -2,7 +2,7 @@
 // LUMEN — Help Screen (Citizen)
 // Phase 3: Citizen Experience
 // ============================================================
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,10 +10,7 @@ import {
   ScrollView,
   Pressable,
   StatusBar,
-  Animated,
   LayoutAnimation,
-  Platform,
-  UIManager,
 } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/design-system/ThemeContext";
@@ -21,8 +18,6 @@ import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { Card } from "@/design-system/components/Card";
 import { Button } from "@/design-system/components/Button";
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
-
-if (Platform.OS === "android") UIManager.setLayoutAnimationEnabledExperimental?.(true);
 
 interface FAQ {
   q: string;

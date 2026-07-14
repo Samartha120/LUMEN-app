@@ -79,8 +79,8 @@ model Complaint {
   longitude   Float?
   location    Unsupported("geometry(Point, 4326)")?
 
-  photos      String[] @default([])
-  photoUrl    String?
+  imageUrl    String?
+  videoUrl    String?
   
   reporterId  String
   reporter    User     @relation("ReportedComplaints", fields: [reporterId], references: [id])

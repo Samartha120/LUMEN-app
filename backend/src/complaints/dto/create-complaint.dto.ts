@@ -25,5 +25,9 @@ export class CreateComplaintDto {
 
   @IsString()
   @IsOptional()
-  photoUrl?: string;
+  imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  videoUrl?: string;
 }

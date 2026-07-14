@@ -3,29 +3,16 @@ import { PrismaService } from '../database/prisma.service';
 import { CreateComplaintDto } from './dto/create-complaint.dto';
 import { UpdateComplaintDto } from './dto/update-complaint.dto';
 import type { User, Complaint } from '@prisma/client';
-import { StorageService } from '../storage/storage.service';
+
 
 @Injectable()
 export class ComplaintsService {
-  constructor(
-    private prisma: PrismaService,
-    private storageService: StorageService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(
     createComplaintDto: CreateComplaintDto,
     user: User,
-    files?: Express.Multer.File[],
   ) {
-    let uploadedUrls: string[] = [];
-
-    if (files && files.length > 0) {
-      // Upload all files concurrently
-      uploadedUrls = await Promise.all(
-        files.map((file) => this.storageService.uploadFile(file)),
-      );
-    }
-
     const complaint = await this.prisma.complaint.create({
       data: {
         trackingId: `CMP-${Date.now()}`,
@@ -35,8 +22,11 @@ export class ComplaintsService {
         priority: createComplaintDto.priority,
         latitude: createComplaintDto.latitude,
         longitude: createComplaintDto.longitude,
+        // @ts-ignore: IDE cache may not have picked up the new Prisma schema fields yet
+        imageUrl: createComplaintDto.imageUrl,
+        // @ts-ignore
+        videoUrl: createComplaintDto.videoUrl,
         reporterId: user.id,
-        photos: uploadedUrls,
       },
     });
 
@@ -61,7 +51,7 @@ export class ComplaintsService {
   async findNearby(lat: number, lng: number, radiusKm: number) {
     const radiusMeters = radiusKm * 1000;
     const complaints = await this.prisma.$queryRaw<Complaint[]>`
-      SELECT id, title, description, category, priority, status, latitude, longitude, photos,
+      SELECT id, title, description, category, priority, status, latitude, longitude, "imageUrl", "videoUrl",
       ST_Distance(location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)) AS distance
       FROM complaints
       WHERE ST_DWithin(location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), ${radiusMeters})

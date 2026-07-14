@@ -19,7 +19,7 @@ import { TimelineModule } from './timeline/timeline.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { MapsModule } from './maps/maps.module';
-import { StorageModule } from './storage/storage.module';
+import { StorageModule } from './common/storage/storage.module';
 import { AiModule } from './ai/ai.module';
 import { AuditModule } from './audit/audit.module';
 import { CommonModule } from './common/common.module';

@@ -7,10 +7,7 @@ import {
   Param,
   UseGuards,
   Query,
-  UseInterceptors,
-  UploadedFiles,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import { ComplaintsService } from './complaints.service';
 import { CreateComplaintDto } from './dto/create-complaint.dto';
 import { UpdateComplaintDto } from './dto/update-complaint.dto';
@@ -33,17 +30,12 @@ export class ComplaintsController {
   constructor(private readonly complaintsService: ComplaintsService) {}
 
   @Post()
-  @UseInterceptors(FilesInterceptor('photos', 3))
-  @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Report a new complaint with up to 3 photos' })
+  @ApiOperation({ summary: 'Report a new complaint using pre-uploaded media URLs' })
   create(
     @Body() createComplaintDto: CreateComplaintDto,
     @CurrentUser() user: User,
-    @UploadedFiles() files?: Express.Multer.File[],
   ) {
-    // Note: DTO values from multipart/form-data come as strings.
-    // They may need casting/transformation (e.g., latitude to number), which ValidationPipe with transform: true handles.
-    return this.complaintsService.create(createComplaintDto, user, files);
+    return this.complaintsService.create(createComplaintDto, user);
   }
 
   @Get()

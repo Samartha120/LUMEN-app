@@ -3,6 +3,8 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1086.0",
+    "@aws-sdk/s3-request-presigner": "^3.1086.0",
     "@hookform/resolvers": "^5.4.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.110.1",
@@ -26,6 +28,8 @@
     "lottie-react-native": "^7.3.8",
     "lucide-react-native": "^1.23.0",
     "moti": "^0.30.0",
+    "multer": "^2.2.0",
+    "multer-s3": "^3.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.81.0",

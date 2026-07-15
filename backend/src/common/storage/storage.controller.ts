@@ -1,22 +1,32 @@
-import { 
-  Controller, 
-  Post, 
-  Delete, 
-  Get, 
-  Param, 
-  UseInterceptors, 
-  UploadedFile, 
-  ParseFilePipe, 
-  MaxFileSizeValidator, 
+import {
+  Controller,
+  Post,
+  Delete,
+  Get,
+  Param,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
   FileTypeValidator,
   HttpException,
-  HttpStatus
+  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StorageService } from './storage.service';
-import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { UploadResponseDto } from './dto/upload-response.dto';
-import { ALLOWED_EXTENSIONS, MAX_FILE_SIZES, ALLOWED_MIME_TYPES } from './storage.constants';
+import {
+  ALLOWED_EXTENSIONS,
+  MAX_FILE_SIZES,
+  ALLOWED_MIME_TYPES,
+} from './storage.constants';
 import { extname } from 'path';
 
 @ApiTags('Storage')
@@ -82,16 +92,16 @@ export class StorageController {
     return this.storageService.uploadFile(file);
   }
 
-  @Delete(':key(*)')
+  @Delete('*')
   @ApiOperation({ summary: 'Delete a file from S3' })
-  async deleteFile(@Param('key') key: string) {
+  async deleteFile(@Param('0') key: string) {
     await this.storageService.deleteFile(key);
     return { success: true, message: 'File deleted successfully' };
   }
 
-  @Get('signed-url/:key(*)')
+  @Get('signed-url/*')
   @ApiOperation({ summary: 'Get a presigned URL for a file in S3' })
-  async getSignedUrl(@Param('key') key: string) {
+  async getSignedUrl(@Param('0') key: string) {
     const url = await this.storageService.getSignedUrl(key);
     return { url, expires: '15m' };
   }

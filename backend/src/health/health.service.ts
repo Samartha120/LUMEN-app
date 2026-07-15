@@ -18,14 +18,21 @@ export class HealthService {
     private readonly configService: ConfigService,
     @InjectQueue('notifications') private readonly notificationsQueue: Queue,
   ) {
-    const redisHost =
-      this.configService.get<string>('REDIS_HOST') || 'localhost';
-    const redisPort = this.configService.get<number>('REDIS_PORT') || 6379;
-    this.redisClient = new Redis({
-      host: redisHost,
-      port: redisPort,
-      maxRetriesPerRequest: 1,
-    });
+    const redisUrl = this.configService.get<string>('REDIS_URL');
+    if (redisUrl) {
+      this.redisClient = new Redis(redisUrl, {
+        maxRetriesPerRequest: 1,
+      });
+    } else {
+      const redisHost =
+        this.configService.get<string>('REDIS_HOST') || 'localhost';
+      const redisPort = this.configService.get<number>('REDIS_PORT') || 6379;
+      this.redisClient = new Redis({
+        host: redisHost,
+        port: redisPort,
+        maxRetriesPerRequest: 1,
+      });
+    }
   }
 
   async checkHealth() {

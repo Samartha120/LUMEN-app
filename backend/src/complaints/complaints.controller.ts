@@ -30,7 +30,9 @@ export class ComplaintsController {
   constructor(private readonly complaintsService: ComplaintsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Report a new complaint using pre-uploaded media URLs' })
+  @ApiOperation({
+    summary: 'Report a new complaint using pre-uploaded media URLs',
+  })
   create(
     @Body() createComplaintDto: CreateComplaintDto,
     @CurrentUser() user: User,

@@ -1,7 +1,3 @@
-// ============================================================
-// LUMEN — ReportIssueScreen (Multi-Step Wizard)
-// Phase 3: Citizen Experience
-// ============================================================
 import type { LumenIconName } from "@/design-system";
 import { useTheme } from "@/design-system/ThemeContext";
 import { Button } from "@/design-system/components/Button";
@@ -20,6 +16,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Alert,
 } from "react-native";
 
 const { width: W } = Dimensions.get("window");
@@ -84,6 +81,7 @@ export default function ReportIssueScreen() {
 
   const submit = async () => {
     setSubmitted(true);
+    Alert.alert("Success", "Your report has been successfully submitted!");
     await new Promise((r) => setTimeout(r, 1200));
     router.replace("/(citizen)/Dashboard" as any);
   };

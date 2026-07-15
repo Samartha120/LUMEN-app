@@ -1,6 +1,15 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuidv4 } from 'uuid';
 import { IStorageResponse } from './storage.interface';
@@ -15,11 +24,15 @@ export class StorageService {
   constructor(private readonly configService: ConfigService) {
     const region = this.configService.get<string>('AWS_REGION')!;
     const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID')!;
-    const secretAccessKey = this.configService.get<string>('AWS_SECRET_ACCESS_KEY')!;
+    const secretAccessKey = this.configService.get<string>(
+      'AWS_SECRET_ACCESS_KEY',
+    )!;
     this.bucketName = this.configService.get<string>('AWS_BUCKET_NAME')!;
 
     if (!region || !accessKeyId || !secretAccessKey || !this.bucketName) {
-      this.logger.warn('AWS credentials or bucket name are not fully configured.');
+      this.logger.warn(
+        'AWS credentials or bucket name are not fully configured.',
+      );
     }
 
     this.s3Client = new S3Client({
@@ -35,14 +48,14 @@ export class StorageService {
     const extension = extname(file.originalname).toLowerCase();
     const mimeType = file.mimetype;
     const uuid = uuidv4();
-    
+
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
+
     let folder = 'documents';
-    
+
     if (mimeType.startsWith('image/')) {
       folder = 'complaints/images';
     } else if (mimeType.startsWith('video/')) {
@@ -70,7 +83,7 @@ export class StorageService {
       await this.s3Client.send(command);
 
       const url = `https://${this.bucketName}.s3.${await this.s3Client.config.region()}.amazonaws.com/${key}`;
-      
+
       this.logger.log(`Upload completed for key: ${key}`);
 
       return {
@@ -82,7 +95,9 @@ export class StorageService {
       };
     } catch (error) {
       this.logger.error(`S3 upload failure: ${error.message}`, error.stack);
-      throw new InternalServerErrorException('Failed to upload file to storage');
+      throw new InternalServerErrorException(
+        'Failed to upload file to storage',
+      );
     }
   }
 
@@ -98,7 +113,9 @@ export class StorageService {
       this.logger.log(`Delete completed for key: ${key}`);
     } catch (error) {
       this.logger.error(`S3 delete failure: ${error.message}`, error.stack);
-      throw new InternalServerErrorException('Failed to delete file from storage');
+      throw new InternalServerErrorException(
+        'Failed to delete file from storage',
+      );
     }
   }
 
@@ -110,7 +127,9 @@ export class StorageService {
       });
 
       // 15 minutes expiry
-      const signedUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 900 });
+      const signedUrl = await getSignedUrl(this.s3Client, command, {
+        expiresIn: 900,
+      });
       return signedUrl;
     } catch (error) {
       this.logger.error(`S3 signed URL failure: ${error.message}`, error.stack);

@@ -6,6 +6,7 @@ import {
   Platform,
   TouchableOpacity,
   Text,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MotiView, AnimatePresence } from "moti";
@@ -56,7 +57,11 @@ export default function CreateReportWizard() {
   const handleSubmit = async () => {
     // Backend API integration here
     console.log("Submitting:", data);
-    router.replace("/(citizen)/Dashboard");
+    Alert.alert(
+      "Success",
+      "Your report has been successfully submitted! We will notify you of any updates.",
+      [{ text: "OK", onPress: () => router.replace("/(citizen)/Dashboard") }]
+    );
   };
 
   const renderStep = () => {

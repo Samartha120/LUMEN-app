@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UploadResponseDto {
-  @ApiProperty({ example: 'https://bucket.s3.region.amazonaws.com/path/to/file.jpg' })
+  @ApiProperty({
+    example: 'https://bucket.s3.region.amazonaws.com/path/to/file.jpg',
+  })
   url: string;
 
   @ApiProperty({ example: 'complaints/images/2026/07/15/uuid.jpg' })

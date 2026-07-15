@@ -4,15 +4,11 @@ import { CreateComplaintDto } from './dto/create-complaint.dto';
 import { UpdateComplaintDto } from './dto/update-complaint.dto';
 import type { User, Complaint } from '@prisma/client';
 
-
 @Injectable()
 export class ComplaintsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(
-    createComplaintDto: CreateComplaintDto,
-    user: User,
-  ) {
+  async create(createComplaintDto: CreateComplaintDto, user: User) {
     const complaint = await this.prisma.complaint.create({
       data: {
         trackingId: `CMP-${Date.now()}`,

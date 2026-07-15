@@ -26,6 +26,8 @@ import { CommonModule } from './common/common.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
+import { MailModule } from './mail/mail.module';
+import { OtpModule } from './otp/otp.module';
 
 @Module({
   imports: [
@@ -91,6 +93,8 @@ import { UsersModule } from './users/users.module';
     DatabaseModule,
     HealthModule,
     UsersModule,
+    MailModule,
+    OtpModule,
   ],
   controllers: [AppController],
   providers: [

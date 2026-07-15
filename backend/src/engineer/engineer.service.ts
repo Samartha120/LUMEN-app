@@ -156,8 +156,7 @@ export class EngineerService {
       data: { preferences: updatedPreferences },
       select: {
         id: true,
-        firstName: true,
-        lastName: true,
+        fullName: true,
         preferences: true,
       },
     });

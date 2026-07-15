@@ -40,7 +40,7 @@ export class ComplaintsService {
   findAll() {
     return this.prisma.complaint.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { reporter: { select: { firstName: true, lastName: true } } },
+      include: { reporter: { select: { fullName: true } } },
     });
   }
 
@@ -59,7 +59,7 @@ export class ComplaintsService {
   async findOne(id: string) {
     const complaint = await this.prisma.complaint.findUnique({
       where: { id },
-      include: { reporter: { select: { firstName: true, lastName: true } } },
+      include: { reporter: { select: { fullName: true } } },
     });
     if (!complaint)
       throw new NotFoundException(`Complaint with ID ${id} not found`);

@@ -8,9 +8,14 @@ import { AuthenticationService } from './authentication.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
+import { OtpModule } from '../otp/otp.module';
+import { DatabaseModule } from '../database/database.module';
+
 @Module({
   imports: [
     UsersModule,
+    OtpModule,
+    DatabaseModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

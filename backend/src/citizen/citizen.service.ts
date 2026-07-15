@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   NotFoundException,
@@ -32,9 +33,8 @@ export class CitizenService {
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
+        fullName: true,
+        phoneNumber: true,
         preferences: true,
         savedLocations: true,
         emergencyContacts: true,
@@ -52,9 +52,8 @@ export class CitizenService {
       data,
       select: {
         id: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
+        fullName: true,
+        phoneNumber: true,
         preferences: true,
         savedLocations: true,
         emergencyContacts: true,
@@ -77,7 +76,7 @@ export class CitizenService {
           orderBy: { createdAt: 'desc' },
           include: {
             performedBy: {
-              select: { firstName: true, lastName: true, role: true },
+              select: { fullName: true, role: true },
             },
           },
         },

@@ -28,7 +28,7 @@ export class AuditService {
       take: limit,
       orderBy: { createdAt: 'desc' },
       include: {
-        user: { select: { firstName: true, lastName: true, role: true } },
+        user: { select: { fullName: true, role: true } },
       },
     });
   }

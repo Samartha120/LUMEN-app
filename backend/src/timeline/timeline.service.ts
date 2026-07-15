@@ -10,7 +10,7 @@ export class TimelineService {
       where: { complaintId },
       include: {
         performedBy: {
-          select: { id: true, firstName: true, lastName: true, role: true },
+          select: { id: true, fullName: true, role: true },
         },
       },
       orderBy: { createdAt: 'desc' },

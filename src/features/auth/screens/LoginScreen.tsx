@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -7,7 +7,7 @@ import {
   Platform,
   StatusBar,
   Pressable,
-  Dimensions,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
@@ -16,16 +16,17 @@ import * as z from "zod";
 import { MotiView } from "moti";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { useTheme } from "@/design-system/ThemeContext";
-import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
+import { TextStyles } from "@/design-system/tokens";
 import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { AuthService } from "@/services/auth.service";
 import * as Haptics from "expo-haptics";
+import * as LocalAuthentication from "expo-local-authentication";
+import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const { width, height } = Dimensions.get("window");
+const SECURE_STORE_CREDENTIALS_KEY = "lumen_biometric_credentials";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -35,9 +36,27 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
-  const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [canUseBiometric, setCanUseBiometric] = useState(false);
+
+  useEffect(() => {
+    checkBiometricAvailability();
+  }, []);
+
+  const checkBiometricAvailability = async () => {
+    try {
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+      const storedCreds = await SecureStore.getItemAsync(SECURE_STORE_CREDENTIALS_KEY);
+      
+      if (hasHardware && isEnrolled && storedCreds) {
+        setCanUseBiometric(true);
+      }
+    } catch (e) {
+      console.warn("Biometric check failed", e);
+    }
+  };
 
   const {
     control,
@@ -48,28 +67,75 @@ export default function LoginScreen() {
     defaultValues: { email: "", password: "" },
   });
 
+  const promptEnableBiometric = async (password: string) => {
+    const hasHardware = await LocalAuthentication.hasHardwareAsync();
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    
+    if (hasHardware && isEnrolled) {
+      const storedCreds = await SecureStore.getItemAsync(SECURE_STORE_CREDENTIALS_KEY);
+      if (!storedCreds) {
+        // Show prompt to enroll
+        return new Promise<void>((resolve) => {
+          Alert.alert(
+            "Enable Face ID / Touch ID?",
+            "Would you like to securely log in with biometrics next time?",
+            [
+              { text: "Not Now", style: "cancel", onPress: () => resolve() },
+              {
+                text: "Enable",
+                onPress: async () => {
+                  try {
+                    await AuthService.enrollBiometric(password);
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  } catch (e: any) {
+                    Alert.alert("Failed to enroll", e.message);
+                  }
+                  resolve();
+                },
+              },
+            ]
+          );
+        });
+      }
+    }
+  };
+
   const onLogin = async (data: LoginFormData) => {
     setLoading(true);
     setErrorText(null);
     try {
-      const role = await AuthService.signInWithPassword(data.email, data.password);
+      const user = await AuthService.login(data.email, data.password);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      try {
-        await AsyncStorage.setItem("lumen_last_email", data.email);
-      } catch (e) {}
+      // Offer to enable biometric if applicable
+      await promptEnableBiometric(data.password);
 
-      if (role === "engineer") {
+      if (user.role === "engineer") {
         router.replace("/(engineer)/Dashboard" as any);
       } else {
         router.replace("/(citizen)/Dashboard" as any);
       }
     } catch (err: any) {
       console.error(err);
-      setErrorText(err.message || "Invalid email or password. Have you created an account?");
+      setErrorText(err.message || "Invalid email or password.");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    try {
+      const user = await AuthService.loginWithBiometric();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      if (user.role === "engineer") {
+        router.replace("/(engineer)/Dashboard" as any);
+      } else {
+        router.replace("/(citizen)/Dashboard" as any);
+      }
+    } catch (err: any) {
+      setErrorText(err.message || "Biometric login failed.");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
@@ -84,12 +150,6 @@ export default function LoginScreen() {
         transition={{ type: "timing", duration: 3000, loop: true }}
         style={[styles.glowOrb, { top: -100, left: -100, backgroundColor: "#38BDF8" }]}
       />
-      <MotiView
-        from={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 0.4, scale: 1 }}
-        transition={{ type: "timing", duration: 4000, loop: true }}
-        style={[styles.glowOrb, { bottom: -50, right: -100, backgroundColor: "#818CF8" }]}
-      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -98,7 +158,7 @@ export default function LoginScreen() {
         <MotiView
           from={{ opacity: 0, translateY: 50 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "spring", delay: 200 }}
+          transition={{ type: "spring", delay: 100 }}
           style={styles.content}
         >
           <View style={styles.headerContainer}>
@@ -151,7 +211,7 @@ export default function LoginScreen() {
                 )}
               />
 
-              <Pressable style={styles.forgotPassword}>
+              <Pressable style={styles.forgotPassword} onPress={() => router.push("/(auth)/ForgotPassword" as any)}>
                 <Text style={styles.forgotText}>Forgot Password?</Text>
               </Pressable>
 
@@ -164,6 +224,18 @@ export default function LoginScreen() {
                   size="lg"
                   style={styles.loginBtn}
                 />
+                
+                {canUseBiometric && (
+                  <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginTop: 16 }}>
+                    <Button
+                      label="Sign in with Face ID"
+                      onPress={handleBiometricLogin}
+                      variant="outline"
+                      size="lg"
+                      style={styles.biometricBtn}
+                    />
+                  </MotiView>
+                )}
               </View>
             </View>
           </BlurView>
@@ -268,6 +340,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 5,
+  },
+  biometricBtn: {
+    borderColor: "rgba(56, 189, 248, 0.3)",
   },
   footer: {
     flexDirection: "row",

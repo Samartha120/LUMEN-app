@@ -43,8 +43,7 @@ export class AdminService {
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
+        fullName: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -63,9 +62,8 @@ export class AdminService {
         email: dto.email,
         // @ts-ignore - IDE TS Server caching issue
         password: '',
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phone: dto.phone,
+        fullName: dto.firstName ? `${dto.firstName} ${dto.lastName || ''}`.trim() : null,
+        phoneNumber: dto.phone,
         role: dto.role,
       },
     });

@@ -52,7 +52,7 @@ export class DepartmentService {
       include: {
         assignments: {
           include: {
-            engineer: { select: { firstName: true, lastName: true } },
+            engineer: { select: { fullName: true } },
           },
         },
       },
@@ -79,7 +79,7 @@ export class DepartmentService {
       include: {
         assignments: {
           include: {
-            engineer: { select: { firstName: true, lastName: true } },
+            engineer: { select: { fullName: true } },
           },
         },
       },
@@ -91,9 +91,8 @@ export class DepartmentService {
       where: { role: 'ENGINEER', isActive: true, isDeleted: false },
       select: {
         id: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
+        fullName: true,
+        phoneNumber: true,
         preferences: true,
       },
     });

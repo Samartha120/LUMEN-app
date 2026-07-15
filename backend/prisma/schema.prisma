@@ -22,10 +22,11 @@ model User {
   email     String   @unique
   password  String?
   role      Role     @default(CITIZEN)
-  phone     String?
-  firstName String?
-  lastName  String?
+  phoneNumber String?
+  fullName  String?
   isActive  Boolean  @default(true)
+  isVerified Boolean @default(false)
+  biometricEnabled Boolean @default(false)
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -38,8 +39,35 @@ model User {
   performedActions   ComplaintTimeline[] @relation("PerformedActions")
   assignments        Assignment[]        @relation("EngineerAssignments")
   auditLogs          AuditLog[]
+  refreshTokens      RefreshToken[]
 
   @@map("users")
+}
+
+model Otp {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  otpHash      String
+  expiresAt    DateTime
+  attempts     Int      @default(0)
+  fullName     String?
+  phoneNumber  String?
+  passwordHash String?
+  createdAt    DateTime @default(now())
+
+  @@map("otps")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
 }
 
 enum Priority {

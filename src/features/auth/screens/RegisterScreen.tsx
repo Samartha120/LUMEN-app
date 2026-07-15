@@ -28,6 +28,7 @@ const { width, height } = Dimensions.get("window");
 
 const registerSchema = z
   .object({
+    fullName: z.string().min(2, "Full name must be at least 2 characters"),
     email: z.string().email("Please enter a valid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
@@ -50,16 +51,20 @@ export default function RegisterScreen() {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: "", password: "", confirmPassword: "" },
+    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
   });
 
   const onRegister = async (data: RegisterFormData) => {
     setLoading(true);
     setErrorText(null);
     try {
-      await AuthService.signUp(data.email, data.password, "citizen");
+      await AuthService.generateOtp({
+        fullName: data.fullName,
+        email: data.email,
+        password: data.password,
+      });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace("/(citizen)/Dashboard" as any);
+      router.push({ pathname: "/(auth)/VerifyOtp" as any, params: { email: data.email } });
     } catch (err: any) {
       console.error(err);
       setErrorText(err.message || "Registration failed. Try again.");
@@ -107,6 +112,22 @@ export default function RegisterScreen() {
                   <Text style={styles.errorText}>{errorText}</Text>
                 </MotiView>
               )}
+
+              <Controller
+                control={control}
+                name="fullName"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input
+                    label="Full Name"
+                    placeholder="Enter your full name"
+                    autoCapitalize="words"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    error={errors.fullName?.message}
+                  />
+                )}
+              />
 
               <Controller
                 control={control}

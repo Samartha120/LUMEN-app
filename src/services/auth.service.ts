@@ -2,8 +2,9 @@ import { useAuthStore } from "../store/AuthStore";
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { env } from "../config/env";
 
-const API_URL = "http://localhost:3000/auth";
+const API_URL = `${env.apiUrl}/auth`;
 const SECURE_STORE_CREDENTIALS_KEY = "lumen_biometric_credentials";
 
 export const AuthService = {

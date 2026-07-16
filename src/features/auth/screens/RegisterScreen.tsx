@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -8,18 +8,29 @@ import {
   StatusBar,
   Pressable,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { router } from "expo-router";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { MotiView } from "moti";
+import { MotiView, MotiText } from "moti";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { useTheme } from "@/design-system/ThemeContext";
-import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+  withDelay,
+  withSpring,
+  interpolate,
+  Easing,
+} from "react-native-reanimated";
 import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
+import { PasswordStrengthMeter } from "@/design-system/components/PasswordStrengthMeter";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { AuthService } from "@/services/auth.service";
 import * as Haptics from "expo-haptics";
@@ -40,8 +51,177 @@ const registerSchema = z
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
+// Floating orb component
+function FloatingOrb({
+  color,
+  size,
+  top,
+  left,
+  right,
+  bottom,
+  delay,
+  duration,
+}: {
+  color: string;
+  size: number;
+  top?: number;
+  left?: number;
+  right?: number;
+  bottom?: number;
+  delay: number;
+  duration: number;
+}) {
+  const translateY = useSharedValue(0);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withTiming(1, { duration: 800 }));
+    translateY.value = withDelay(
+      delay,
+      withRepeat(
+        withSequence(
+          withTiming(-18, { duration: duration, easing: Easing.inOut(Easing.sin) }),
+          withTiming(18, { duration: duration, easing: Easing.inOut(Easing.sin) })
+        ),
+        -1,
+        true
+      )
+    );
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value * 0.5,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: color,
+          top,
+          left,
+          right,
+          bottom,
+        },
+        animStyle,
+      ]}
+    />
+  );
+}
+
+// Step indicator
+function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+  return (
+    <View style={stepStyles.container}>
+      {Array.from({ length: totalSteps }).map((_, i) => (
+        <MotiView
+          key={i}
+          animate={{
+            width: i === currentStep ? 28 : 8,
+            backgroundColor: i <= currentStep ? "#818CF8" : "rgba(255,255,255,0.15)",
+          }}
+          transition={{ type: "spring", damping: 16 }}
+          style={stepStyles.dot}
+        />
+      ))}
+    </View>
+  );
+}
+
+const stepStyles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  dot: {
+    height: 8,
+    borderRadius: 4,
+  },
+});
+
+// Animated logo for register
+function RegisterLogo() {
+  const rotate = useSharedValue(0);
+  const scale = useSharedValue(0);
+
+  useEffect(() => {
+    scale.value = withSpring(1, { damping: 14, stiffness: 120 });
+    rotate.value = withRepeat(
+      withSequence(
+        withTiming(8, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(-8, { duration: 2000, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const logoStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }, { rotate: `${rotate.value}deg` }],
+  }));
+
+  return (
+    <Animated.View style={logoStyle}>
+      <LinearGradient
+        colors={["#A78BFA", "#818CF8", "#6EE7B7"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={registerLogoStyles.gradient}
+      >
+        <LumenIcon name="profile" size="xl" color="#FFFFFF" />
+      </LinearGradient>
+    </Animated.View>
+  );
+}
+
+const registerLogoStyles = StyleSheet.create({
+  gradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+
+// Feature highlight pill
+function FeaturePill({ icon, label }: { icon: any; label: string }) {
+  return (
+    <View style={pillStyles.pill}>
+      <LumenIcon name={icon} size="xs" color="#A78BFA" />
+      <Text style={pillStyles.text}>{label}</Text>
+    </View>
+  );
+}
+
+const pillStyles = StyleSheet.create({
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(167,139,250,0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(167,139,250,0.2)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  text: {
+    color: "#C4B5FD",
+    fontSize: 11.5,
+    fontWeight: "600",
+  },
+});
+
 export default function RegisterScreen() {
-  const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
 
@@ -49,10 +229,13 @@ export default function RegisterScreen() {
     control,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
   });
+
+  const passwordValue = watch("password");
 
   const onRegister = async (data: RegisterFormData) => {
     setLoading(true);
@@ -66,7 +249,6 @@ export default function RegisterScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.push({ pathname: "/(auth)/VerifyOtp" as any, params: { email: data.email } });
     } catch (err: any) {
-      console.error(err);
       setErrorText(err.message || "Registration failed. Try again.");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
@@ -77,127 +259,317 @@ export default function RegisterScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={["#1E1B4B", "#0F172A", "#1E1B4B"]} style={StyleSheet.absoluteFill} />
 
-      <MotiView
-        from={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 0.5, scale: 1 }}
-        transition={{ type: "timing", duration: 4000, loop: true }}
-        style={[styles.glowOrb, { top: -50, right: -100, backgroundColor: "#A78BFA" }]}
+      {/* Background gradient */}
+      <LinearGradient
+        colors={["#060818", "#0F0A2E", "#060818"]}
+        style={StyleSheet.absoluteFill}
       />
+
+      {/* Atmospheric orbs */}
+      <FloatingOrb color="#A78BFA" size={320} top={-130} right={-130} delay={0} duration={4500} />
+      <FloatingOrb color="#818CF8" size={200} bottom={100} left={-80} delay={300} duration={5000} />
+      <FloatingOrb color="#6EE7B7" size={150} top={height * 0.5} right={-50} delay={500} duration={3800} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
-        <MotiView
-          from={{ opacity: 0, translateY: 50 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "spring", delay: 100 }}
-          style={styles.content}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.headerContainer}>
-            <View style={styles.logoWrapper}>
-              <LumenIcon name="profile" size="2xl" color="#A78BFA" />
-            </View>
-            <Text style={[TextStyles.heading1, styles.title]}>Create Account</Text>
-            <Text style={[TextStyles.body, styles.subtitle]}>Join LUMEN to get started</Text>
-          </View>
-
-          <BlurView intensity={20} tint="dark" style={styles.glassCard}>
-            <View style={styles.formContainer}>
-              {errorText && (
-                <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.errorBox}>
-                  <LumenIcon name="info" size="sm" color="#F87171" />
-                  <Text style={styles.errorText}>{errorText}</Text>
-                </MotiView>
-              )}
-
-              <Controller
-                control={control}
-                name="fullName"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="Full Name"
-                    placeholder="Enter your full name"
-                    autoCapitalize="words"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={errors.fullName?.message}
-                  />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="Email Address"
-                    placeholder="Enter your email"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={errors.email?.message}
-                  />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="Password"
-                    placeholder="Create a password"
-                    secureTextEntry
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={errors.password?.message}
-                  />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="confirmPassword"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="Confirm Password"
-                    placeholder="Confirm your password"
-                    secureTextEntry
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={errors.confirmPassword?.message}
-                  />
-                )}
-              />
-
-              <View style={styles.actionContainer}>
-                <Button
-                  label="Sign Up"
-                  onPress={handleSubmit(onRegister)}
-                  loading={loading}
-                  variant="primary"
-                  size="lg"
-                  style={styles.registerBtn}
-                />
-              </View>
-            </View>
-          </BlurView>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
-            <Pressable onPress={() => router.back()}>
-              <Text style={styles.loginText}>Sign In</Text>
+          {/* Back Button */}
+          <MotiView
+            from={{ opacity: 0, translateX: -20 }}
+            animate={{ opacity: 1, translateX: 0 }}
+            transition={{ type: "spring", delay: 50 }}
+          >
+            <Pressable
+              onPress={() => router.back()}
+              style={({ pressed }) => [styles.backBtn, { opacity: pressed ? 0.6 : 1 }]}
+            >
+              <LumenIcon name="arrowLeft" size="md" color="#94A3B8" />
             </Pressable>
-          </View>
-        </MotiView>
+          </MotiView>
+
+          {/* Header */}
+          <MotiView
+            from={{ opacity: 0, translateY: -20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "spring", delay: 100, damping: 18 }}
+            style={styles.headerSection}
+          >
+            <RegisterLogo />
+
+            <MotiText
+              from={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", delay: 250, damping: 14 }}
+              style={styles.brand}
+            >
+              JOIN LUMEN
+            </MotiText>
+
+            <MotiView
+              from={{ opacity: 0, translateY: 10 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", delay: 380, duration: 400 }}
+            >
+              <Text style={styles.title}>Create Your Account</Text>
+              <Text style={styles.subtitle}>
+                Report issues · Track progress · Build your city
+              </Text>
+            </MotiView>
+
+            {/* Feature pills */}
+            <MotiView
+              from={{ opacity: 0, translateY: 8 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", delay: 500, duration: 400 }}
+              style={styles.pillsRow}
+            >
+              <FeaturePill icon="shield" label="Secure" />
+              <FeaturePill icon="spark" label="AI-Powered" />
+              <FeaturePill icon="mapPin" label="Location-based" />
+            </MotiView>
+          </MotiView>
+
+          {/* Form Card */}
+          <MotiView
+            from={{ opacity: 0, translateY: 40, scale: 0.96 }}
+            animate={{ opacity: 1, translateY: 0, scale: 1 }}
+            transition={{ type: "spring", delay: 300, damping: 18, stiffness: 110 }}
+          >
+            <BlurView intensity={28} tint="dark" style={styles.glassCard}>
+              {/* Top accent line with purple theme */}
+              <LinearGradient
+                colors={["#A78BFA", "#818CF8", "#6EE7B7"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.cardAccentLine}
+              />
+
+              <View style={styles.formContainer}>
+                {/* Error box */}
+                {errorText && (
+                  <MotiView
+                    from={{ opacity: 0, translateY: -8, scale: 0.97 }}
+                    animate={{ opacity: 1, translateY: 0, scale: 1 }}
+                    transition={{ type: "spring", damping: 16 }}
+                    style={styles.errorBox}
+                  >
+                    <View style={styles.errorIcon}>
+                      <LumenIcon name="warning" size="sm" color="#F87171" />
+                    </View>
+                    <Text style={styles.errorText}>{errorText}</Text>
+                  </MotiView>
+                )}
+
+                {/* Full Name */}
+                <MotiView
+                  from={{ opacity: 0, translateX: -20 }}
+                  animate={{ opacity: 1, translateX: 0 }}
+                  transition={{ type: "spring", delay: 450, damping: 18 }}
+                >
+                  <Controller
+                    control={control}
+                    name="fullName"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        label="Full Name"
+                        placeholder="Enter your full name"
+                        autoCapitalize="words"
+                        autoComplete="name"
+                        iconLeft="profile"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        error={errors.fullName?.message}
+                        isValid={!errors.fullName && value.length >= 2}
+                        size="lg"
+                      />
+                    )}
+                  />
+                </MotiView>
+
+                {/* Email */}
+                <MotiView
+                  from={{ opacity: 0, translateX: -20 }}
+                  animate={{ opacity: 1, translateX: 0 }}
+                  transition={{ type: "spring", delay: 540, damping: 18 }}
+                >
+                  <Controller
+                    control={control}
+                    name="email"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        label="Email Address"
+                        placeholder="you@example.com"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoComplete="email"
+                        iconLeft="email"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        error={errors.email?.message}
+                        isValid={!errors.email && value.includes("@") && value.includes(".")}
+                        size="lg"
+                      />
+                    )}
+                  />
+                </MotiView>
+
+                {/* Password */}
+                <MotiView
+                  from={{ opacity: 0, translateX: -20 }}
+                  animate={{ opacity: 1, translateX: 0 }}
+                  transition={{ type: "spring", delay: 620, damping: 18 }}
+                >
+                  <Controller
+                    control={control}
+                    name="password"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        label="Password"
+                        placeholder="Create a strong password"
+                        secureTextEntry
+                        iconLeft="lock"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        error={errors.password?.message}
+                        size="lg"
+                      />
+                    )}
+                  />
+                  {/* Password strength meter */}
+                  {passwordValue.length > 0 && (
+                    <MotiView
+                      from={{ opacity: 0, translateY: -8 }}
+                      animate={{ opacity: 1, translateY: 0 }}
+                      transition={{ type: "timing", duration: 300 }}
+                    >
+                      <PasswordStrengthMeter password={passwordValue} />
+                    </MotiView>
+                  )}
+                </MotiView>
+
+                {/* Confirm Password */}
+                <MotiView
+                  from={{ opacity: 0, translateX: -20 }}
+                  animate={{ opacity: 1, translateX: 0 }}
+                  transition={{ type: "spring", delay: 700, damping: 18 }}
+                >
+                  <Controller
+                    control={control}
+                    name="confirmPassword"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        label="Confirm Password"
+                        placeholder="Re-enter your password"
+                        secureTextEntry
+                        iconLeft="lock"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        error={errors.confirmPassword?.message}
+                        isValid={!errors.confirmPassword && value.length >= 6 && value === passwordValue}
+                        size="lg"
+                      />
+                    )}
+                  />
+                </MotiView>
+
+                {/* Terms note */}
+                <MotiView
+                  from={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ type: "timing", delay: 780, duration: 400 }}
+                  style={styles.termsRow}
+                >
+                  <LumenIcon name="info" size="xs" color="#475569" />
+                  <Text style={styles.termsText}>
+                    By creating an account, you agree to our{" "}
+                    <Text style={styles.termsLink}>Terms of Service</Text>
+                    {" "}and{" "}
+                    <Text style={styles.termsLink}>Privacy Policy</Text>
+                  </Text>
+                </MotiView>
+
+                {/* Register CTA */}
+                <MotiView
+                  from={{ opacity: 0, translateY: 16 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ type: "spring", delay: 820, damping: 16 }}
+                >
+                  <Pressable
+                    onPress={handleSubmit(onRegister)}
+                    disabled={loading}
+                    style={({ pressed }) => [
+                      styles.gradientBtnWrapper,
+                      {
+                        opacity: loading ? 0.8 : pressed ? 0.92 : 1,
+                        transform: [{ scale: pressed ? 0.98 : 1 }],
+                      },
+                    ]}
+                  >
+                    <LinearGradient
+                      colors={loading ? ["#4B5563", "#374151"] : ["#A78BFA", "#818CF8"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.gradientBtn}
+                    >
+                      {loading ? (
+                        <MotiView
+                          from={{ rotate: "0deg" }}
+                          animate={{ rotate: "360deg" }}
+                          transition={{ type: "timing", duration: 800, loop: true }}
+                        >
+                          <LumenIcon name="refresh" size="md" color="#FFFFFF" />
+                        </MotiView>
+                      ) : (
+                        <View style={styles.btnInner}>
+                          <Text style={styles.gradientBtnText}>Create Account</Text>
+                          <LumenIcon name="forward" size="md" color="#FFFFFF" />
+                        </View>
+                      )}
+                    </LinearGradient>
+                  </Pressable>
+                </MotiView>
+              </View>
+            </BlurView>
+          </MotiView>
+
+          {/* Footer */}
+          <MotiView
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ type: "timing", delay: 950, duration: 500 }}
+            style={styles.footer}
+          >
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <Pressable
+              onPress={() => router.back()}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Text style={styles.loginLink}>Sign In</Text>
+            </Pressable>
+          </MotiView>
+
+          {/* Trust row */}
+          <MotiView
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ type: "timing", delay: 1100, duration: 500 }}
+            style={styles.trustRow}
+          >
+            <LumenIcon name="shield" size="xs" color="#374151" />
+            <Text style={styles.trustText}>Your data is encrypted end-to-end</Text>
+          </MotiView>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -206,52 +578,73 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0F172A",
-  },
-  glowOrb: {
-    position: "absolute",
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    filter: "blur(50px)",
+    backgroundColor: "#060818",
   },
   keyboardView: {
     flex: 1,
   },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 24,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 56,
+    paddingBottom: 40,
   },
-  headerContainer: {
+  backBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: 24,
   },
-  logoWrapper: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "rgba(167, 139, 250, 0.1)",
-    justifyContent: "center",
+  headerSection: {
     alignItems: "center",
+    marginBottom: 28,
+  },
+  brand: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 7,
+    color: "#A78BFA",
+    marginTop: 14,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(167, 139, 250, 0.3)",
+    opacity: 0.9,
   },
   title: {
-    color: "#FFFFFF",
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#F8FAFC",
+    textAlign: "center",
+    letterSpacing: -0.5,
     marginBottom: 8,
   },
   subtitle: {
-    color: "#94A3B8",
+    fontSize: 14,
+    color: "#64748B",
     textAlign: "center",
+    lineHeight: 21,
+    marginBottom: 16,
+  },
+  pillsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
   glassCard: {
-    borderRadius: 16,
+    borderRadius: 24,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    backgroundColor: "rgba(15, 23, 42, 0.5)",
+    borderColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "rgba(10,8,35,0.65)",
+  },
+  cardAccentLine: {
+    height: 2,
+    width: "100%",
   },
   formContainer: {
     padding: 24,
@@ -260,41 +653,94 @@ const styles = StyleSheet.create({
   errorBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(248, 113, 113, 0.1)",
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: "rgba(239,68,68,0.1)",
+    padding: 14,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(248, 113, 113, 0.3)",
-    gap: 8,
+    borderColor: "rgba(239,68,68,0.25)",
+    gap: 10,
+  },
+  errorIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(239,68,68,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   errorText: {
-    color: "#F87171",
-    fontSize: 14,
+    color: "#FCA5A5",
+    fontSize: 13.5,
     flex: 1,
+    lineHeight: 20,
   },
-  actionContainer: {
-    marginTop: 16,
+  termsRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    paddingHorizontal: 2,
+    marginTop: -4,
   },
-  registerBtn: {
-    backgroundColor: "#A78BFA",
+  termsText: {
+    flex: 1,
+    color: "#475569",
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  termsLink: {
+    color: "#818CF8",
+    fontWeight: "600",
+  },
+  gradientBtnWrapper: {
+    borderRadius: 16,
     shadowColor: "#A78BFA",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 8,
+    marginTop: 4,
+  },
+  gradientBtn: {
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  btnInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  gradientBtnText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
   },
   footer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 24,
+    marginTop: 28,
   },
   footerText: {
-    color: "#94A3B8",
+    color: "#475569",
     fontSize: 15,
   },
-  loginText: {
+  loginLink: {
     color: "#A78BFA",
     fontSize: 15,
     fontWeight: "700",
+  },
+  trustRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 18,
+    gap: 6,
+  },
+  trustText: {
+    color: "#374151",
+    fontSize: 12,
+    letterSpacing: 0.2,
   },
 });

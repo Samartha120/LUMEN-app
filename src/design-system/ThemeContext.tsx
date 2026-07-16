@@ -27,11 +27,17 @@ export interface Theme {
 
 const ThemeContext = createContext<Theme | null>(null);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export interface ThemeProviderProps {
+  children: React.ReactNode;
+  forcedMode?: ThemeMode;
+}
+
+export function ThemeProvider({ children, forcedMode }: ThemeProviderProps) {
   const systemScheme = useColorScheme();
   const [mode, setMode] = useState<ThemeMode>("system");
 
-  const isDark = mode === "system" ? systemScheme === "dark" : mode === "dark";
+  const activeMode = forcedMode !== undefined ? forcedMode : mode;
+  const isDark = activeMode === "system" ? systemScheme === "dark" : activeMode === "dark";
 
   const theme: Theme = {
     colors: isDark ? (DarkColors as unknown as ColorTokens) : LightColors,

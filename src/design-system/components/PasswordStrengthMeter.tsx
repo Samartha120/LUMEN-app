@@ -89,19 +89,20 @@ export function PasswordStrengthMeter({ password }: PasswordStrengthMeterProps) 
 }
 
 function CriteriaItem({ label, met }: { label: string; met: boolean }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const unmetColor = isDark ? "rgba(255, 255, 255, 0.45)" : colors.textTertiary;
   return (
     <View style={s.criteriaItem}>
       <LumenIcon
-        name={met ? "checkCircle" : "checkCircle"}
+        name="checkCircle"
         size="sm"
-        color={met ? "#12B76A" : colors.textTertiary}
+        color={met ? "#12B76A" : unmetColor}
         strokeWidth={2}
       />
       <Text
         style={[
           TextStyles.caption,
-          { color: met ? colors.textPrimary : colors.textTertiary, flex: 1 },
+          { color: met ? colors.textPrimary : unmetColor, flex: 1 },
         ]}
       >
         {label}
@@ -139,6 +140,6 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing[1],
-    width: "48%",
+    width: "100%",
   },
 });

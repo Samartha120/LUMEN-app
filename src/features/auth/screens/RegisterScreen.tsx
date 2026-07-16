@@ -34,6 +34,7 @@ import { PasswordStrengthMeter } from "@/design-system/components/PasswordStreng
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { AuthService } from "@/services/auth.service";
 import * as Haptics from "expo-haptics";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
@@ -192,32 +193,26 @@ const registerLogoStyles = StyleSheet.create({
   },
 });
 
-// Feature highlight pill
-function FeaturePill({ icon, label }: { icon: any; label: string }) {
+// Simple feature text
+function FeatureText({ label }: { label: string }) {
   return (
-    <View style={pillStyles.pill}>
-      <LumenIcon name={icon} size="xs" color="#A78BFA" />
+    <View style={pillStyles.feature}>
+      <LumenIcon name="checkCircle" size="xs" color="#38BDF8" />
       <Text style={pillStyles.text}>{label}</Text>
     </View>
   );
 }
 
 const pillStyles = StyleSheet.create({
-  pill: {
+  feature: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    backgroundColor: "rgba(167,139,250,0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(167,139,250,0.2)",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
+    gap: 6,
   },
   text: {
-    color: "#C4B5FD",
-    fontSize: 11.5,
-    fontWeight: "600",
+    color: "#94A3B8",
+    fontSize: 13,
+    fontWeight: "500",
   },
 });
 
@@ -230,10 +225,40 @@ export default function RegisterScreen() {
     handleSubmit,
     formState: { errors },
     watch,
+    reset,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
   });
+
+  // Load saved draft
+  useEffect(() => {
+    const loadDraft = async () => {
+      try {
+        const saved = await AsyncStorage.getItem("register_draft");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          reset({
+            fullName: parsed.fullName || "",
+            email: parsed.email || "",
+            password: parsed.password || "",
+            confirmPassword: parsed.confirmPassword || ""
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to load draft", e);
+      }
+    };
+    loadDraft();
+  }, [reset]);
+
+  // Save draft on change
+  useEffect(() => {
+    const subscription = watch((value) => {
+      AsyncStorage.setItem("register_draft", JSON.stringify(value)).catch(() => {});
+    });
+    return () => subscription.unsubscribe();
+  }, [watch]);
 
   const passwordValue = watch("password");
 
@@ -323,16 +348,16 @@ export default function RegisterScreen() {
               </Text>
             </MotiView>
 
-            {/* Feature pills */}
+            {/* Feature checkmarks */}
             <MotiView
               from={{ opacity: 0, translateY: 8 }}
               animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: "timing", delay: 500, duration: 400 }}
               style={styles.pillsRow}
             >
-              <FeaturePill icon="shield" label="Secure" />
-              <FeaturePill icon="spark" label="AI-Powered" />
-              <FeaturePill icon="mapPin" label="Location-based" />
+              <FeatureText label="Secure" />
+              <FeatureText label="AI-Powered" />
+              <FeatureText label="Location-based" />
             </MotiView>
           </MotiView>
 

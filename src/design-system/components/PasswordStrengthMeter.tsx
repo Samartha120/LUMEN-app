@@ -99,12 +99,7 @@ function CriteriaItem({ label, met }: { label: string; met: boolean }) {
         color={met ? "#12B76A" : unmetColor}
         strokeWidth={2}
       />
-      <Text
-        style={[
-          TextStyles.caption,
-          { color: met ? colors.textPrimary : unmetColor, flex: 1 },
-        ]}
-      >
+      <Text style={[TextStyles.caption, { color: met ? colors.textPrimary : unmetColor, flex: 1 }]}>
         {label}
       </Text>
     </View>

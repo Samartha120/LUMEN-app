@@ -292,15 +292,26 @@ export default function LoginScreen() {
       <StatusBar barStyle="light-content" />
 
       {/* Background gradient */}
-      <LinearGradient
-        colors={["#060818", "#0D1235", "#060818"]}
-        style={StyleSheet.absoluteFill}
-      />
+      <LinearGradient colors={["#060818", "#0D1235", "#060818"]} style={StyleSheet.absoluteFill} />
 
       {/* Atmospheric orbs */}
       <FloatingOrb color="#38BDF8" size={340} top={-120} left={-140} delay={0} duration={4000} />
-      <FloatingOrb color="#818CF8" size={250} bottom={50} right={-100} delay={300} duration={5000} />
-      <FloatingOrb color="#6EE7B7" size={180} top={height * 0.3} right={-60} delay={600} duration={3500} />
+      <FloatingOrb
+        color="#818CF8"
+        size={250}
+        bottom={50}
+        right={-100}
+        delay={300}
+        duration={5000}
+      />
+      <FloatingOrb
+        color="#6EE7B7"
+        size={180}
+        top={height * 0.3}
+        right={-60}
+        delay={600}
+        duration={3500}
+      />
 
       {/* Fine grid overlay */}
       <View style={styles.gridOverlay} pointerEvents="none" />
@@ -450,7 +461,10 @@ export default function LoginScreen() {
                     disabled={loading}
                     style={({ pressed }) => [
                       styles.gradientBtnWrapper,
-                      { opacity: loading ? 0.8 : pressed ? 0.92 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
+                      {
+                        opacity: loading ? 0.8 : pressed ? 0.92 : 1,
+                        transform: [{ scale: pressed ? 0.98 : 1 }],
+                      },
                     ]}
                   >
                     <LinearGradient

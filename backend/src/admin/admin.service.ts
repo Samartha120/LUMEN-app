@@ -62,7 +62,9 @@ export class AdminService {
         email: dto.email,
         // @ts-ignore - IDE TS Server caching issue
         password: '',
-        fullName: dto.firstName ? `${dto.firstName} ${dto.lastName || ''}`.trim() : null,
+        fullName: dto.firstName
+          ? `${dto.firstName} ${dto.lastName || ''}`.trim()
+          : null,
         phoneNumber: dto.phone,
         role: dto.role,
       },

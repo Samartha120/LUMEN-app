@@ -1,6 +1,6 @@
 import { useAuthStore } from "../store/AuthStore";
-import * as SecureStore from 'expo-secure-store';
-import * as LocalAuthentication from 'expo-local-authentication';
+import * as SecureStore from "expo-secure-store";
+import * as LocalAuthentication from "expo-local-authentication";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { env } from "../config/env";
 
@@ -12,7 +12,12 @@ export const AuthService = {
     // Check tokens on startup if needed
   },
 
-  async generateOtp(data: { fullName?: string; email: string; phoneNumber?: string; password?: string }) {
+  async generateOtp(data: {
+    fullName?: string;
+    email: string;
+    phoneNumber?: string;
+    password?: string;
+  }) {
     const response = await fetch(`${API_URL}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -57,6 +62,20 @@ export const AuthService = {
     }
   },
 
+  async resendOtp(data: { email: string }) {
+    const response = await fetch(`${API_URL}/resend-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to resend OTP");
+    }
+    return response.json();
+  },
+
   async verifyOtp(email: string, otp: string) {
     const response = await fetch(`${API_URL}/verify-otp`, {
       method: "POST",
@@ -88,7 +107,7 @@ export const AuthService = {
 
     const data = await response.json();
     this.handleTokenResponse(data);
-    
+
     // Store last email for biometric login context
     await AsyncStorage.setItem("lumen_last_email", email);
 
@@ -117,11 +136,11 @@ export const AuthService = {
     await SecureStore.setItemAsync(SECURE_STORE_CREDENTIALS_KEY, credentials);
 
     // Tell backend this user has biometric enabled
-    const response = await fetch(`${API_URL}/biometric/enable`, {
+    const response = await fetch(`${API_URL}/auth/biometric/enable`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${session.access_token}`
+        Authorization: `Bearer ${session.access_token}`,
       },
     });
 
@@ -134,7 +153,7 @@ export const AuthService = {
     // 1. Check if hardware exists
     const hasHardware = await LocalAuthentication.hasHardwareAsync();
     const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-    
+
     if (!hasHardware || !isEnrolled) {
       throw new Error("Biometric hardware not available or not enrolled");
     }
@@ -162,17 +181,17 @@ export const AuthService = {
 
   async logout(keepBiometric: boolean = true) {
     const session = useAuthStore.getState().session;
-    
+
     if (session?.access_token) {
       // Best effort backend logout
       try {
-        await fetch(`${API_URL}/logout`, {
+        await fetch(`${API_URL}/auth/logout`, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${session.access_token}`
+            Authorization: `Bearer ${session.access_token}`,
           },
-          body: JSON.stringify({ refreshToken: session.refresh_token })
+          body: JSON.stringify({ refreshToken: session.refresh_token }),
         });
       } catch (e) {}
     }
@@ -186,10 +205,10 @@ export const AuthService = {
 
   handleTokenResponse(data: any) {
     useAuthStore.getState().setRole(data.user.role);
-    useAuthStore.getState().setSession({ 
-      access_token: data.access_token, 
+    useAuthStore.getState().setSession({
+      access_token: data.access_token,
       refresh_token: data.refresh_token,
-      user: data.user 
+      user: data.user,
     } as any);
-  }
+  },
 };

@@ -24,7 +24,7 @@ export default function VerifyOtpScreen() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(300); // 5 minutes
+  const [countdown, setCountdown] = useState(30); // 30 seconds
 
   const inputRef = useRef<TextInput>(null);
   const OTP_LENGTH = 6;
@@ -72,8 +72,8 @@ export default function VerifyOtpScreen() {
   const handleResend = async () => {
     if (countdown > 0) return;
     try {
-      await AuthService.generateOtp({ email });
-      setCountdown(300);
+      await AuthService.resendOtp({ email });
+      setCountdown(30);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (err: any) {
       setErrorText(err.message || "Failed to resend OTP.");
@@ -141,18 +141,17 @@ export default function VerifyOtpScreen() {
                       </View>
                     );
                   })}
+                <TextInput
+                  ref={inputRef}
+                  value={otp}
+                  onChangeText={handleChange}
+                  keyboardType="number-pad"
+                  textContentType="oneTimeCode"
+                  maxLength={OTP_LENGTH}
+                  style={styles.hiddenInput}
+                  autoFocus
+                />
               </Pressable>
-
-              <TextInput
-                ref={inputRef}
-                value={otp}
-                onChangeText={handleChange}
-                keyboardType="number-pad"
-                textContentType="oneTimeCode"
-                maxLength={OTP_LENGTH}
-                style={styles.hiddenInput}
-                autoFocus
-              />
 
               <Button
                 label="Verify Code"
@@ -161,7 +160,6 @@ export default function VerifyOtpScreen() {
                 variant="primary"
                 size="lg"
                 disabled={otp.length !== OTP_LENGTH}
-                style={[styles.verifyBtn, otp.length === OTP_LENGTH && styles.verifyBtnActive]}
               />
 
               <View style={styles.resendContainer}>
@@ -262,7 +260,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   otpBox: {
-    width: 45,
+    flex: 1,
     height: 55,
     borderRadius: 12,
     backgroundColor: "rgba(255, 255, 255, 0.05)",
@@ -286,20 +284,9 @@ const styles = StyleSheet.create({
   },
   hiddenInput: {
     position: "absolute",
-    width: 1,
-    height: 1,
+    width: "100%",
+    height: "100%",
     opacity: 0,
-  },
-  verifyBtn: {
-    backgroundColor: "rgba(255,255,255,0.1)",
-  },
-  verifyBtnActive: {
-    backgroundColor: "#38BDF8",
-    shadowColor: "#38BDF8",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 5,
   },
   resendContainer: {
     flexDirection: "row",

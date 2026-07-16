@@ -36,7 +36,7 @@ export class AuthenticationService {
 
     // Hash password immediately
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-    
+
     // Call OTP service to generate and send email
     await this.otpService.generateAndSendOtp(
       registerDto.email,
@@ -45,12 +45,17 @@ export class AuthenticationService {
       hashedPassword,
     );
 
-    return { message: 'OTP sent to email. Please verify to complete registration.' };
+    return {
+      message: 'OTP sent to email. Please verify to complete registration.',
+    };
   }
 
   async verifyOtp(verifyOtpDto: VerifyOtpDto) {
     // Verifies OTP. Will throw if invalid, expired, or max attempts reached.
-    const validData = await this.otpService.verifyOtp(verifyOtpDto.email, verifyOtpDto.otp);
+    const validData = await this.otpService.verifyOtp(
+      verifyOtpDto.email,
+      verifyOtpDto.otp,
+    );
 
     // Create user in DB now that OTP is successful
     const user = await this.usersService.create({
@@ -62,6 +67,11 @@ export class AuthenticationService {
     } as any);
 
     return this.generateTokens(user);
+  }
+
+  async resendOtp(email: string) {
+    await this.otpService.resendOtp(email);
+    return { message: 'OTP successfully resent.' };
   }
 
   async login(loginDto: LoginDto) {
@@ -93,7 +103,11 @@ export class AuthenticationService {
       include: { user: true },
     });
 
-    if (!tokenRecord || tokenRecord.isRevoked || tokenRecord.expiresAt < new Date()) {
+    if (
+      !tokenRecord ||
+      tokenRecord.isRevoked ||
+      tokenRecord.expiresAt < new Date()
+    ) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
@@ -120,7 +134,7 @@ export class AuthenticationService {
     await this.otpService.verifyOtp(dto.email, dto.otp);
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
-    
+
     const user = await this.usersService.findByEmail(dto.email);
     if (user) {
       await this.prisma.user.update({
@@ -156,7 +170,7 @@ export class AuthenticationService {
 
     // Generate Refresh Token
     const refreshTokenString = crypto.randomBytes(40).toString('hex');
-    const expiresInDays = 7; 
+    const expiresInDays = 7;
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 

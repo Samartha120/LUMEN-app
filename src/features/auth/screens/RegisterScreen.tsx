@@ -41,6 +41,7 @@ const { width, height } = Dimensions.get("window");
 const registerSchema = z
   .object({
     fullName: z.string().min(2, "Full name must be at least 2 characters"),
+    phoneNumber: z.string().min(10, "Please enter a valid phone number"),
     email: z.string().email("Please enter a valid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
@@ -225,40 +226,10 @@ export default function RegisterScreen() {
     handleSubmit,
     formState: { errors },
     watch,
-    reset,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { fullName: "", phoneNumber: "", email: "", password: "", confirmPassword: "" },
   });
-
-  // Load saved draft
-  useEffect(() => {
-    const loadDraft = async () => {
-      try {
-        const saved = await AsyncStorage.getItem("register_draft");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          reset({
-            fullName: parsed.fullName || "",
-            email: parsed.email || "",
-            password: parsed.password || "",
-            confirmPassword: parsed.confirmPassword || ""
-          });
-        }
-      } catch (e) {
-        console.warn("Failed to load draft", e);
-      }
-    };
-    loadDraft();
-  }, [reset]);
-
-  // Save draft on change
-  useEffect(() => {
-    const subscription = watch((value) => {
-      AsyncStorage.setItem("register_draft", JSON.stringify(value)).catch(() => {});
-    });
-    return () => subscription.unsubscribe();
-  }, [watch]);
 
   const passwordValue = watch("password");
 
@@ -268,6 +239,7 @@ export default function RegisterScreen() {
     try {
       await AuthService.generateOtp({
         fullName: data.fullName,
+        phoneNumber: data.phoneNumber,
         email: data.email,
         password: data.password,
       });
@@ -286,15 +258,19 @@ export default function RegisterScreen() {
       <StatusBar barStyle="light-content" />
 
       {/* Background gradient */}
-      <LinearGradient
-        colors={["#060818", "#0F0A2E", "#060818"]}
-        style={StyleSheet.absoluteFill}
-      />
+      <LinearGradient colors={["#060818", "#0F0A2E", "#060818"]} style={StyleSheet.absoluteFill} />
 
       {/* Atmospheric orbs */}
       <FloatingOrb color="#A78BFA" size={320} top={-130} right={-130} delay={0} duration={4500} />
       <FloatingOrb color="#818CF8" size={200} bottom={100} left={-80} delay={300} duration={5000} />
-      <FloatingOrb color="#6EE7B7" size={150} top={height * 0.5} right={-50} delay={500} duration={3800} />
+      <FloatingOrb
+        color="#6EE7B7"
+        size={150}
+        top={height * 0.5}
+        right={-50}
+        delay={500}
+        duration={3800}
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -343,9 +319,7 @@ export default function RegisterScreen() {
               transition={{ type: "timing", delay: 380, duration: 400 }}
             >
               <Text style={styles.title}>Create Your Account</Text>
-              <Text style={styles.subtitle}>
-                Report issues · Track progress · Build your city
-              </Text>
+              <Text style={styles.subtitle}>Report issues · Track progress · Build your city</Text>
             </MotiView>
 
             {/* Feature checkmarks */}
@@ -413,6 +387,33 @@ export default function RegisterScreen() {
                         onBlur={onBlur}
                         error={errors.fullName?.message}
                         isValid={!errors.fullName && value.length >= 2}
+                        size="lg"
+                      />
+                    )}
+                  />
+                </MotiView>
+
+                {/* Phone Number */}
+                <MotiView
+                  from={{ opacity: 0, translateX: -20 }}
+                  animate={{ opacity: 1, translateX: 0 }}
+                  transition={{ type: "spring", delay: 500, damping: 18 }}
+                >
+                  <Controller
+                    control={control}
+                    name="phoneNumber"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        label="Phone Number"
+                        placeholder="Enter your phone number"
+                        keyboardType="phone-pad"
+                        autoComplete="tel"
+                        iconLeft="phone"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        error={errors.phoneNumber?.message}
+                        isValid={!errors.phoneNumber && value.length >= 10}
                         size="lg"
                       />
                     )}
@@ -501,7 +502,9 @@ export default function RegisterScreen() {
                         onChangeText={onChange}
                         onBlur={onBlur}
                         error={errors.confirmPassword?.message}
-                        isValid={!errors.confirmPassword && value.length >= 6 && value === passwordValue}
+                        isValid={
+                          !errors.confirmPassword && value.length >= 6 && value === passwordValue
+                        }
                         size="lg"
                       />
                     )}
@@ -518,8 +521,7 @@ export default function RegisterScreen() {
                   <LumenIcon name="info" size="xs" color="#475569" />
                   <Text style={styles.termsText}>
                     By creating an account, you agree to our{" "}
-                    <Text style={styles.termsLink}>Terms of Service</Text>
-                    {" "}and{" "}
+                    <Text style={styles.termsLink}>Terms of Service</Text> and{" "}
                     <Text style={styles.termsLink}>Privacy Policy</Text>
                   </Text>
                 </MotiView>

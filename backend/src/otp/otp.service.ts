@@ -50,6 +50,27 @@ export class OtpService {
     this.logger.log(`Generated and sent OTP to ${email}`);
   }
 
+  async resendOtp(email: string) {
+    // @ts-ignore
+    const existingOtp = await this.prisma.otp.findUnique({
+      where: { email },
+    });
+
+    if (!existingOtp) {
+      throw new BadRequestException(
+        'No pending verification found for this email',
+      );
+    }
+
+    // Reuse the existing data but generate a new OTP
+    await this.generateAndSendOtp(
+      email,
+      existingOtp.fullName ?? undefined,
+      existingOtp.phoneNumber ?? undefined,
+      existingOtp.passwordHash ?? undefined,
+    );
+  }
+
   async verifyOtp(email: string, otp: string) {
     // @ts-ignore - IDE TS Server caching issue
     const otpRecord = await this.prisma.otp.findUnique({
@@ -57,7 +78,9 @@ export class OtpService {
     });
 
     if (!otpRecord) {
-      throw new BadRequestException('No pending verification found for this email');
+      throw new BadRequestException(
+        'No pending verification found for this email',
+      );
     }
 
     if (otpRecord.expiresAt < new Date()) {
@@ -69,11 +92,13 @@ export class OtpService {
     if (otpRecord.attempts >= 5) {
       // @ts-ignore - IDE TS Server caching issue
       await this.prisma.otp.delete({ where: { id: otpRecord.id } });
-      throw new BadRequestException('Maximum verification attempts exceeded. Please request a new OTP.');
+      throw new BadRequestException(
+        'Maximum verification attempts exceeded. Please request a new OTP.',
+      );
     }
 
     const isValid = await bcrypt.compare(otp, otpRecord.otpHash);
-    
+
     if (!isValid) {
       // @ts-ignore - IDE TS Server caching issue
       await this.prisma.otp.update({

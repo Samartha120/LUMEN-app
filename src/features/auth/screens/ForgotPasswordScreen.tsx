@@ -23,7 +23,7 @@ export default function ForgotPasswordScreen() {
   const [loading, setLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [step, setStep] = useState<"email" | "reset">("email");
-  
+
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -33,7 +33,7 @@ export default function ForgotPasswordScreen() {
       setErrorText("Please enter a valid email address.");
       return;
     }
-    
+
     setLoading(true);
     setErrorText(null);
     try {
@@ -92,14 +92,18 @@ export default function ForgotPasswordScreen() {
         >
           <View style={styles.headerContainer}>
             <View style={styles.iconWrapper}>
-              <LumenIcon name={step === "email" ? "shield" : "reportDetails"} size="2xl" color="#38BDF8" />
+              <LumenIcon
+                name={step === "email" ? "shield" : "reportDetails"}
+                size="2xl"
+                color="#38BDF8"
+              />
             </View>
             <Text style={[TextStyles.heading1, styles.title]}>
               {step === "email" ? "Reset Password" : "Create New Password"}
             </Text>
             <Text style={[TextStyles.body, styles.subtitle]}>
-              {step === "email" 
-                ? "Enter your email to receive a recovery code." 
+              {step === "email"
+                ? "Enter your email to receive a recovery code."
                 : `Enter the code sent to ${email} and your new password.`}
             </Text>
           </View>
@@ -159,7 +163,6 @@ export default function ForgotPasswordScreen() {
                   />
                 </>
               )}
-
             </View>
           </BlurView>
 

@@ -1,3 +1,4 @@
+export { ActionModal } from "./ActionModal";
 export { AnimatedCounter } from "./AnimatedCounter";
 export { BarChart } from "./BarChart";
 export { DonutChart } from "./DonutChart";

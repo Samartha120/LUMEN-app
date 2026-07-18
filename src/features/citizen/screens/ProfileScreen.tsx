@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, StatusBar, Dimensions } from "react-native";
 import { router } from "expo-router";
 import { BlurView } from "expo-blur";
@@ -14,8 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
-import { Avatar } from "@/design-system/components/Avatar";
-import { Badge } from "@/design-system/components/Badge";
+import { Avatar, Badge, ActionModal, Input, Button } from "@/design-system/components";
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
 import type { LumenIconName } from "@/design-system";
 import { useAuthStore } from "@/store/AuthStore";
@@ -34,6 +33,7 @@ interface MenuItem {
 export default function ProfileScreen() {
   const { colors, isDark, mode, setMode } = useTheme();
   const { user, userAvatars, setAvatarUri } = useAuthStore();
+  const [activeModal, setActiveModal] = useState<string | null>(null);
 
   const userId = user?.id || "mock-user-id";
   const avatarUri = userAvatars[userId] || null;
@@ -69,9 +69,24 @@ export default function ProfileScreen() {
           value: userFullName.split(" ")[0] || "Samuel K.",
           route: "/(citizen)/Settings",
         },
-        { icon: "email", label: "Email Address", value: userEmail },
-        { icon: "phone", label: "Phone Number", value: "+91 98765 43210" },
-        { icon: "shield", label: "Verification", value: "Verified" },
+        {
+          icon: "email",
+          label: "Email Address",
+          value: userEmail,
+          onAction: () => setActiveModal("email"),
+        },
+        {
+          icon: "phone",
+          label: "Phone Number",
+          value: "+91 98765 43210",
+          onAction: () => setActiveModal("phone"),
+        },
+        {
+          icon: "shield",
+          label: "Verification",
+          value: "Verified",
+          onAction: () => setActiveModal("verification"),
+        },
       ],
     },
     {
@@ -82,7 +97,12 @@ export default function ProfileScreen() {
           label: "Notification Settings",
           route: "/(citizen)/Notifications",
         },
-        { icon: "globe", label: "Language", value: "English" },
+        {
+          icon: "globe",
+          label: "Language",
+          value: "English",
+          onAction: () => setActiveModal("language"),
+        },
         {
           icon: "sun",
           label: "Theme",
@@ -95,8 +115,8 @@ export default function ProfileScreen() {
       title: "Support",
       items: [
         { icon: "help", label: "Help & FAQ", route: "/(citizen)/Help" },
-        { icon: "comment", label: "Send Feedback" },
-        { icon: "external", label: "Rate the App" },
+        { icon: "comment", label: "Send Feedback", onAction: () => setActiveModal("feedback") },
+        { icon: "external", label: "Rate the App", onAction: () => setActiveModal("rate") },
       ],
     },
     {
@@ -246,6 +266,139 @@ export default function ProfileScreen() {
           </Animated.View>
         ))}
       </ScrollView>
+
+      {/* ── Modals ── */}
+      <ActionModal
+        visible={activeModal === "email"}
+        onClose={() => setActiveModal(null)}
+        title="Email Address"
+        icon="email"
+      >
+        <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>
+          Update your primary email address for notifications and account recovery.
+        </Text>
+        <Input
+          label="New Email Address"
+          placeholder={userEmail}
+          style={{ marginBottom: Spacing[4] }}
+        />
+        <Button label="Save Changes" onPress={() => setActiveModal(null)} />
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "phone"}
+        onClose={() => setActiveModal(null)}
+        title="Phone Number"
+        icon="phone"
+      >
+        <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>
+          Update your contact number. We will send a verification code to confirm.
+        </Text>
+        <Input
+          label="Mobile Number"
+          placeholder="+91 98765 43210"
+          style={{ marginBottom: Spacing[4] }}
+        />
+        <Button label="Update Number" onPress={() => setActiveModal(null)} />
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "verification"}
+        onClose={() => setActiveModal(null)}
+        title="Verification Status"
+        icon="shield"
+      >
+        <View style={{ alignItems: "center", marginBottom: Spacing[6], marginTop: Spacing[2] }}>
+          <View
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 32,
+              backgroundColor: "#ECFDF3",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: Spacing[4],
+            }}
+          >
+            <LumenIcon name="success" size="lg" color="#12B76A" />
+          </View>
+          <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: 8 }]}>
+            Fully Verified
+          </Text>
+          <Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center" }]}>
+            Your identity has been verified via the national citizen database. You have full access
+            to all civic services.
+          </Text>
+        </View>
+        <Button label="Done" variant="secondary" onPress={() => setActiveModal(null)} />
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "language"}
+        onClose={() => setActiveModal(null)}
+        title="App Language"
+        icon="globe"
+      >
+        <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>
+          Select your preferred language for the application interface.
+        </Text>
+        {["English", "Hindi", "Marathi", "Gujarati"].map((lang, i) => (
+          <Pressable
+            key={lang}
+            onPress={() => setActiveModal(null)}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: Spacing[4],
+              borderBottomWidth: i < 3 ? 1 : 0,
+              borderBottomColor: colors.borderDefault,
+            }}
+          >
+            <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}>{lang}</Text>
+            {lang === "English" && <LumenIcon name="success" size="sm" color={colors.brand} />}
+          </Pressable>
+        ))}
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "feedback"}
+        onClose={() => setActiveModal(null)}
+        title="Send Feedback"
+        icon="comment"
+      >
+        <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>
+          We'd love to hear your thoughts or suggestions on how we can improve the Lumen app.
+        </Text>
+        <Input
+          label="Your Feedback"
+          placeholder="Type your message here..."
+          style={{ marginBottom: Spacing[4] }}
+        />
+        <Button label="Submit Feedback" onPress={() => setActiveModal(null)} />
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "rate"}
+        onClose={() => setActiveModal(null)}
+        title="Rate the App"
+        icon="star"
+      >
+        <View style={{ alignItems: "center", marginBottom: Spacing[6], marginTop: Spacing[2] }}>
+          <View style={{ flexDirection: "row", gap: Spacing[2], marginBottom: Spacing[4] }}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <LumenIcon key={star} name="star" size="xl" color="#F79009" />
+            ))}
+          </View>
+          <Text style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: 8 }]}>
+            Enjoying Lumen?
+          </Text>
+          <Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center" }]}>
+            Tap a star to rate it on the App Store.
+          </Text>
+        </View>
+        <Button label="Submit Rating" onPress={() => setActiveModal(null)} />
+      </ActionModal>
     </View>
   );
 }
@@ -378,13 +531,26 @@ function MenuRow({
         <Text
           style={[
             TextStyles.bodyMedium,
-            { color: item.danger ? "#D92D20" : colors.textPrimary, flex: 1, fontWeight: "500" },
+            {
+              color: item.danger ? "#D92D20" : colors.textPrimary,
+              flex: 1,
+              fontWeight: "500",
+              marginRight: 8,
+            },
           ]}
+          numberOfLines={1}
         >
           {item.label}
         </Text>
         {item.value && (
-          <Text style={[TextStyles.bodySmall, { color: colors.textTertiary, marginRight: 8 }]}>
+          <Text
+            style={[
+              TextStyles.bodySmall,
+              { color: colors.textTertiary, marginRight: 8, flexShrink: 1, textAlign: "right" },
+            ]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {item.value}
           </Text>
         )}

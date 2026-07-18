@@ -5,10 +5,15 @@ import * as ImagePicker from "expo-image-picker";
 
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
-import { Card } from "@/design-system/components/Card";
-import { Badge } from "@/design-system/components/Badge";
-import { Avatar } from "@/design-system/components/Avatar";
-import { StatCard } from "@/design-system/components/StatCard";
+import {
+  Card,
+  Badge,
+  Avatar,
+  StatCard,
+  ActionModal,
+  Input,
+  Button,
+} from "@/design-system/components";
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
 import type { LumenIconName } from "@/design-system";
 import { useAuthStore } from "@/store/AuthStore";
@@ -20,6 +25,7 @@ interface MenuItem {
   route?: string;
   color?: string;
   danger?: boolean;
+  onAction?: () => void;
 }
 
 export default function EngineerProfileScreen() {
@@ -31,6 +37,7 @@ export default function EngineerProfileScreen() {
   const avatarUri = userAvatars[userId] || null;
   const userEmail = user?.email || "engineer@lumen.app";
   const userFullName = user?.user_metadata?.full_name || "Rajesh Kumar";
+  const [activeModal, setActiveModal] = useState<string | null>(null);
 
   const pickAvatar = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -46,6 +53,10 @@ export default function EngineerProfileScreen() {
   };
 
   const handleItem = (item: MenuItem) => {
+    if (item.onAction) {
+      item.onAction();
+      return;
+    }
     if (item.danger) {
       router.replace("/Login" as any);
       return;
@@ -57,9 +68,24 @@ export default function EngineerProfileScreen() {
     {
       title: "Duty & Schedule",
       items: [
-        { icon: "calendar", label: "Shift Schedule", value: "08:00 - 17:00" },
-        { icon: "mapPin", label: "Assigned Zone", value: "Zone B (Central)" },
-        { icon: "tools", label: "Tool Inventory", value: "12 Assets" },
+        {
+          icon: "calendar",
+          label: "Shift Schedule",
+          value: "08:00 - 17:00",
+          onAction: () => setActiveModal("shift"),
+        },
+        {
+          icon: "mapPin",
+          label: "Assigned Zone",
+          value: "Zone B (Central)",
+          onAction: () => setActiveModal("zone"),
+        },
+        {
+          icon: "tools",
+          label: "Tool Inventory",
+          value: "12 Assets",
+          onAction: () => setActiveModal("tools"),
+        },
       ],
     },
     {
@@ -70,16 +96,26 @@ export default function EngineerProfileScreen() {
           label: "Personal Information",
           value: userFullName.split(" ")[0] || "Rajesh K.",
         },
-        { icon: "email", label: "Email Address", value: userEmail },
-        { icon: "phone", label: "Contact Phone", value: "+91 99887 76655" },
+        {
+          icon: "email",
+          label: "Email Address",
+          value: userEmail,
+          onAction: () => setActiveModal("email"),
+        },
+        {
+          icon: "phone",
+          label: "Contact Phone",
+          value: "+91 99887 76655",
+          onAction: () => setActiveModal("phone"),
+        },
         { icon: "sun", label: "App Theme", value: "Dark Mode" },
       ],
     },
     {
       title: "Support",
       items: [
-        { icon: "help", label: "Safety Regulations" },
-        { icon: "comment", label: "Report App Bug" },
+        { icon: "help", label: "Safety Regulations", onAction: () => setActiveModal("safety") },
+        { icon: "comment", label: "Report App Bug", onAction: () => setActiveModal("bug") },
       ],
     },
     {
@@ -216,13 +252,25 @@ export default function EngineerProfileScreen() {
                   <Text
                     style={[
                       TextStyles.bodyMedium,
-                      { color: item.danger ? "#F04438" : colors.textPrimary, flex: 1 },
+                      {
+                        color: item.danger ? "#F04438" : colors.textPrimary,
+                        flex: 1,
+                        marginRight: 8,
+                      },
                     ]}
+                    numberOfLines={1}
                   >
                     {item.label}
                   </Text>
                   {item.value && (
-                    <Text style={[TextStyles.bodySmall, { color: colors.textTertiary }]}>
+                    <Text
+                      style={[
+                        TextStyles.bodySmall,
+                        { color: colors.textTertiary, flexShrink: 1, textAlign: "right" },
+                      ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
                       {item.value}
                     </Text>
                   )}
@@ -242,6 +290,121 @@ export default function EngineerProfileScreen() {
 
         <View style={{ height: Spacing[10] }} />
       </ScrollView>
+
+      {/* ── Modals ── */}
+      <ActionModal
+        visible={activeModal === "shift"}
+        onClose={() => setActiveModal(null)}
+        title="Shift Schedule"
+        icon="calendar"
+      >
+        <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>
+          Your active shift is assigned from 08:00 AM to 05:00 PM. Overtime hours will be
+          automatically logged by the dispatcher.
+        </Text>
+        <Button
+          label="Request Shift Change"
+          variant="secondary"
+          onPress={() => setActiveModal(null)}
+        />
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "zone"}
+        onClose={() => setActiveModal(null)}
+        title="Assigned Zone"
+        icon="mapPin"
+      >
+        <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>
+          You are currently assigned to Zone B (Central District). You will primarily receive issues
+          reported in this geographical boundary.
+        </Text>
+        <Button label="Acknowledge" onPress={() => setActiveModal(null)} />
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "tools"}
+        onClose={() => setActiveModal(null)}
+        title="Tool Inventory"
+        icon="tools"
+      >
+        <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>
+          You have 12 assets assigned to you (including protective gear, multimeter, and transport
+          vehicle). Please ensure all assets are accounted for at the end of the shift.
+        </Text>
+        <Button
+          label="View Full Inventory"
+          variant="secondary"
+          onPress={() => setActiveModal(null)}
+        />
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "email"}
+        onClose={() => setActiveModal(null)}
+        title="Email Address"
+        icon="email"
+      >
+        <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>
+          Update your official dispatch email address.
+        </Text>
+        <Input label="Email Address" placeholder={userEmail} style={{ marginBottom: Spacing[4] }} />
+        <Button label="Save Email" onPress={() => setActiveModal(null)} />
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "phone"}
+        onClose={() => setActiveModal(null)}
+        title="Contact Phone"
+        icon="phone"
+      >
+        <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>
+          Update your contact number. A verification code will be sent.
+        </Text>
+        <Input
+          label="Mobile Number"
+          placeholder="+91 99887 76655"
+          style={{ marginBottom: Spacing[4] }}
+        />
+        <Button label="Update Contact" onPress={() => setActiveModal(null)} />
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "safety"}
+        onClose={() => setActiveModal(null)}
+        title="Safety Regulations"
+        icon="help"
+      >
+        <View style={{ marginBottom: Spacing[4] }}>
+          <Text
+            style={[TextStyles.heading2, { color: colors.textPrimary, marginBottom: Spacing[2] }]}
+          >
+            PPE Required
+          </Text>
+          <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
+            Ensure all protective equipment is worn before attending to electrical or hazardous
+            infrastructure issues. Failure to comply violates safety protocol.
+          </Text>
+        </View>
+        <Button label="I Understand" onPress={() => setActiveModal(null)} />
+      </ActionModal>
+
+      <ActionModal
+        visible={activeModal === "bug"}
+        onClose={() => setActiveModal(null)}
+        title="Report App Bug"
+        icon="comment"
+      >
+        <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>
+          Describe the issue you encountered in the app. Logs will be automatically attached.
+        </Text>
+        <Input
+          label="Description"
+          placeholder="What went wrong?"
+          style={{ marginBottom: Spacing[4] }}
+        />
+        <Button label="Submit Bug Report" onPress={() => setActiveModal(null)} />
+      </ActionModal>
     </View>
   );
 }

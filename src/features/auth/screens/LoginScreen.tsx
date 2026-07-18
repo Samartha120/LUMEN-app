@@ -113,82 +113,9 @@ function FloatingOrb({
   );
 }
 
-// Pulsing ring animation for the logo
-function PulsingLogo() {
-  const ring1 = useSharedValue(0);
-  const ring2 = useSharedValue(0);
+// Remove PulsingLogo since we are using the new Splash Logo
 
-  useEffect(() => {
-    ring1.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 1800, easing: Easing.out(Easing.ease) }),
-        withTiming(0, { duration: 0 })
-      ),
-      -1,
-      false
-    );
-    ring2.value = withDelay(
-      600,
-      withRepeat(
-        withSequence(
-          withTiming(1, { duration: 1800, easing: Easing.out(Easing.ease) }),
-          withTiming(0, { duration: 0 })
-        ),
-        -1,
-        false
-      )
-    );
-  }, []);
-
-  const ring1Style = useAnimatedStyle(() => ({
-    opacity: interpolate(ring1.value, [0, 0.5, 1], [0.6, 0.2, 0]),
-    transform: [{ scale: interpolate(ring1.value, [0, 1], [1, 1.8]) }],
-  }));
-
-  const ring2Style = useAnimatedStyle(() => ({
-    opacity: interpolate(ring2.value, [0, 0.5, 1], [0.4, 0.1, 0]),
-    transform: [{ scale: interpolate(ring2.value, [0, 1], [1, 2.2]) }],
-  }));
-
-  return (
-    <View style={logoStyles.container}>
-      <Animated.View style={[logoStyles.ring, ring2Style]} />
-      <Animated.View style={[logoStyles.ring, ring1Style]} />
-      <LinearGradient
-        colors={["#38BDF8", "#818CF8"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={logoStyles.logoGradient}
-      >
-        <LumenIcon name="spark" size="xl" color="#FFFFFF" />
-      </LinearGradient>
-    </View>
-  );
-}
-
-const logoStyles = StyleSheet.create({
-  container: {
-    width: 90,
-    height: 90,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ring: {
-    position: "absolute",
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 2,
-    borderColor: "#38BDF8",
-  },
-  logoGradient: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+// Logo styles removed
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
@@ -326,21 +253,56 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header section */}
-          <MotiView
-            from={{ opacity: 0, translateY: -30 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "spring", delay: 100, damping: 18 }}
-            style={styles.headerSection}
-          >
-            <PulsingLogo />
-            <MotiText
-              from={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: "spring", delay: 300 }}
-              style={styles.brand}
+          <View style={styles.headerSection}>
+            {/* Stylized L Icon */}
+            <MotiView
+              from={{ opacity: 0, translateY: 20 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 800 }}
+              style={styles.lIconContainer}
             >
-              LUMEN
-            </MotiText>
+              <View style={styles.lVertical} />
+              <LinearGradient
+                colors={["#208AEF", "#0ED3FF"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.lHorizontal}
+              />
+            </MotiView>
+
+            {/* Text Logo with Stylized E */}
+            <MotiView
+              from={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "timing", duration: 800, delay: 200 }}
+              style={styles.textLogoContainer}
+            >
+              <Text style={styles.logoText}>L U M</Text>
+
+              {/* Stylized E */}
+              <View style={styles.eContainer}>
+                <LinearGradient
+                  colors={["#208AEF", "#0ED3FF"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.eBar, { width: 28 }]}
+                />
+                <LinearGradient
+                  colors={["#208AEF", "#0ED3FF"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.eBar, { width: 34 }]}
+                />
+                <LinearGradient
+                  colors={["#208AEF", "#0ED3FF"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.eBar, { width: 28 }]}
+                />
+              </View>
+
+              <Text style={styles.logoText}>N</Text>
+            </MotiView>
             <MotiView
               from={{ opacity: 0, translateY: 10 }}
               animate={{ opacity: 1, translateY: 0 }}
@@ -349,7 +311,7 @@ export default function LoginScreen() {
               <Text style={styles.title}>Welcome Back</Text>
               <Text style={styles.subtitle}>Sign in to your account to continue</Text>
             </MotiView>
-          </MotiView>
+          </View>
 
           {/* Glass card */}
           <MotiView
@@ -580,16 +542,52 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     alignItems: "center",
-    marginBottom: 32,
-  },
-  brand: {
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 8,
-    color: "#38BDF8",
-    marginTop: 14,
     marginBottom: 20,
-    opacity: 0.9,
+  },
+  lIconContainer: {
+    width: 60,
+    height: 80,
+    marginBottom: 8,
+    transform: [{ scale: 0.8 }], // Scale down a bit for the login screen
+  },
+  lVertical: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: 22,
+    height: 80,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 11,
+  },
+  lHorizontal: {
+    position: "absolute",
+    left: 11,
+    bottom: 0,
+    width: 49,
+    height: 22,
+    borderRadius: 11,
+  },
+  textLogoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 16,
+    transform: [{ scale: 0.8 }], // Scale down a bit for the login screen
+  },
+  logoText: {
+    color: "#FFFFFF",
+    fontSize: 48,
+    fontWeight: "600",
+    letterSpacing: 8,
+  },
+  eContainer: {
+    height: 38,
+    justifyContent: "space-between",
+    marginHorizontal: 4,
+  },
+  eBar: {
+    height: 8,
+    borderRadius: 4,
   },
   title: {
     fontSize: 28,

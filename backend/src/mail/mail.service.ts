@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import * as path from 'path';
 
 @Injectable()
 export class MailService {
@@ -51,7 +50,6 @@ export class MailService {
   }
 
   async sendOtpEmail(to: string, otp: string) {
-    const logoPath = path.join(__dirname, 'lumen_logo.png');
     const htmlTemplate = `
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
         <tr>
@@ -61,7 +59,7 @@ export class MailService {
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 24px;">
                 <tr>
                   <td align="center">
-                    <img src="cid:logo" alt="LUMEN Logo" width="80" height="80" style="display: block; border-radius: 50%; border: 2px solid #e2e8f0;" />
+                    <img src="https://raw.githubusercontent.com/Samartha120/LUMEN-app/main/backend/src/mail/lumen_logo.png" alt="LUMEN Logo" width="80" height="80" style="display: block; border-radius: 50%; border: 2px solid #e2e8f0;" />
                   </td>
                 </tr>
               </table>
@@ -108,13 +106,6 @@ export class MailService {
         to,
         subject: 'LUMEN - Verify your account (OTP)',
         html: htmlTemplate,
-        attachments: [
-          {
-            filename: 'lumen_logo.png',
-            path: logoPath,
-            cid: 'logo',
-          },
-        ],
       });
 
       this.logger.log(`OTP Email sent to ${to}.`);

@@ -124,6 +124,19 @@ export default function LoginScreen() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [canUseBiometric, setCanUseBiometric] = useState(false);
 
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
+  const emailValue = watch("email");
+
   useEffect(() => {
     const init = async () => {
       const lastEmail = await AsyncStorage.getItem("lumen_last_email");
@@ -144,10 +157,17 @@ export default function LoginScreen() {
       return;
     }
     try {
-      const hasHardware = await LocalAuthentication.hasHardwareAsync();
-      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      const userBiometricKey = `${SECURE_STORE_CREDENTIALS_KEY}_${emailValue.toLowerCase().trim()}`;
+      let hasHardware = await LocalAuthentication.hasHardwareAsync();
+      let isEnrolled = await LocalAuthentication.isEnrolledAsync();
+      
+      if (__DEV__) {
+        hasHardware = true;
+        isEnrolled = true;
+      }
+
+      const userBiometricKey = AuthService.getBiometricKey(emailValue);
       const storedCreds = await SecureStore.getItemAsync(userBiometricKey);
+      
       if (hasHardware && isEnrolled && storedCreds) {
         setCanUseBiometric(true);
       } else {
@@ -159,39 +179,45 @@ export default function LoginScreen() {
     }
   };
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
-  });
 
-  const emailValue = watch("email");
 
-  const promptEnableBiometric = async (password: string) => {
-    const hasHardware = await LocalAuthentication.hasHardwareAsync();
-    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+  const promptEnableBiometric = async (email: string, password: string, biometricEnabledOnBackend: boolean) => {
+    let hasHardware = await LocalAuthentication.hasHardwareAsync();
+    let isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    
+    if (__DEV__) {
+      hasHardware = true;
+      isEnrolled = true;
+    }
+
     if (hasHardware && isEnrolled) {
-      const email = watch("email");
       if (!email) return;
-      const userBiometricKey = `${SECURE_STORE_CREDENTIALS_KEY}_${email.toLowerCase().trim()}`;
+      const userBiometricKey = AuthService.getBiometricKey(email);
       const storedCreds = await SecureStore.getItemAsync(userBiometricKey);
-      if (!storedCreds) {
+      // Check if user has previously declined the biometric prompt for this email
+      const declinedKey = `biometric_declined_${email}`;
+      const hasDeclined = await AsyncStorage.getItem(declinedKey);
+
+      // Prompt if not enabled on backend OR if credentials are missing locally, AND they haven't declined
+      if ((!biometricEnabledOnBackend || !storedCreds) && !hasDeclined) {
         return new Promise<void>((resolve) => {
           Alert.alert(
             "Enable Face ID / Touch ID?",
             "Would you like to securely log in with biometrics next time?",
             [
-              { text: "Not Now", style: "cancel", onPress: () => resolve() },
+              { 
+                text: "Not Now", 
+                style: "cancel", 
+                onPress: async () => {
+                  await AsyncStorage.setItem(declinedKey, "true");
+                  resolve();
+                } 
+              },
               {
                 text: "Enable",
                 onPress: async () => {
                   try {
-                    await AuthService.enrollBiometric(password);
+                    await AuthService.enrollBiometric(email, password);
                     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   } catch (e: any) {
                     Alert.alert("Failed to enroll", e.message);
@@ -212,7 +238,7 @@ export default function LoginScreen() {
     try {
       const user = await AuthService.login(data.email, data.password);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      await promptEnableBiometric(data.password);
+      await promptEnableBiometric(data.email, data.password, !!user.biometricEnabled);
       if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
         router.replace("/(admin)/Dashboard" as any);
       } else {

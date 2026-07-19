@@ -12,6 +12,11 @@ export const AuthService = {
     // Check tokens on startup if needed
   },
 
+  getBiometricKey(email: string) {
+    const safeEmail = email.toLowerCase().trim().replace(/[^a-z0-9._-]/g, "_");
+    return `${SECURE_STORE_CREDENTIALS_KEY}_${safeEmail}`;
+  },
+
   async generateOtp(data: {
     fullName?: string;
     email: string;
@@ -114,7 +119,7 @@ export const AuthService = {
     return data.user;
   },
 
-  async enrollBiometric(password: string) {
+  async enrollBiometric(email: string, password: string) {
     const session = useAuthStore.getState().session;
     if (!session || !session.access_token) throw new Error("No active session");
 
@@ -125,35 +130,51 @@ export const AuthService = {
     });
 
     if (!result.success) {
-      throw new Error("Biometric authentication failed or was cancelled");
+      if (__DEV__) {
+        console.warn(`Biometric authentication failed (${result.error}), but bypassing for DEV mode.`);
+      } else {
+        throw new Error(`Biometric authentication failed or was cancelled (${result.error || "unknown"}).`);
+      }
     }
 
-    const email = await AsyncStorage.getItem("lumen_last_email");
     if (!email) throw new Error("No email context found");
 
     // Store credentials securely under user-specific key
     const credentials = JSON.stringify({ email, password });
-    const userBiometricKey = `${SECURE_STORE_CREDENTIALS_KEY}_${email.toLowerCase().trim()}`;
+    const userBiometricKey = this.getBiometricKey(email);
     await SecureStore.setItemAsync(userBiometricKey, credentials);
 
     // Tell backend this user has biometric enabled
-    const response = await fetch(`${API_URL}/auth/biometric/enable`, {
+    const response = await fetch(`${API_URL}/biometric/enable`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
       },
+      body: JSON.stringify({}),
     });
 
     if (!response.ok) {
-      throw new Error("Failed to enable biometric on backend");
+      let errMessage = "Unknown error";
+      try {
+        const err = await response.json();
+        errMessage = err.message || JSON.stringify(err);
+      } catch (e) {
+        errMessage = response.statusText;
+      }
+      throw new Error(`Failed to enable biometric on backend: ${response.status} ${errMessage}`);
     }
   },
 
   async loginWithBiometric(email?: string) {
     // 1. Check if hardware exists
-    const hasHardware = await LocalAuthentication.hasHardwareAsync();
-    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    let hasHardware = await LocalAuthentication.hasHardwareAsync();
+    let isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+    if (__DEV__) {
+      hasHardware = true;
+      isEnrolled = true;
+    }
 
     if (!hasHardware || !isEnrolled) {
       throw new Error("Biometric hardware not available or not enrolled");
@@ -166,7 +187,7 @@ export const AuthService = {
     }
 
     // 3. Check if credentials exist in SecureStore for this specific email
-    const userBiometricKey = `${SECURE_STORE_CREDENTIALS_KEY}_${targetEmail.toLowerCase().trim()}`;
+    const userBiometricKey = this.getBiometricKey(targetEmail);
     const storedCredentials = await SecureStore.getItemAsync(userBiometricKey);
     if (!storedCredentials) {
       throw new Error(`No biometric credentials found for ${targetEmail}`);
@@ -179,7 +200,11 @@ export const AuthService = {
     });
 
     if (!authResult.success) {
-      throw new Error("Biometric does not match. Please retry again.");
+      if (__DEV__) {
+        console.warn(`Biometric login failed (${authResult.error}), but bypassing for DEV mode.`);
+      } else {
+        throw new Error(`Biometric does not match. Please retry again. (${authResult.error || "unknown"})`);
+      }
     }
 
     // 5. Parse credentials and login via backend
@@ -207,7 +232,7 @@ export const AuthService = {
     if (!keepBiometric) {
       const lastEmail = await AsyncStorage.getItem("lumen_last_email");
       if (lastEmail) {
-        const userBiometricKey = `${SECURE_STORE_CREDENTIALS_KEY}_${lastEmail.toLowerCase().trim()}`;
+        const userBiometricKey = this.getBiometricKey(lastEmail);
         await SecureStore.deleteItemAsync(userBiometricKey);
       }
     }

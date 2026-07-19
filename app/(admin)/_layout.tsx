@@ -1,56 +1,50 @@
-import { BottomNavigation, type NavItem } from "@/design-system/components/BottomNavigation";
+import { Tabs } from "expo-router";
 import { useTheme } from "@/design-system/ThemeContext";
-import { router, Tabs, useSegments } from "expo-router";
+import { LumenIcon } from "@/design-system/icons/LumenIcon";
+import { Platform } from "react-native";
 
 export default function AdminLayout() {
-  useTheme();
-  const segments = useSegments() as string[];
-
-  // Dynamically derive the current route and active tab name
-  const currentPath = segments[1] || "Dashboard";
-
-  const getActiveTab = (path: string) => {
-    if (path === "Analytics") return "Analytics";
-    if (path === "Users") return "Users";
-    if (path === "Settings") return "Settings";
-    return "Dashboard";
-  };
-
-  const activeTab = getActiveTab(currentPath);
-
-  const navItems: NavItem[] = [
-    { name: "Dashboard", icon: "home", label: "Home" },
-    { name: "Analytics", icon: "trend", label: "Analytics" },
-    { name: "Users", icon: "profile", label: "Users" },
-    { name: "Settings", icon: "settings", label: "Settings" },
-  ];
-
-  const handleTabPress = (name: string) => {
-    if (name === "Dashboard") {
-      router.push("/(admin)/Dashboard" as any);
-    } else if (name === "Analytics") {
-      router.push("/(admin)/Analytics" as any);
-    } else if (name === "Users") {
-      router.push("/(admin)/Users" as any);
-    } else if (name === "Settings") {
-      router.push("/(admin)/Settings" as any);
-    }
-  };
+  const { colors, isDark } = useTheme();
 
   return (
-    <>
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: { display: "none" },
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: isDark ? "#0A0A0A" : "#FFFFFF",
+          borderTopColor: colors.borderDefault,
+          height: Platform.OS === "ios" ? 88 : 68,
+          paddingBottom: Platform.OS === "ios" ? 28 : 12,
+          paddingTop: 12,
+          elevation: 8,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: isDark ? 0.3 : 0.05,
+          shadowRadius: 8,
+        },
+        tabBarActiveTintColor: colors.brand,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarLabelStyle: {
+          fontFamily: "Inter-Medium",
+          fontSize: 12,
+          marginTop: 4,
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="Dashboard"
+        options={{
+          title: "Dashboard",
+          tabBarIcon: ({ color }) => <LumenIcon name="home" size="md" color={color as string} />,
         }}
-      >
-        <Tabs.Screen name="Dashboard" />
-        <Tabs.Screen name="Analytics" />
-        <Tabs.Screen name="Users" />
-        <Tabs.Screen name="Settings" />
-      </Tabs>
-      <BottomNavigation items={navItems} activeTab={activeTab} onTabPress={handleTabPress} />
-    </>
+      />
+      <Tabs.Screen
+        name="Complaints"
+        options={{
+          title: "Complaints",
+          tabBarIcon: ({ color }) => <LumenIcon name="report" size="md" color={color as string} />,
+        }}
+      />
+    </Tabs>
   );
 }

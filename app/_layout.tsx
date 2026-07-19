@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, LogBox } from "react-native";
 import { ThemeProvider } from "@/design-system";
 import { useEffect } from "react";
+import "@/i18n/i18n";
 
 LogBox.ignoreLogs(["SafeAreaView has been deprecated", "setLayoutAnimationEnabledExperimental"]);
 

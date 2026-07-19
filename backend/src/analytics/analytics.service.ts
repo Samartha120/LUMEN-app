@@ -31,15 +31,5 @@ export class AnalyticsService {
     };
   }
 
-  async getEngineerWorkload() {
-    const workload = await this.prisma.assignment.groupBy({
-      by: ['engineerId'],
-      _count: { _all: true },
-    });
 
-    return workload.map((w) => ({
-      engineerId: w.engineerId,
-      assignedTasks: w._count._all,
-    }));
-  }
 }

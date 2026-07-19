@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { AllocateEngineerDto } from './dto/allocate-engineer.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
-import { ComplaintStatus, AssignmentStatus } from '@prisma/client';
+import { ComplaintStatus } from '@prisma/client';
 
 @Injectable()
 export class DepartmentService {
@@ -49,13 +49,6 @@ export class DepartmentService {
     return this.prisma.complaint.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: {
-        assignments: {
-          include: {
-            engineer: { select: { fullName: true } },
-          },
-        },
-      },
     });
   }
 
@@ -76,13 +69,6 @@ export class DepartmentService {
         ],
       },
       orderBy: { priority: 'desc' },
-      include: {
-        assignments: {
-          include: {
-            engineer: { select: { fullName: true } },
-          },
-        },
-      },
     });
   }
 
@@ -98,46 +84,7 @@ export class DepartmentService {
     });
   }
 
-  async allocateEngineer(
-    complaintId: string,
-    departmentUserId: string,
-    dto: AllocateEngineerDto,
-  ) {
-    const complaint = await this.prisma.complaint.findUnique({
-      where: { id: complaintId },
-    });
-    if (!complaint) throw new NotFoundException('Complaint not found');
-
-    const engineer = await this.prisma.user.findUnique({
-      where: { id: dto.engineerId, role: 'ENGINEER' },
-    });
-    if (!engineer) throw new NotFoundException('Engineer not found');
-
-    const assignment = await this.prisma.assignment.create({
-      data: {
-        complaintId,
-        engineerId: dto.engineerId,
-        notes: dto.notes,
-        status: AssignmentStatus.ASSIGNED,
-      },
-    });
-
-    await this.prisma.complaint.update({
-      where: { id: complaintId },
-      data: { status: ComplaintStatus.ASSIGNED },
-    });
-
-    await this.prisma.complaintTimeline.create({
-      data: {
-        complaintId,
-        status: ComplaintStatus.ASSIGNED,
-        notes: 'Engineer allocated by department',
-        performedById: departmentUserId,
-      },
-    });
-
-    return assignment;
-  }
+  // allocateEngineer removed as Assignment model is not in this scope
 
   async getReports() {
     const closedCount = await this.prisma.complaint.count({

@@ -62,15 +62,6 @@ export class DepartmentController {
     return this.departmentService.getAvailableEngineers();
   }
 
-  @Post('assignments/:complaintId')
-  @ApiOperation({ summary: 'Allocate an engineer to a complaint' })
-  async allocateEngineer(
-    @CurrentUser() user: User,
-    @Param('complaintId') complaintId: string,
-    @Body() dto: AllocateEngineerDto,
-  ) {
-    return this.departmentService.allocateEngineer(complaintId, user.id, dto);
-  }
 
   @Get('reports')
   @ApiOperation({ summary: 'Generate analytical performance reports' })

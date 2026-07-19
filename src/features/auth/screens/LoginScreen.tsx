@@ -32,10 +32,12 @@ import Animated, {
 import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
+import { useAuthStore } from "@/store/AuthStore";
 import { AuthService } from "@/services/auth.service";
 import * as Haptics from "expo-haptics";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
@@ -123,36 +125,61 @@ export default function LoginScreen() {
   const [canUseBiometric, setCanUseBiometric] = useState(false);
 
   useEffect(() => {
-    checkBiometricAvailability();
+    const init = async () => {
+      const lastEmail = await AsyncStorage.getItem("lumen_last_email");
+      if (lastEmail) {
+        setValue("email", lastEmail);
+      }
+    };
+    init();
   }, []);
 
+  useEffect(() => {
+    checkBiometricAvailability();
+  }, [emailValue]);
+
   const checkBiometricAvailability = async () => {
+    if (!emailValue) {
+      setCanUseBiometric(false);
+      return;
+    }
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      const storedCreds = await SecureStore.getItemAsync(SECURE_STORE_CREDENTIALS_KEY);
+      const userBiometricKey = `${SECURE_STORE_CREDENTIALS_KEY}_${emailValue.toLowerCase().trim()}`;
+      const storedCreds = await SecureStore.getItemAsync(userBiometricKey);
       if (hasHardware && isEnrolled && storedCreds) {
         setCanUseBiometric(true);
+      } else {
+        setCanUseBiometric(false);
       }
     } catch (e) {
       console.warn("Biometric check failed", e);
+      setCanUseBiometric(false);
     }
   };
 
   const {
     control,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
+  const emailValue = watch("email");
+
   const promptEnableBiometric = async (password: string) => {
     const hasHardware = await LocalAuthentication.hasHardwareAsync();
     const isEnrolled = await LocalAuthentication.isEnrolledAsync();
     if (hasHardware && isEnrolled) {
-      const storedCreds = await SecureStore.getItemAsync(SECURE_STORE_CREDENTIALS_KEY);
+      const email = watch("email");
+      if (!email) return;
+      const userBiometricKey = `${SECURE_STORE_CREDENTIALS_KEY}_${email.toLowerCase().trim()}`;
+      const storedCreds = await SecureStore.getItemAsync(userBiometricKey);
       if (!storedCreds) {
         return new Promise<void>((resolve) => {
           Alert.alert(
@@ -186,8 +213,8 @@ export default function LoginScreen() {
       const user = await AuthService.login(data.email, data.password);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       await promptEnableBiometric(data.password);
-      if (user.role === "engineer") {
-        router.replace("/(engineer)/Dashboard" as any);
+      if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+        router.replace("/(admin)/Dashboard" as any);
       } else {
         router.replace("/(citizen)/Dashboard" as any);
       }
@@ -201,10 +228,14 @@ export default function LoginScreen() {
 
   const handleBiometricLogin = async () => {
     try {
-      const user = await AuthService.loginWithBiometric();
+      const email = watch("email");
+      if (!email) {
+        throw new Error("Please enter your email to use biometric login");
+      }
+      const user = await AuthService.loginWithBiometric(email);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      if (user.role === "engineer") {
-        router.replace("/(engineer)/Dashboard" as any);
+      if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+        router.replace("/(admin)/Dashboard" as any);
       } else {
         router.replace("/(citizen)/Dashboard" as any);
       }
@@ -212,6 +243,12 @@ export default function LoginScreen() {
       setErrorText(err.message || "Biometric login failed.");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
+  };
+
+  const handleGuestLogin = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    useAuthStore.getState().loginAsGuest();
+    router.replace("/(citizen)/Dashboard" as any);
   };
 
   return (
@@ -502,6 +539,21 @@ export default function LoginScreen() {
               style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
             >
               <Text style={styles.registerLink}>Create Account</Text>
+            </Pressable>
+          </MotiView>
+
+          {/* Guest Mode */}
+          <MotiView
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ type: "timing", delay: 900, duration: 500 }}
+            style={[styles.footer, { marginTop: 16 }]}
+          >
+            <Pressable
+              onPress={handleGuestLogin}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Text style={[styles.registerLink, { color: "#94A3B8" }]}>Continue as Guest</Text>
             </Pressable>
           </MotiView>
 

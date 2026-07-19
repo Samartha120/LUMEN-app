@@ -2,13 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CreateComplaintDto } from './dto/create-complaint.dto';
 import { UpdateComplaintDto } from './dto/update-complaint.dto';
+import { SyncComplaintsDto } from './dto/sync-complaints.dto';
 import type { User, Complaint } from '@prisma/client';
 
 @Injectable()
 export class ComplaintsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createComplaintDto: CreateComplaintDto, user: User) {
+  async create(createComplaintDto: CreateComplaintDto, user: User | null) {
     const complaint = await this.prisma.complaint.create({
       data: {
         trackingId: `CMP-${Date.now()}`,
@@ -22,7 +23,7 @@ export class ComplaintsService {
         imageUrl: createComplaintDto.imageUrl,
         // @ts-ignore
         videoUrl: createComplaintDto.videoUrl,
-        reporterId: user.id,
+        reporterId: user ? user.id : undefined,
       },
     });
 
@@ -35,6 +36,42 @@ export class ComplaintsService {
     }
 
     return this.prisma.complaint.findUnique({ where: { id: complaint.id } });
+  }
+
+  async sync(syncDto: SyncComplaintsDto, user: User | null) {
+    const results: Complaint[] = [];
+    // Using a transaction to ensure atomic batch sync
+    await this.prisma.$transaction(async (tx) => {
+      for (const dto of syncDto.complaints) {
+        const complaint = await tx.complaint.create({
+          data: {
+            trackingId: `CMP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            title: dto.title,
+            description: dto.description,
+            category: dto.category,
+            priority: dto.priority,
+            latitude: dto.latitude,
+            longitude: dto.longitude,
+            // @ts-ignore
+            imageUrl: dto.imageUrl,
+            // @ts-ignore
+            videoUrl: dto.videoUrl,
+            reporterId: user ? user.id : undefined,
+          },
+        });
+        
+        if (dto.latitude && dto.longitude) {
+          await tx.$executeRaw`
+            UPDATE complaints
+            SET location = ST_SetSRID(ST_MakePoint(${dto.longitude}, ${dto.latitude}), 4326)
+            WHERE id = ${complaint.id};
+          `;
+        }
+        results.push(complaint);
+      }
+    });
+
+    return { synced: results.length, complaints: results };
   }
 
   findAll() {

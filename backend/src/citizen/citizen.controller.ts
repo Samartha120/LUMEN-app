@@ -1,7 +1,8 @@
-import { Controller, Get, Patch, Body, UseGuards, Param } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Body, UseGuards, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CitizenService } from './citizen.service';
 import { UpdateCitizenProfileDto } from './dto/update-citizen-profile.dto';
+import { VerifyIdentityDto } from './dto/verify-identity.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -57,5 +58,16 @@ export class CitizenController {
     @Param('id') complaintId: string,
   ) {
     return this.citizenService.getComplaintTracking(user.id, complaintId);
+  }
+
+  @Post('verify-identity')
+  @ApiOperation({
+    summary: 'Submit KYC documents to verify citizen identity',
+  })
+  async verifyIdentity(
+    @CurrentUser() user: User,
+    @Body() verifyDto: VerifyIdentityDto,
+  ) {
+    return this.citizenService.verifyIdentity(user.id, verifyDto);
   }
 }

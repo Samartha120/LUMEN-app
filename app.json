@@ -4,7 +4,7 @@
     "slug": "Lumen-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "lumenapp",
+    "scheme": "lumen",
     "userInterfaceStyle": "automatic",
     "android": {
       "predictiveBackGestureEnabled": false

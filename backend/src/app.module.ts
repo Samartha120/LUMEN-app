@@ -10,11 +10,10 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { CitizenModule } from './citizen/citizen.module';
-import { EngineerModule } from './engineer/engineer.module';
 import { DepartmentModule } from './department/department.module';
 import { AdminModule } from './admin/admin.module';
 import { ComplaintsModule } from './complaints/complaints.module';
-import { AssignmentsModule } from './assignments/assignments.module';
+
 import { TimelineModule } from './timeline/timeline.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
@@ -28,6 +27,9 @@ import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { MailModule } from './mail/mail.module';
 import { OtpModule } from './otp/otp.module';
+import { DispatchModule } from './dispatch/dispatch.module';
+import { PaymentsModule } from './payments/payments.module';
+import { AiTriageModule } from './ai-triage/ai-triage.module';
 
 @Module({
   imports: [
@@ -77,11 +79,10 @@ import { OtpModule } from './otp/otp.module';
     }),
     AuthenticationModule,
     CitizenModule,
-    EngineerModule,
     DepartmentModule,
     AdminModule,
     ComplaintsModule,
-    AssignmentsModule,
+
     TimelineModule,
     NotificationsModule,
     AnalyticsModule,
@@ -95,6 +96,9 @@ import { OtpModule } from './otp/otp.module';
     UsersModule,
     MailModule,
     OtpModule,
+    DispatchModule,
+    PaymentsModule,
+    AiTriageModule,
   ],
   controllers: [AppController],
   providers: [

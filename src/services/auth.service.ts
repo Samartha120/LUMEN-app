@@ -131,9 +131,10 @@ export const AuthService = {
     const email = await AsyncStorage.getItem("lumen_last_email");
     if (!email) throw new Error("No email context found");
 
-    // Store credentials securely
+    // Store credentials securely under user-specific key
     const credentials = JSON.stringify({ email, password });
-    await SecureStore.setItemAsync(SECURE_STORE_CREDENTIALS_KEY, credentials);
+    const userBiometricKey = `${SECURE_STORE_CREDENTIALS_KEY}_${email.toLowerCase().trim()}`;
+    await SecureStore.setItemAsync(userBiometricKey, credentials);
 
     // Tell backend this user has biometric enabled
     const response = await fetch(`${API_URL}/auth/biometric/enable`, {
@@ -149,7 +150,7 @@ export const AuthService = {
     }
   },
 
-  async loginWithBiometric() {
+  async loginWithBiometric(email?: string) {
     // 1. Check if hardware exists
     const hasHardware = await LocalAuthentication.hasHardwareAsync();
     const isEnrolled = await LocalAuthentication.isEnrolledAsync();
@@ -158,25 +159,32 @@ export const AuthService = {
       throw new Error("Biometric hardware not available or not enrolled");
     }
 
-    // 2. Check if credentials exist in SecureStore
-    const storedCredentials = await SecureStore.getItemAsync(SECURE_STORE_CREDENTIALS_KEY);
-    if (!storedCredentials) {
-      throw new Error("No biometric credentials found for this device");
+    // 2. Determine target email
+    const targetEmail = email || await AsyncStorage.getItem("lumen_last_email");
+    if (!targetEmail) {
+      throw new Error("Please specify an email or enroll first");
     }
 
-    // 3. Authenticate with FaceID/Fingerprint to unlock
+    // 3. Check if credentials exist in SecureStore for this specific email
+    const userBiometricKey = `${SECURE_STORE_CREDENTIALS_KEY}_${targetEmail.toLowerCase().trim()}`;
+    const storedCredentials = await SecureStore.getItemAsync(userBiometricKey);
+    if (!storedCredentials) {
+      throw new Error(`No biometric credentials found for ${targetEmail}`);
+    }
+
+    // 4. Authenticate with FaceID/Fingerprint to unlock
     const authResult = await LocalAuthentication.authenticateAsync({
       promptMessage: "Login to LUMEN",
       cancelLabel: "Cancel",
     });
 
     if (!authResult.success) {
-      throw new Error("Biometric authentication failed");
+      throw new Error("Biometric does not match. Please retry again.");
     }
 
-    // 4. Parse credentials and login via backend
-    const { email, password } = JSON.parse(storedCredentials);
-    return this.login(email, password);
+    // 5. Parse credentials and login via backend
+    const { email: storedEmail, password } = JSON.parse(storedCredentials);
+    return this.login(storedEmail, password);
   },
 
   async logout(keepBiometric: boolean = true) {
@@ -197,7 +205,11 @@ export const AuthService = {
     }
 
     if (!keepBiometric) {
-      await SecureStore.deleteItemAsync(SECURE_STORE_CREDENTIALS_KEY);
+      const lastEmail = await AsyncStorage.getItem("lumen_last_email");
+      if (lastEmail) {
+        const userBiometricKey = `${SECURE_STORE_CREDENTIALS_KEY}_${lastEmail.toLowerCase().trim()}`;
+        await SecureStore.deleteItemAsync(userBiometricKey);
+      }
     }
 
     useAuthStore.getState().logout();

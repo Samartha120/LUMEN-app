@@ -68,6 +68,28 @@ export class AdminController {
     return this.adminService.deleteUser(admin.id, userId);
   }
 
+  @Get('complaints')
+  @ApiOperation({ summary: 'Get all complaints' })
+  @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'department', required: false })
+  async getComplaints(
+    @Query('status') status?: string,
+    @Query('department') department?: string,
+  ) {
+    return this.adminService.getComplaints(status, department);
+  }
+
+  @Patch('complaints/:id/status')
+  @ApiOperation({ summary: 'Update complaint status' })
+  async updateComplaintStatus(
+    @CurrentUser() admin: User,
+    @Param('id') complaintId: string,
+    @Body('status') status: string,
+    @Body('notes') notes?: string,
+  ) {
+    return this.adminService.updateComplaintStatus(admin.id, complaintId, status, notes);
+  }
+
   @Get('audit-logs')
   @ApiOperation({ summary: 'Get paginated system audit logs' })
   @ApiQuery({ name: 'page', required: false, type: Number })

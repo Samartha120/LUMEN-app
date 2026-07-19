@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { UpdateCitizenProfileDto } from './dto/update-citizen-profile.dto';
+import { VerifyIdentityDto } from './dto/verify-identity.dto';
 
 @Injectable()
 export class CitizenService {
@@ -91,5 +92,19 @@ export class CitizenService {
     }
 
     return complaint.timeline;
+  }
+
+  async verifyIdentity(userId: string, data: VerifyIdentityDto) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        verificationStatus: 'VERIFIED',
+        verificationDocs: data.documents,
+      },
+      select: {
+        id: true,
+        verificationStatus: true,
+      },
+    });
   }
 }

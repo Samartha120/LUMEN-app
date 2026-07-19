@@ -10,11 +10,28 @@ datasource db {
 
 enum Role {
   CITIZEN
-  ENGINEER
   DEPARTMENT
   SUPERVISOR
+  ENGINEER
   ADMIN
   SUPER_ADMIN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum Department {
+  WATER
+  ROADS
+  ELECTRICITY
+  SANITATION
+  PARKS
+  POLICE
+  FIRE
 }
 
 model User {
@@ -26,6 +43,8 @@ model User {
   fullName  String?
   isActive  Boolean  @default(true)
   isVerified Boolean @default(false)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  verificationDocs Json?
   biometricEnabled Boolean @default(false)
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -37,7 +56,7 @@ model User {
 
   reportedComplaints Complaint[]         @relation("ReportedComplaints")
   performedActions   ComplaintTimeline[] @relation("PerformedActions")
-  assignments        Assignment[]        @relation("EngineerAssignments")
+  payments           PaymentTransaction[]
   auditLogs          AuditLog[]
   refreshTokens      RefreshToken[]
 
@@ -86,13 +105,6 @@ enum ComplaintStatus {
   REJECTED
 }
 
-enum AssignmentStatus {
-  ASSIGNED
-  ACCEPTED
-  IN_PROGRESS
-  COMPLETED
-  FAILED
-}
 
 model Complaint {
   id          String   @id @default(uuid())
@@ -109,11 +121,11 @@ model Complaint {
   imageUrl    String?
   videoUrl    String?
   
-  reporterId  String
-  reporter    User     @relation("ReportedComplaints", fields: [reporterId], references: [id])
+  reporterId  String?
+  reporter    User?     @relation("ReportedComplaints", fields: [reporterId], references: [id])
 
-  assignments Assignment[]
   timeline    ComplaintTimeline[]
+  dispatchRecords DispatchRecord[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -138,24 +150,6 @@ model ComplaintTimeline {
   @@map("complaint_timelines")
 }
 
-model Assignment {
-  id          String   @id @default(uuid())
-  
-  complaintId String
-  complaint   Complaint @relation(fields: [complaintId], references: [id])
-  
-  engineerId  String
-  engineer    User     @relation("EngineerAssignments", fields: [engineerId], references: [id])
-  
-  status      AssignmentStatus @default(ASSIGNED)
-  notes       String?
-  photoUrl    String?
-  
-  assignedAt  DateTime @default(now())
-  completedAt DateTime?
-
-  @@map("assignments")
-}
 
 model AuditLog {
   id          String   @id @default(uuid())
@@ -170,3 +164,49 @@ model AuditLog {
 
   @@map("audit_logs")
 }
+
+model DispatchRecord {
+  id          String   @id @default(uuid())
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+  
+  department  Department
+  assignedAt  DateTime @default(now())
+  estimatedResolutionAt DateTime?
+  
+  @@map("dispatch_records")
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  WATER_BILL
+  ELECTRICITY_BILL
+  PROPERTY_TAX
+  MISC
+}
+
+model PaymentTransaction {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  amount      Float
+  currency    String   @default("INR")
+  status      PaymentStatus @default(PENDING)
+  type        PaymentType
+  
+  receiptUrl  String?
+  transactionId String? @unique
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("payment_transactions")
+}
+

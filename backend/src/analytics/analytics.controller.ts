@@ -20,10 +20,5 @@ export class AnalyticsController {
     return this.analyticsService.getDashboardStats();
   }
 
-  @Get('workload')
-  @Roles(Role.ADMIN, Role.DEPARTMENT, Role.SUPERVISOR)
-  @ApiOperation({ summary: 'Get engineer workload metrics' })
-  getEngineerWorkload() {
-    return this.analyticsService.getEngineerWorkload();
-  }
+
 }

@@ -1,1 +1,2 @@
-export { default } from "@/features/admin/screens/DashboardScreen";
+import AdminDashboardScreen from "@/features/admin/screens/AdminDashboardScreen";
+export default AdminDashboardScreen;

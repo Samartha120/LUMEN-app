@@ -3,12 +3,13 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Session, User } from "@supabase/supabase-js";
 
-export type Role = "citizen" | "engineer" | null;
+export type Role = "citizen" | "engineer" | "GUEST" | null;
 
 interface AuthState {
   session: Session | null;
   user: User | null;
   role: Role;
+  guestMode: boolean;
   isOnboardingComplete: boolean;
   preferences: {
     theme: "light" | "dark" | "system";
@@ -21,6 +22,7 @@ interface AuthState {
   completeOnboarding: () => void;
   updatePreferences: (prefs: Partial<AuthState["preferences"]>) => void;
   setAvatarUri: (userId: string, uri: string | null) => void;
+  loginAsGuest: () => void;
   logout: () => void;
 }
 
@@ -56,6 +58,7 @@ export const useAuthStore = create<AuthState>()(
       session: null,
       user: null,
       role: null,
+      guestMode: false,
       isOnboardingComplete: false,
       preferences: {
         theme: "system",
@@ -78,11 +81,19 @@ export const useAuthStore = create<AuthState>()(
           }
           return { userAvatars: nextAvatars };
         }),
+      loginAsGuest: () =>
+        set({
+          session: null,
+          user: { id: "guest", email: "guest@lumen.city", role: "GUEST" } as any,
+          role: "GUEST",
+          guestMode: true,
+        }),
       logout: () =>
         set({
           session: null,
           user: null,
           role: null,
+          guestMode: false,
         }),
     }),
     {

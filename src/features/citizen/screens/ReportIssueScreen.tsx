@@ -4,8 +4,13 @@ import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
 import { LinearProgress } from "@/design-system/components/Progress";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
-import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+import { useAuthStore } from "@/store/AuthStore";
+import { env } from "@/config/env";
 import { router } from "expo-router";
+import { syncManager } from "@/features/offline/services/SyncManager";
+import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
 import React, { useRef, useState } from "react";
 import {
   Animated,
@@ -79,11 +84,48 @@ export default function ReportIssueScreen() {
     setStep((s) => s - 1);
   };
 
+  const { session, guestMode } = useAuthStore((s) => s);
+
   const submit = async () => {
-    setSubmitted(true);
-    Alert.alert("Success", "Your report has been successfully submitted!");
-    await new Promise((r) => setTimeout(r, 1200));
-    router.replace("/(citizen)/Dashboard" as any);
+    try {
+      if (syncManager.isCurrentlyOnline) {
+        const res = await fetch(`${env.apiUrl}/complaints`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(guestMode ? {} : { Authorization: `Bearer ${session?.access_token}` }),
+          },
+          body: JSON.stringify({
+            title: `Report - ${category}`,
+            description,
+            category,
+            priority,
+            latitude: 12.9716,
+            longitude: 77.5946,
+            isAnonymous: guestMode
+          }),
+        });
+        if (!res.ok) throw new Error("Failed to submit");
+      } else {
+        await syncManager.enqueueReport({
+          category,
+          description,
+          priority,
+          latitude: 12.9716,
+          longitude: 77.5946,
+        });
+        Alert.alert("Offline Mode", "Your report has been queued and will sync when you are back online.");
+      }
+
+      setSubmitted(true);
+      if (syncManager.isCurrentlyOnline) {
+        Alert.alert("Success", "Your report has been successfully submitted!");
+      }
+      await new Promise((r) => setTimeout(r, 1200));
+      router.replace("/(citizen)/Dashboard" as any);
+    } catch (e: any) {
+      Alert.alert("Error", e.message || "Failed to submit report");
+    }
   };
 
   const progress = ((step + 1) / STEPS.length) * 100;

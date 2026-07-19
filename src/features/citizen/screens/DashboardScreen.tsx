@@ -10,7 +10,9 @@ import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { useAuthStore } from "@/store/AuthStore";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Animated,
   Dimensions,
@@ -30,11 +32,11 @@ const H_PAD = 24;
 const METRIC_W = (W - H_PAD * 2 - CARD_GAP) / 2;
 
 // ── Helpers ──────────────────────────────────────────────────
-const getGreeting = () => {
+const getGreeting = (t: any) => {
   const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
+  if (h < 12) return t("dashboard.greeting_morning");
+  if (h < 17) return t("dashboard.greeting_afternoon");
+  return t("dashboard.greeting_evening");
 };
 
 const getTimeString = () => {
@@ -151,6 +153,13 @@ const QUICK_ACTIONS = [
     route: "/(citizen)/Help",
     gradients: ["#F79009", "#D97706"] as [string, string],
   },
+  {
+    icon: "document" as const,
+    label: "Pay Bills",
+    subtitle: "Municipal utilities",
+    route: "/(citizen)/Municipal-payments",
+    gradients: ["#12B76A", "#027A48"] as [string, string],
+  },
 ] as const;
 
 const AI_INSIGHTS = [
@@ -206,6 +215,8 @@ function AnimatedCounter({
 // ── Main Component ────────────────────────────────────────────
 export default function CitizenDashboardScreen() {
   const { colors, isDark, shadows } = useTheme();
+  const { user } = useAuthStore((s) => s);
+  const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const [aiIdx, setAiIdx] = useState(0);
   const [currentTime, setCurrentTime] = useState(getTimeString());
@@ -357,11 +368,11 @@ export default function CitizenDashboardScreen() {
                   { color: colors.textTertiary, fontWeight: "600", letterSpacing: 1.5 },
                 ]}
               >
-                LIVE DASHBOARD
+                {t("dashboard.live")}
               </Text>
             </View>
-            <Text style={[s.greetingName, { color: colors.textPrimary }]}>
-              {getGreeting()}, Samuel 👋
+            <Text style={[s.greetingName, { color: colors.textSecondary }]}>
+              {getGreeting(t)},
             </Text>
             <View style={s.locationRow}>
               <LumenIcon name="mapPin" size="xs" color={colors.textTertiary} />
@@ -500,15 +511,34 @@ export default function CitizenDashboardScreen() {
             Quick Actions
           </Text>
           <View style={s.actionsGrid}>
-            {QUICK_ACTIONS.map((action, idx) => (
-              <ActionCard
-                key={action.label}
-                action={action}
-                colors={colors}
-                isDark={isDark}
-                idx={idx}
-              />
-            ))}
+            {(() => {
+              const actions: any[] = [...QUICK_ACTIONS];
+              if ((user as any)?.verificationStatus === 'UNVERIFIED' || !(user as any)?.verificationStatus) {
+                actions.unshift({
+                  icon: "profile" as any,
+                  label: "Verify Identity",
+                  subtitle: "Required for trust",
+                  route: "/(citizen)/Identity-verification",
+                  gradients: ["#8B5CF6", "#6D28D9"] as [string, string],
+                });
+              }
+              actions.push({
+                icon: "reportList" as any,
+                label: "Offline Outbox",
+                subtitle: "Pending network sync",
+                route: "/(citizen)/Offline-outbox",
+                gradients: ["#6B7280", "#374151"] as [string, string],
+              });
+              return actions.map((action, idx) => (
+                <ActionCard
+                  key={action.label}
+                  action={action}
+                  colors={colors}
+                  isDark={isDark}
+                  idx={idx}
+                />
+              ));
+            })()}
           </View>
         </Animated.View>
 
@@ -567,6 +597,8 @@ export default function CitizenDashboardScreen() {
 
               <View style={s.aiActions}>
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={insight.action}
                   style={[
                     s.aiActionBtn,
                     { backgroundColor: colors.brand + "15", borderColor: colors.brand + "30" },
@@ -578,6 +610,8 @@ export default function CitizenDashboardScreen() {
                   <LumenIcon name="arrowLeft" size="xs" color={colors.brand} />
                 </Pressable>
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Dismiss AI insight"
                   style={[
                     s.aiActionBtn,
                     { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault },
@@ -600,7 +634,7 @@ export default function CitizenDashboardScreen() {
         <Animated.View style={[s.section, { opacity: fadeIn }]}>
           <View style={s.sectionHeader}>
             <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>Nearby Issues</Text>
-            <Pressable style={[s.viewAllBtn, { borderColor: colors.borderDefault }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="View Map" style={[s.viewAllBtn, { borderColor: colors.borderDefault }]}>
               <Text style={[TextStyles.caption, { color: colors.brand, fontWeight: "700" }]}>
                 View Map
               </Text>
@@ -707,6 +741,8 @@ export default function CitizenDashboardScreen() {
           <View style={s.sectionHeader}>
             <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>Recent Reports</Text>
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View all recent reports"
               style={[s.viewAllBtn, { borderColor: colors.borderDefault }]}
               onPress={() => router.push("/(citizen)/My-report" as any)}
             >

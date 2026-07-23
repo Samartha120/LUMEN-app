@@ -1,10 +1,33 @@
-import { Tabs } from "expo-router";
+import { Tabs, useSegments, router } from "expo-router";
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
-import { Platform } from "react-native";
+import { Platform, BackHandler, Alert } from "react-native";
+import { useEffect } from "react";
 
 export default function AdminLayout() {
   const { colors, isDark } = useTheme();
+  const segments = useSegments() as string[];
+  const currentPath = segments[1] || "Dashboard";
+
+  useEffect(() => {
+    const onBackPress = () => {
+      // If we are at the root of the admin tab, prevent going back to Auth screens.
+      if (currentPath === "Dashboard") {
+        Alert.alert("Exit App", "Are you sure you want to exit?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Exit", onPress: () => BackHandler.exitApp() }
+        ]);
+        return true;
+      }
+      
+      // If they are on a different tab, go back to Dashboard
+      router.push("/(admin)/Dashboard" as any);
+      return true; 
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => backHandler.remove();
+  }, [currentPath]);
 
   return (
     <Tabs

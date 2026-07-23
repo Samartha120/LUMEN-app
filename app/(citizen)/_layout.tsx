@@ -1,6 +1,8 @@
 import { BottomNavigation, type NavItem } from "@/design-system/components/BottomNavigation";
 import { useTheme } from "@/design-system/ThemeContext";
 import { router, Tabs, useSegments } from "expo-router";
+import { useEffect } from "react";
+import { BackHandler, Alert } from "react-native";
 
 export default function CitizenLayout() {
   useTheme();
@@ -18,6 +20,27 @@ export default function CitizenLayout() {
   };
 
   const activeTab = getActiveTab(currentPath);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      // If we are at the root of the citizen tab, prevent going back to Auth screens.
+      // We can either exit the app or just return true to do nothing.
+      if (activeTab === "Dashboard") {
+        Alert.alert("Exit App", "Are you sure you want to exit?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Exit", onPress: () => BackHandler.exitApp() }
+        ]);
+        return true;
+      }
+      
+      // If they are on a different tab, go back to Dashboard
+      router.push("/(citizen)/Dashboard" as any);
+      return true; 
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => backHandler.remove();
+  }, [activeTab]);
 
   const navItems: NavItem[] = [
     { name: "Dashboard", icon: "home", label: "Home" },

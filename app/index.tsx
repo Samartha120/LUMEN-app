@@ -11,11 +11,11 @@ const { width: W, height: H } = Dimensions.get("window");
 
 export default function SplashScreen() {
   useEffect(() => {
-    // Navigate to welcome screen after 3.5 seconds to show the loading animation
+    // Navigate to welcome screen after 2 seconds to show the loading animation
     const timer = setTimeout(() => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       router.replace("/welcome" as any);
-    }, 3500);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -146,7 +146,7 @@ export default function SplashScreen() {
             <MotiView
               from={{ width: "0%" }}
               animate={{ width: "100%" }}
-              transition={{ type: "timing", duration: 2500, delay: 500 }}
+              transition={{ type: "timing", duration: 1500, delay: 500 }}
               style={s.loadingFill}
             />
           </View>

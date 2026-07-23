@@ -116,6 +116,29 @@ function FloatingOrb({
   );
 }
 
+// Back Button Component
+function BackButton() {
+  return (
+    <Pressable
+      onPress={() => router.back()}
+      style={{
+        position: "absolute",
+        top: Platform.OS === "ios" ? 50 : StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 30,
+        left: 20,
+        zIndex: 100,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "rgba(255,255,255,0.1)",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <LumenIcon name="arrowLeft" size={24} color="#FFF" />
+    </Pressable>
+  );
+}
+
 // Step indicator
 function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
   return (
@@ -254,8 +277,10 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: "#0B0F19" }}>
       <StatusBar barStyle="light-content" />
+
+      <BackButton />
 
       {/* Background gradient */}
       <LinearGradient colors={["#060818", "#0F0A2E", "#060818"]} style={StyleSheet.absoluteFill} />

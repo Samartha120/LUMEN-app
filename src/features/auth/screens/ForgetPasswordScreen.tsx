@@ -133,7 +133,13 @@ export default function ForgetPasswordScreen() {
           label="Back to Sign In"
           variant="ghost"
           size="md"
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(auth)/Login" as any);
+            }
+          }}
           iconLeft="arrowLeft"
           style={s.backBtn}
         />

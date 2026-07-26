@@ -167,7 +167,13 @@ export default function ForgotPasswordScreen() {
           </BlurView>
 
           <View style={styles.footer}>
-            <Pressable onPress={() => router.back()}>
+            <Pressable onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/(auth)/Login" as any);
+              }
+            }}>
               <Text style={styles.loginText}>Back to Sign In</Text>
             </Pressable>
           </View>

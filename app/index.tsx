@@ -6,15 +6,23 @@ import { LinearGradient } from "expo-linear-gradient";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
 import * as Haptics from "expo-haptics";
+import { useAuthStore } from "@/store/AuthStore";
 
 const { width: W, height: H } = Dimensions.get("window");
 
 export default function SplashScreen() {
   useEffect(() => {
-    // Navigate to welcome screen after 2 seconds to show the loading animation
+    // Navigate to welcome screen or dashboard after 2 seconds
     const timer = setTimeout(() => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.replace("/welcome" as any);
+      
+      const { user } = useAuthStore.getState();
+      if (user) {
+        // Force them to authenticate again via Biometrics or Credentials
+        router.replace("/(auth)/Login" as any);
+      } else {
+        router.replace("/welcome" as any);
+      }
     }, 2000);
 
     return () => clearTimeout(timer);

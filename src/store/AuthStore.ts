@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Session, User } from "@supabase/supabase-js";
 
-export type Role = "citizen" | "engineer" | "GUEST" | null;
+export type Role = "citizen" | "engineer" | "GUEST" | "ADMIN" | "SUPER_ADMIN" | null;
 
 interface AuthState {
   session: Session | null;
@@ -99,6 +99,10 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "lumen-auth-storage",
       storage: createJSONStorage(() => safeStorage),
+      partialize: (state) => ({
+        isOnboardingComplete: state.isOnboardingComplete,
+        preferences: state.preferences,
+      }),
     }
   )
 );

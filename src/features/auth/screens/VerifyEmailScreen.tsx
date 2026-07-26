@@ -9,6 +9,38 @@ import { useTheme } from "@/design-system/ThemeContext";
 import { Button } from "@/design-system/components/Button";
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+function BackButton() {
+  const insets = useSafeAreaInsets();
+  return (
+    <Pressable
+      onPress={() => {
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.replace("/welcome" as any);
+        }
+      }}
+      style={{
+        position: "absolute",
+        top: Math.max(insets.top, 16),
+        left: 20,
+        zIndex: 100,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "rgba(255,255,255,0.1)",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.08)",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <LumenIcon name="arrowLeft" size={20} color="#FFF" />
+    </Pressable>
+  );
+}
 
 export function VerifyEmailScreen() {
   const { colors, isDark } = useTheme();
@@ -49,6 +81,7 @@ export function VerifyEmailScreen() {
         barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor={colors.bgBase}
       />
+      <BackButton />
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {/* Logo + Hero */}

@@ -46,6 +46,7 @@ model User {
   verificationStatus VerificationStatus @default(UNVERIFIED)
   verificationDocs Json?
   biometricEnabled Boolean @default(false)
+  biometricHash    String?
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -114,6 +115,7 @@ model Complaint {
   category    String
   priority    Priority @default(MEDIUM)
   status      ComplaintStatus @default(PENDING)
+  isAnonymous Boolean @default(false)
   
   latitude    Float?
   longitude   Float?
@@ -124,6 +126,8 @@ model Complaint {
   reporterId  String?
   reporter    User?     @relation("ReportedComplaints", fields: [reporterId], references: [id])
 
+  aiPrediction AiPrediction?
+
   timeline    ComplaintTimeline[]
   dispatchRecords DispatchRecord[]
 
@@ -131,6 +135,21 @@ model Complaint {
   updatedAt   DateTime @updatedAt
 
   @@map("complaints")
+}
+
+model AiPrediction {
+  id              String      @id @default(uuid())
+  complaintId     String      @unique
+  complaint       Complaint   @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  damageClass     String
+  confidenceScore Float
+  boundingBoxes   Json        
+  metadata        Json        
+  status          String      
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("ai_predictions")
 }
 
 model ComplaintTimeline {

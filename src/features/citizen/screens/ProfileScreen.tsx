@@ -18,6 +18,7 @@ import { Avatar, Badge, ActionModal, Input, Button } from "@/design-system/compo
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
 import type { LumenIconName } from "@/design-system";
 import { useAuthStore } from "@/store/AuthStore";
+import { AuthService } from "@/services/auth.service";
 
 const { width: W } = Dimensions.get("window");
 
@@ -121,7 +122,7 @@ export default function ProfileScreen() {
     },
     {
       title: "",
-      items: [{ icon: "logout", label: "Sign Out", danger: true }],
+      items: [{ icon: "logout", label: "Sign Out", danger: true, onAction: () => AuthService.logout() }],
     },
   ];
 

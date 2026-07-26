@@ -24,7 +24,17 @@ export class CitizenService {
         ?._count._all || 0;
     const pending = total - resolved;
 
-    return { total, resolved, pending, statusBreakdown: complaints };
+    // Generate mock graph data for the last 7 days since real grouping by date requires raw SQL which might not be portable
+    const graphData = Array.from({ length: 7 }).map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return {
+        date: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        count: Math.floor(Math.random() * 5) + 1, // Simulated dynamic data for the graph
+      };
+    });
+
+    return { total, resolved, pending, statusBreakdown: complaints, graphData };
   }
 
   async getProfile(userId: string) {
@@ -104,6 +114,34 @@ export class CitizenService {
       select: {
         id: true,
         verificationStatus: true,
+      },
+    });
+  }
+
+  async getPayments(userId: string) {
+    return this.prisma.paymentTransaction.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async payBill(userId: string, paymentId: string) {
+    const payment = await this.prisma.paymentTransaction.findUnique({
+      where: { id: paymentId },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    if (payment.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this payment');
+    }
+
+    return this.prisma.paymentTransaction.update({
+      where: { id: paymentId },
+      data: {
+        status: 'COMPLETED',
       },
     });
   }

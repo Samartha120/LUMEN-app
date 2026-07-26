@@ -146,12 +146,32 @@ export class AuthenticationService {
     return { message: 'Password reset successful.' };
   }
 
-  async enableBiometric(userId: string) {
+  async enableBiometric(userId: string, biometricHash: string) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { biometricEnabled: true } as any,
+      data: { 
+        biometricEnabled: true,
+        biometricHash: biometricHash
+      } as any,
     });
     return { success: true };
+  }
+
+  async loginWithBiometric(email: string, biometricHash: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (!user.biometricEnabled || !user.biometricHash) {
+      throw new UnauthorizedException('Biometric login is not enabled for this user');
+    }
+
+    if (user.biometricHash !== biometricHash) {
+      throw new UnauthorizedException('Biometric authentication failed or device unauthorized');
+    }
+
+    return this.generateTokens(user);
   }
 
   async logout(userId: string, refreshToken?: string) {

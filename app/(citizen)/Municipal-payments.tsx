@@ -1,4 +1,4 @@
-import MunicipalPaymentsScreen from "@/features/citizen/screens/MunicipalPaymentsScreen";
+import MunicipalPaymentsScreen from "../../src/features/citizen/screens/MunicipalPaymentsScreen";
 
 export default function MunicipalPaymentsRoute() {
   return <MunicipalPaymentsScreen />;

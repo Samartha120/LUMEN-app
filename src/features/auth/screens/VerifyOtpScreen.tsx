@@ -8,6 +8,7 @@ import {
   StatusBar,
   TextInput,
   Pressable,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { MotiView } from "moti";
@@ -18,6 +19,41 @@ import { TextStyles } from "@/design-system/tokens";
 import { Button } from "@/design-system/components/Button";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { AuthService } from "@/services/auth.service";
+import * as LocalAuthentication from "expo-local-authentication";
+import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+function BackButton() {
+  const insets = useSafeAreaInsets();
+  return (
+    <Pressable
+      onPress={() => {
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.replace("/welcome" as any);
+        }
+      }}
+      style={{
+        position: "absolute",
+        top: Math.max(insets.top, 16),
+        left: 20,
+        zIndex: 100,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "rgba(255,255,255,0.1)",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.08)",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <LumenIcon name="arrowLeft" size={20} color="#FFF" />
+    </Pressable>
+  );
+}
 
 export default function VerifyOtpScreen() {
   const { email } = useLocalSearchParams<{ email: string }>();
@@ -42,6 +78,59 @@ export default function VerifyOtpScreen() {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
+  const promptEnableBiometric = async () => {
+    try {
+      let hasHardware = await LocalAuthentication.hasHardwareAsync();
+      let isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+      if (__DEV__) {
+        hasHardware = true;
+        isEnrolled = true;
+      }
+
+      if (hasHardware && isEnrolled) {
+        if (!email) return;
+        const userBiometricKey = AuthService.getBiometricKey(email);
+        const storedCreds = await SecureStore.getItemAsync(userBiometricKey);
+        const declinedKey = `biometric_declined_${email}`;
+        const hasDeclined = await AsyncStorage.getItem(declinedKey);
+
+        if (!storedCreds && !hasDeclined) {
+          return new Promise<void>((resolve) => {
+            Alert.alert(
+              "Enable Face ID / Touch ID?",
+              "Would you like to securely log in with biometrics next time?",
+            [
+              { 
+                text: "Not Now", 
+                style: "cancel", 
+                onPress: async () => {
+                  await AsyncStorage.setItem(declinedKey, "true");
+                  resolve();
+                } 
+              },
+              {
+                text: "Enable",
+                onPress: async () => {
+                  try {
+                    await AuthService.enrollBiometric(email);
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  } catch (e: any) {
+                    Alert.alert("Failed to enroll", e.message);
+                  }
+                  resolve();
+                },
+              },
+            ]
+          );
+        });
+      }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleVerify = async (codeToVerify: string = otp) => {
     if (codeToVerify.length !== OTP_LENGTH) return;
     setLoading(true);
@@ -49,6 +138,7 @@ export default function VerifyOtpScreen() {
     try {
       await AuthService.verifyOtp(email, codeToVerify);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await promptEnableBiometric();
       router.replace("/(citizen)/Dashboard" as any);
     } catch (err: any) {
       console.error(err);
@@ -84,6 +174,9 @@ export default function VerifyOtpScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
+
+      <BackButton />
+
       <LinearGradient colors={["#1E1B4B", "#0F172A", "#1E1B4B"]} style={StyleSheet.absoluteFill} />
 
       <MotiView

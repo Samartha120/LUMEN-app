@@ -2,8 +2,8 @@
 // LUMEN — Settings Screen (Citizen)
 // Phase 3: Citizen Experience
 // ============================================================
-import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, StatusBar, Switch } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView, Pressable, StatusBar, Switch, Alert } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
@@ -11,6 +11,9 @@ import { Card } from "@/design-system/components/Card";
 import { Badge } from "@/design-system/components/Badge";
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
 import type { LumenIconName } from "@/design-system";
+import { useAuthStore } from "@/store/AuthStore";
+import { AuthService } from "@/services/auth.service";
+import * as SecureStore from "expo-secure-store";
 
 interface ToggleSetting {
   icon: LumenIconName;
@@ -46,6 +49,7 @@ const APPEARANCE: LinkSetting[] = [
 
 export default function SettingsScreen() {
   const { colors, isDark, shadows } = useTheme();
+  const user = useAuthStore((state) => state.session?.user);
   const [toggles, setToggles] = useState<Record<string, boolean>>({
     push: true,
     email: false,
@@ -54,7 +58,50 @@ export default function SettingsScreen() {
     offline: true,
   });
 
-  const toggle = (key: string) => setToggles((t) => ({ ...t, [key]: !t[key] }));
+  useEffect(() => {
+    const checkBiometric = async () => {
+      if (user?.email) {
+        try {
+          const userBiometricKey = AuthService.getBiometricKey(user.email);
+          const storedCreds = await SecureStore.getItemAsync(userBiometricKey);
+          setToggles((t) => ({ ...t, biometric: !!storedCreds }));
+        } catch (e) {
+          console.warn("Failed to check biometric status in settings", e);
+        }
+      }
+    };
+    checkBiometric();
+  }, [user]);
+
+  const handleToggle = async (key: string) => {
+    if (key === "biometric") {
+      const currentVal = toggles.biometric;
+      if (!currentVal) {
+        // Enable biometric
+        try {
+          if (!user?.email) throw new Error("No active user session");
+          await AuthService.enrollBiometric(user.email);
+          setToggles((t) => ({ ...t, biometric: true }));
+          Alert.alert("Success", "Biometric login has been enabled.");
+        } catch (err: any) {
+          Alert.alert("Enrollment Failed", err.message || "Failed to enable biometric login.");
+        }
+      } else {
+        // Disable biometric
+        try {
+          if (!user?.email) throw new Error("No active user session");
+          const userBiometricKey = AuthService.getBiometricKey(user.email);
+          await SecureStore.deleteItemAsync(userBiometricKey);
+          setToggles((t) => ({ ...t, biometric: false }));
+          Alert.alert("Disabled", "Biometric login has been disabled for this device.");
+        } catch (err: any) {
+          Alert.alert("Error", err.message || "Failed to disable biometric login.");
+        }
+      }
+    } else {
+      setToggles((t) => ({ ...t, [key]: !t[key] }));
+    }
+  };
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
@@ -103,7 +150,7 @@ export default function SettingsScreen() {
               </View>
               <Switch
                 value={toggles[setting.key]}
-                onValueChange={() => toggle(setting.key)}
+                onValueChange={() => handleToggle(setting.key)}
                 trackColor={{ false: colors.borderDefault, true: colors.brand }}
                 thumbColor="#FFFFFF"
               />

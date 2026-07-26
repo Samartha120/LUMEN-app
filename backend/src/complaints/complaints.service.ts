@@ -23,6 +23,7 @@ export class ComplaintsService {
         imageUrl: createComplaintDto.imageUrl,
         // @ts-ignore
         videoUrl: createComplaintDto.videoUrl,
+        isAnonymous: createComplaintDto.isAnonymous || false,
         reporterId: user ? user.id : undefined,
       },
     });
@@ -56,6 +57,7 @@ export class ComplaintsService {
             imageUrl: dto.imageUrl,
             // @ts-ignore
             videoUrl: dto.videoUrl,
+            isAnonymous: dto.isAnonymous || false,
             reporterId: user ? user.id : undefined,
           },
         });

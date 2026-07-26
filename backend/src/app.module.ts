@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { BullModule } from '@nestjs/bullmq';
+import Redis from 'ioredis';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { validateEnv } from './config/env.validation';
@@ -53,26 +54,42 @@ import { AiTriageModule } from './ai-triage/ai-triage.module';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         const redisUrl = configService.get('REDIS_URL');
+        let connectionOptions: any = null;
         if (redisUrl) {
           try {
             const parsed = new URL(redisUrl);
-            return {
-              connection: {
-                host: parsed.hostname,
-                port: parseInt(parsed.port, 10),
-                username: parsed.username || undefined,
-                password: parsed.password || undefined,
-              },
+            connectionOptions = {
+              host: parsed.hostname,
+              port: parseInt(parsed.port, 10),
+              username: parsed.username || undefined,
+              password: parsed.password || undefined,
             };
           } catch (e) {
             // Fallback if parsing fails
           }
         }
-        return {
-          connection: {
+        if (!connectionOptions) {
+          connectionOptions = {
             host: configService.get('REDIS_HOST') || 'localhost',
             port: configService.get('REDIS_PORT') || 6379,
+          };
+        }
+
+        const redisConnection = new Redis({
+          ...connectionOptions,
+          maxRetriesPerRequest: null,
+          retryStrategy(times) {
+            // Only retry once every hour in development to prevent console spam
+            return 3600000;
           },
+        });
+
+        redisConnection.on('error', (err) => {
+          console.warn(`[Redis Warning] Redis is offline. Queue and notification features will run in offline mode.`);
+        });
+
+        return {
+          connection: redisConnection as any,
         };
       },
       inject: [ConfigService],

@@ -47,3 +47,17 @@ example
 
 # local env file
 .env
+
+# Python virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache / compile files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/

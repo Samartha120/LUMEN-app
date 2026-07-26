@@ -29,6 +29,7 @@ import Animated, {
   interpolate,
   Easing,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
@@ -42,6 +43,38 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const { width, height } = Dimensions.get("window");
 
 const SECURE_STORE_CREDENTIALS_KEY = "lumen_biometric_credentials";
+
+// Back Button Component
+function BackButton() {
+  const insets = useSafeAreaInsets();
+  return (
+    <Pressable
+      onPress={() => {
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.replace("/welcome" as any);
+        }
+      }}
+      style={{
+        position: "absolute",
+        top: Math.max(insets.top, 16),
+        left: 20,
+        zIndex: 100,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "rgba(255,255,255,0.1)",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.08)",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <LumenIcon name="arrowLeft" size={20} color="#FFF" />
+    </Pressable>
+  );
+}
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -253,12 +286,9 @@ export default function LoginScreen() {
   };
 
   const handleBiometricLogin = async () => {
+    const email = watch("email");
     try {
-      const email = watch("email");
-      if (!email) {
-        throw new Error("Please enter your email to use biometric login");
-      }
-      const user = await AuthService.loginWithBiometric(email);
+      const user = await AuthService.loginWithBiometric(email || undefined);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
         router.replace("/(admin)/Dashboard" as any);
@@ -268,6 +298,24 @@ export default function LoginScreen() {
     } catch (err: any) {
       setErrorText(err.message || "Biometric login failed.");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      
+      // If the backend rejects the credentials as unauthorized or not enabled (due to db reset/mismatch),
+      // clear them locally so the user can log in with password once and cleanly re-enroll.
+      if (err.message && (
+        err.message.includes("device unauthorized") ||
+        err.message.includes("is not enabled") ||
+        err.message.includes("User not found")
+      )) {
+        if (email) {
+          try {
+            const userBiometricKey = AuthService.getBiometricKey(email);
+            await SecureStore.deleteItemAsync(userBiometricKey);
+            await checkBiometricAvailability();
+          } catch (e) {
+            console.warn("Failed to clear local credentials after failure", e);
+          }
+        }
+      }
     }
   };
 
@@ -280,6 +328,8 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
+
+      <BackButton />
 
       {/* Background gradient */}
       <LinearGradient colors={["#060818", "#0D1235", "#060818"]} style={StyleSheet.absoluteFill} />
@@ -408,79 +458,57 @@ export default function LoginScreen() {
                 )}
 
                 {/* Email field */}
-                <MotiView
-                  from={{ opacity: 0, translateX: -20 }}
-                  animate={{ opacity: 1, translateX: 0 }}
-                  transition={{ type: "spring", delay: 400, damping: 18 }}
-                >
-                  <Controller
-                    control={control}
-                    name="email"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <Input
-                        label="Email Address"
-                        placeholder="you@example.com"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoComplete="email"
-                        iconLeft="email"
-                        value={value}
-                        onChangeText={onChange}
-                        onBlur={onBlur}
-                        error={errors.email?.message}
-                        size="lg"
-                      />
-                    )}
-                  />
-                </MotiView>
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                      label="Email Address"
+                      placeholder="you@example.com"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      iconLeft="email"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      error={errors.email?.message}
+                      size="lg"
+                    />
+                  )}
+                />
 
                 {/* Password field */}
-                <MotiView
-                  from={{ opacity: 0, translateX: -20 }}
-                  animate={{ opacity: 1, translateX: 0 }}
-                  transition={{ type: "spring", delay: 500, damping: 18 }}
-                >
-                  <Controller
-                    control={control}
-                    name="password"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <Input
-                        label="Password"
-                        placeholder="Enter your password"
-                        secureTextEntry
-                        iconLeft="lock"
-                        value={value}
-                        onChangeText={onChange}
-                        onBlur={onBlur}
-                        error={errors.password?.message}
-                        size="lg"
-                      />
-                    )}
-                  />
-                </MotiView>
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                      label="Password"
+                      placeholder="Enter your password"
+                      secureTextEntry
+                      iconLeft="lock"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      error={errors.password?.message}
+                      size="lg"
+                    />
+                  )}
+                />
 
                 {/* Forgot password */}
-                <MotiView
-                  from={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ type: "timing", delay: 600, duration: 400 }}
-                  style={styles.forgotRow}
-                >
+                <View style={styles.forgotRow}>
                   <Pressable
                     onPress={() => router.push("/(auth)/ForgotPassword" as any)}
                     style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
                   >
                     <Text style={styles.forgotText}>Forgot Password?</Text>
                   </Pressable>
-                </MotiView>
+                </View>
 
                 {/* Sign In Button */}
-                <MotiView
-                  from={{ opacity: 0, translateY: 16 }}
-                  animate={{ opacity: 1, translateY: 0 }}
-                  transition={{ type: "spring", delay: 650, damping: 16 }}
-                  style={styles.actionContainer}
-                >
+                <View style={styles.actionContainer}>
                   <Pressable
                     onPress={handleSubmit(onLogin)}
                     disabled={loading}
@@ -514,15 +542,11 @@ export default function LoginScreen() {
                       )}
                     </LinearGradient>
                   </Pressable>
-                </MotiView>
+                </View>
 
                 {/* Biometric login */}
                 {canUseBiometric && (
-                  <MotiView
-                    from={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: "spring", delay: 750, damping: 16 }}
-                  >
+                  <View>
                     <View style={styles.dividerRow}>
                       <View style={styles.dividerLine} />
                       <Text style={styles.dividerText}>or continue with</Text>
@@ -546,7 +570,7 @@ export default function LoginScreen() {
                         <Text style={styles.biometricText}>Face ID / Touch ID</Text>
                       </LinearGradient>
                     </Pressable>
-                  </MotiView>
+                  </View>
                 )}
               </View>
             </BlurView>

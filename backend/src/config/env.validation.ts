@@ -16,6 +16,8 @@ export const envSchema = z
     FIREBASE_CLIENT_EMAIL: z.string().email().optional(),
     FIREBASE_PRIVATE_KEY: z.string().optional(),
     GOOGLE_MAPS_API_KEY: z.string().optional(),
+    FASTAPI_INFERENCE_URL: z.string().url().default('http://localhost:8000'),
+    FASTAPI_API_KEY: z.string().optional(),
   })
   .passthrough();
 

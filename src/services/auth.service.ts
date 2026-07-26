@@ -2,6 +2,7 @@ import { useAuthStore } from "../store/AuthStore";
 import * as SecureStore from "expo-secure-store";
 import * as LocalAuthentication from "expo-local-authentication";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Crypto from "expo-crypto";
 import { env } from "../config/env";
 
 const API_URL = `${env.apiUrl}/auth`;
@@ -95,6 +96,10 @@ export const AuthService = {
 
     const data = await response.json();
     this.handleTokenResponse(data);
+    
+    // Store last email for biometric login context
+    await AsyncStorage.setItem("lumen_last_email", email);
+
     return data.user;
   },
 
@@ -119,7 +124,7 @@ export const AuthService = {
     return data.user;
   },
 
-  async enrollBiometric(email: string, password: string) {
+  async enrollBiometric(email: string, password?: string) {
     const session = useAuthStore.getState().session;
     if (!session || !session.access_token) throw new Error("No active session");
 
@@ -139,19 +144,22 @@ export const AuthService = {
 
     if (!email) throw new Error("No email context found");
 
-    // Store credentials securely under user-specific key
-    const credentials = JSON.stringify({ email, password });
+    // Generate a secure unique device hash for this biometric enrollment
+    const biometricHash = Crypto.randomUUID();
+
+    // Store the hash securely under user-specific key
+    const credentials = JSON.stringify({ email, biometricHash });
     const userBiometricKey = this.getBiometricKey(email);
     await SecureStore.setItemAsync(userBiometricKey, credentials);
 
-    // Tell backend this user has biometric enabled
+    // Tell backend this user has biometric enabled and provide the hash
     const response = await fetch(`${API_URL}/biometric/enable`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ biometricHash }),
     });
 
     if (!response.ok) {
@@ -207,9 +215,27 @@ export const AuthService = {
       }
     }
 
-    // 5. Parse credentials and login via backend
-    const { email: storedEmail, password } = JSON.parse(storedCredentials);
-    return this.login(storedEmail, password);
+    // 5. Parse credentials and login via new biometric endpoint
+    const { email: storedEmail, biometricHash } = JSON.parse(storedCredentials);
+    
+    // Instead of doing this.login(email, password), we use the hash.
+    const response = await fetch(`${API_URL}/biometric/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: storedEmail, biometricHash }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.message || "Biometric login failed");
+    }
+
+    const data = await response.json();
+    this.handleTokenResponse(data);
+
+    await AsyncStorage.setItem("lumen_last_email", storedEmail);
+
+    return data.user;
   },
 
   async logout(keepBiometric: boolean = true) {

@@ -28,6 +28,7 @@ import Animated, {
   interpolate,
   Easing,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/design-system/components/Button";
 import { Input } from "@/design-system/components/Input";
 import { PasswordStrengthMeter } from "@/design-system/components/PasswordStrengthMeter";
@@ -118,23 +119,32 @@ function FloatingOrb({
 
 // Back Button Component
 function BackButton() {
+  const insets = useSafeAreaInsets();
   return (
     <Pressable
-      onPress={() => router.back()}
+      onPress={() => {
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.replace("/welcome" as any);
+        }
+      }}
       style={{
         position: "absolute",
-        top: Platform.OS === "ios" ? 50 : StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 30,
+        top: Math.max(insets.top, 16),
         left: 20,
         zIndex: 100,
         width: 40,
         height: 40,
         borderRadius: 20,
         backgroundColor: "rgba(255,255,255,0.1)",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.08)",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <LumenIcon name="arrowLeft" size={24} color="#FFF" />
+      <LumenIcon name="arrowLeft" size={20} color="#FFF" />
     </Pressable>
   );
 }
@@ -306,19 +316,6 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Back Button */}
-          <MotiView
-            from={{ opacity: 0, translateX: -20 }}
-            animate={{ opacity: 1, translateX: 0 }}
-            transition={{ type: "spring", delay: 50 }}
-          >
-            <Pressable
-              onPress={() => router.back()}
-              style={({ pressed }) => [styles.backBtn, { opacity: pressed ? 0.6 : 1 }]}
-            >
-              <LumenIcon name="arrowLeft" size="md" color="#94A3B8" />
-            </Pressable>
-          </MotiView>
 
           {/* Header */}
           <MotiView
@@ -389,96 +386,72 @@ export default function RegisterScreen() {
                     </View>
                     <Text style={styles.errorText}>{errorText}</Text>
                   </MotiView>
-                )}
-
-                {/* Full Name */}
-                <MotiView
-                  from={{ opacity: 0, translateX: -20 }}
-                  animate={{ opacity: 1, translateX: 0 }}
-                  transition={{ type: "spring", delay: 450, damping: 18 }}
-                >
-                  <Controller
-                    control={control}
-                    name="fullName"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <Input
-                        label="Full Name"
-                        placeholder="Enter your full name"
-                        autoCapitalize="words"
-                        autoComplete="name"
-                        iconLeft="profile"
-                        value={value}
-                        onChangeText={onChange}
-                        onBlur={onBlur}
-                        error={errors.fullName?.message}
-                        isValid={!errors.fullName && value.length >= 2}
-                        size="lg"
-                      />
-                    )}
-                  />
-                </MotiView>
+                )}{/* Full Name */}
+                <Controller
+                  control={control}
+                  name="fullName"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                      label="Full Name"
+                      placeholder="Enter your full name"
+                      autoCapitalize="words"
+                      autoComplete="name"
+                      iconLeft="profile"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      error={errors.fullName?.message}
+                      isValid={!errors.fullName && value.length >= 2}
+                      size="lg"
+                    />
+                  )}
+                />
 
                 {/* Phone Number */}
-                <MotiView
-                  from={{ opacity: 0, translateX: -20 }}
-                  animate={{ opacity: 1, translateX: 0 }}
-                  transition={{ type: "spring", delay: 500, damping: 18 }}
-                >
-                  <Controller
-                    control={control}
-                    name="phoneNumber"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <Input
-                        label="Phone Number"
-                        placeholder="Enter your phone number"
-                        keyboardType="phone-pad"
-                        autoComplete="tel"
-                        iconLeft="phone"
-                        value={value}
-                        onChangeText={onChange}
-                        onBlur={onBlur}
-                        error={errors.phoneNumber?.message}
-                        isValid={!errors.phoneNumber && value.length >= 10}
-                        size="lg"
-                      />
-                    )}
-                  />
-                </MotiView>
+                <Controller
+                  control={control}
+                  name="phoneNumber"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                      label="Phone Number"
+                      placeholder="Enter your phone number"
+                      keyboardType="phone-pad"
+                      autoComplete="tel"
+                      iconLeft="phone"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      error={errors.phoneNumber?.message}
+                      isValid={!errors.phoneNumber && value.length >= 10}
+                      size="lg"
+                    />
+                  )}
+                />
 
                 {/* Email */}
-                <MotiView
-                  from={{ opacity: 0, translateX: -20 }}
-                  animate={{ opacity: 1, translateX: 0 }}
-                  transition={{ type: "spring", delay: 540, damping: 18 }}
-                >
-                  <Controller
-                    control={control}
-                    name="email"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <Input
-                        label="Email Address"
-                        placeholder="you@example.com"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoComplete="email"
-                        iconLeft="email"
-                        value={value}
-                        onChangeText={onChange}
-                        onBlur={onBlur}
-                        error={errors.email?.message}
-                        isValid={!errors.email && value.includes("@") && value.includes(".")}
-                        size="lg"
-                      />
-                    )}
-                  />
-                </MotiView>
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                      label="Email Address"
+                      placeholder="you@example.com"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      iconLeft="email"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      error={errors.email?.message}
+                      isValid={!errors.email && value.includes("@") && value.includes(".")}
+                      size="lg"
+                    />
+                  )}
+                />
 
                 {/* Password */}
-                <MotiView
-                  from={{ opacity: 0, translateX: -20 }}
-                  animate={{ opacity: 1, translateX: 0 }}
-                  transition={{ type: "spring", delay: 620, damping: 18 }}
-                >
+                <View>
                   <Controller
                     control={control}
                     name="password"
@@ -498,65 +471,46 @@ export default function RegisterScreen() {
                   />
                   {/* Password strength meter */}
                   {passwordValue.length > 0 && (
-                    <MotiView
-                      from={{ opacity: 0, translateY: -8 }}
-                      animate={{ opacity: 1, translateY: 0 }}
-                      transition={{ type: "timing", duration: 300 }}
-                    >
+                    <View style={{ marginTop: 8 }}>
                       <PasswordStrengthMeter password={passwordValue} />
-                    </MotiView>
+                    </View>
                   )}
-                </MotiView>
+                </View>
 
                 {/* Confirm Password */}
-                <MotiView
-                  from={{ opacity: 0, translateX: -20 }}
-                  animate={{ opacity: 1, translateX: 0 }}
-                  transition={{ type: "spring", delay: 700, damping: 18 }}
-                >
-                  <Controller
-                    control={control}
-                    name="confirmPassword"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <Input
-                        label="Confirm Password"
-                        placeholder="Re-enter your password"
-                        secureTextEntry
-                        iconLeft="lock"
-                        value={value}
-                        onChangeText={onChange}
-                        onBlur={onBlur}
-                        error={errors.confirmPassword?.message}
-                        isValid={
-                          !errors.confirmPassword && value.length >= 6 && value === passwordValue
-                        }
-                        size="lg"
-                      />
-                    )}
-                  />
-                </MotiView>
+                <Controller
+                  control={control}
+                  name="confirmPassword"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <Input
+                      label="Confirm Password"
+                      placeholder="Re-enter your password"
+                      secureTextEntry
+                      iconLeft="lock"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      error={errors.confirmPassword?.message}
+                      isValid={
+                        !errors.confirmPassword && value.length >= 6 && value === passwordValue
+                      }
+                      size="lg"
+                    />
+                  )}
+                />
 
                 {/* Terms note */}
-                <MotiView
-                  from={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ type: "timing", delay: 780, duration: 400 }}
-                  style={styles.termsRow}
-                >
+                <View style={styles.termsRow}>
                   <LumenIcon name="info" size="xs" color="#475569" />
                   <Text style={styles.termsText}>
                     By creating an account, you agree to our{" "}
                     <Text style={styles.termsLink}>Terms of Service</Text> and{" "}
                     <Text style={styles.termsLink}>Privacy Policy</Text>
                   </Text>
-                </MotiView>
+                </View>
 
                 {/* Register CTA */}
-                <MotiView
-                  from={{ opacity: 0, translateY: 16 }}
-                  animate={{ opacity: 1, translateY: 0 }}
-                  transition={{ type: "spring", delay: 820, damping: 16 }}
-                >
+                <View>
                   <Pressable
                     onPress={handleSubmit(onRegister)}
                     disabled={loading}
@@ -590,7 +544,7 @@ export default function RegisterScreen() {
                       )}
                     </LinearGradient>
                   </Pressable>
-                </MotiView>
+                </View>
               </View>
             </BlurView>
           </MotiView>
@@ -604,7 +558,7 @@ export default function RegisterScreen() {
           >
             <Text style={styles.footerText}>Already have an account? </Text>
             <Pressable
-              onPress={() => router.back()}
+              onPress={() => router.replace("/(auth)/Login" as any)}
               style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
             >
               <Text style={styles.loginLink}>Sign In</Text>

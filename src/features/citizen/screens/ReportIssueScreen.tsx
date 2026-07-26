@@ -22,6 +22,7 @@ import {
   Text,
   View,
   Alert,
+  Switch,
 } from "react-native";
 
 const { width: W } = Dimensions.get("window");
@@ -61,6 +62,7 @@ export default function ReportIssueScreen() {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("medium");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -102,7 +104,7 @@ export default function ReportIssueScreen() {
             priority,
             latitude: 12.9716,
             longitude: 77.5946,
-            isAnonymous: guestMode
+            isAnonymous: isAnonymous
           }),
         });
         if (!res.ok) throw new Error("Failed to submit");
@@ -422,6 +424,20 @@ export default function ReportIssueScreen() {
                     </Text>
                   </View>
                 ))}
+                
+                <View style={[s.reviewRow, { borderBottomColor: colors.borderDefault, borderBottomWidth: 0 }]}>
+                  <Text style={[TextStyles.label, { color: colors.textTertiary, width: 90 }]}>
+                    Anonymous
+                  </Text>
+                  <View style={{ flex: 1, alignItems: 'flex-start' }}>
+                    <Switch
+                      value={isAnonymous}
+                      onValueChange={setIsAnonymous}
+                      trackColor={{ false: colors.bgSubtle, true: colors.brand }}
+                    />
+                  </View>
+                </View>
+
               </View>
             </View>
           )}

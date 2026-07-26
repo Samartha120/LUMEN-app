@@ -11,7 +11,9 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useAuthStore } from "@/store/AuthStore";
+import { CitizenService } from "@/services/citizen.service";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { LineChart } from "react-native-chart-kit";
 import { useTranslation } from "react-i18next";
 import {
   Animated,
@@ -218,8 +220,18 @@ export default function CitizenDashboardScreen() {
   const { user } = useAuthStore((s) => s);
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [aiIdx, setAiIdx] = useState(0);
   const [currentTime, setCurrentTime] = useState(getTimeString());
+
+  const fetchDashboardData = async () => {
+    try {
+      const data = await CitizenService.getDashboard();
+      setDashboardData(data);
+    } catch (e) {
+      console.error("Failed to load dashboard data", e);
+    }
+  };
 
   // Animation refs
   const fadeIn = useRef(new Animated.Value(0)).current;
@@ -285,12 +297,15 @@ export default function CitizenDashboardScreen() {
       ]).start();
       setAiIdx((i) => (i + 1) % AI_INSIGHTS.length);
     }, 5000);
+    
+    fetchDashboardData();
+
     return () => clearInterval(interval);
   }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await new Promise((r) => setTimeout(r, 1200));
+    await fetchDashboardData();
     setRefreshing(false);
   }, []);
 
@@ -467,7 +482,7 @@ export default function CitizenDashboardScreen() {
             <View style={s.metricsGrid}>
               <MetricCell
                 label="Reports Filed"
-                value={12}
+                value={dashboardData?.total || 0}
                 icon="reportList"
                 color="#208AEF"
                 trend="+3 this week"
@@ -475,7 +490,7 @@ export default function CitizenDashboardScreen() {
               <View style={[s.metricDivider, { backgroundColor: colors.borderDefault }]} />
               <MetricCell
                 label="Resolved"
-                value={7}
+                value={dashboardData?.resolved || 0}
                 icon="success"
                 color="#12B76A"
                 trend="+2 this week"
@@ -483,7 +498,7 @@ export default function CitizenDashboardScreen() {
               <View style={[s.metricHDivider, { backgroundColor: colors.borderDefault }]} />
               <MetricCell
                 label="Pending"
-                value={3}
+                value={dashboardData?.pending || 0}
                 icon="timer"
                 color="#F79009"
                 trend="−1 vs last week"
@@ -499,6 +514,36 @@ export default function CitizenDashboardScreen() {
               />
             </View>
           </BlurView>
+
+          {/* Dynamic Graph Section */}
+          {dashboardData?.graphData && dashboardData.graphData.length > 0 && (
+            <View style={{ marginTop: 20, padding: 16, backgroundColor: colors.bgSurface, borderRadius: 16, borderColor: colors.borderDefault, borderWidth: 1 }}>
+              <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, marginBottom: 12 }]}>Complaints Trend (Last 7 Days)</Text>
+              <LineChart
+                data={{
+                  labels: dashboardData.graphData.map((d: any) => d.date),
+                  datasets: [{ data: dashboardData.graphData.map((d: any) => d.count) }]
+                }}
+                width={Dimensions.get("window").width - 56}
+                height={220}
+                yAxisLabel=""
+                yAxisSuffix=""
+                yAxisInterval={1}
+                chartConfig={{
+                  backgroundColor: colors.bgSurface,
+                  backgroundGradientFrom: colors.bgSurface,
+                  backgroundGradientTo: colors.bgSurface,
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(32, 138, 239, ${opacity})`,
+                  labelColor: (opacity = 1) => colors.textSecondary,
+                  style: { borderRadius: 16 },
+                  propsForDots: { r: "5", strokeWidth: "2", stroke: colors.brand }
+                }}
+                bezier
+                style={{ marginVertical: 8, borderRadius: 16 }}
+              />
+            </View>
+          )}
         </Animated.View>
 
         {/* ═══════════════════════════════════════════════ */}

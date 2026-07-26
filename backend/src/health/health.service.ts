@@ -22,6 +22,7 @@ export class HealthService {
     if (redisUrl) {
       this.redisClient = new Redis(redisUrl, {
         maxRetriesPerRequest: 1,
+        retryStrategy: () => 3600000,
       });
     } else {
       const redisHost =
@@ -31,8 +32,13 @@ export class HealthService {
         host: redisHost,
         port: redisPort,
         maxRetriesPerRequest: 1,
+        retryStrategy: () => 3600000,
       });
     }
+
+    this.redisClient.on('error', (err) => {
+      this.logger.warn('Redis is offline. Health checks will report Redis status as down.');
+    });
   }
 
   async checkHealth() {

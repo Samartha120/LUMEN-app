@@ -70,4 +70,23 @@ export class CitizenController {
   ) {
     return this.citizenService.verifyIdentity(user.id, verifyDto);
   }
+
+  @Get('payments')
+  @ApiOperation({
+    summary: 'Get all municipal bill payments for the citizen',
+  })
+  async getPayments(@CurrentUser() user: User) {
+    return this.citizenService.getPayments(user.id);
+  }
+
+  @Post('payments/:id/pay')
+  @ApiOperation({
+    summary: 'Simulate paying a municipal bill',
+  })
+  async payBill(
+    @CurrentUser() user: User,
+    @Param('id') paymentId: string,
+  ) {
+    return this.citizenService.payBill(user.id, paymentId);
+  }
 }

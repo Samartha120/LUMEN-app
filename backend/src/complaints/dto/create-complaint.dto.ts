@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, IsBoolean } from 'class-validator';
 import { Priority } from '@prisma/client';
 
 export class CreateComplaintDto {
@@ -30,4 +30,8 @@ export class CreateComplaintDto {
   @IsString()
   @IsOptional()
   videoUrl?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isAnonymous?: boolean;
 }

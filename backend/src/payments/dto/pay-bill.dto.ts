@@ -13,7 +13,9 @@ export class PayBillDto {
   @IsNotEmpty()
   type: PaymentType;
 
-  @ApiProperty({ description: 'The transaction reference from payment gateway' })
+  @ApiProperty({
+    description: 'The transaction reference from payment gateway',
+  })
   @IsString()
   @IsNotEmpty()
   transactionId: string;

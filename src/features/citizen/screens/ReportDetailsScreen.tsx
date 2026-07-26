@@ -72,7 +72,12 @@ const TIMELINE = [
     done: true,
     desc: "Reviewed by City Works Dept.",
   },
-  { step: "Dispatched (Real-time)", time: "Today, 9:35 AM", done: true, desc: "EBS auto-routed to Roads Dept." },
+  {
+    step: "Dispatched (Real-time)",
+    time: "Today, 9:35 AM",
+    done: true,
+    desc: "EBS auto-routed to Roads Dept.",
+  },
   { step: "Engineer Assigned", time: "Today, 10:45 AM", done: true, desc: "Rajesh Kumar assigned" },
   { step: "In Progress", time: "Today, 11:30 AM", done: true, desc: "Work commenced on site" },
   { step: "Resolved", time: "Estimated: Tomorrow", done: false, desc: "Pending completion" },

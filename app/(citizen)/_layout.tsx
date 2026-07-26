@@ -28,17 +28,17 @@ export default function CitizenLayout() {
       if (activeTab === "Dashboard") {
         Alert.alert("Exit App", "Are you sure you want to exit?", [
           { text: "Cancel", style: "cancel" },
-          { text: "Exit", onPress: () => BackHandler.exitApp() }
+          { text: "Exit", onPress: () => BackHandler.exitApp() },
         ]);
         return true;
       }
-      
+
       // If they are on a different tab, go back to Dashboard
       router.push("/(citizen)/Dashboard" as any);
-      return true; 
+      return true;
     };
 
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", onBackPress);
     return () => backHandler.remove();
   }, [activeTab]);
 

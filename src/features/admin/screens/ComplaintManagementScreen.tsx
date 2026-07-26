@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl, ActivityIndicator, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
@@ -42,7 +51,7 @@ export default function ComplaintManagementScreen() {
 
   const overrideStatus = async (id: string, currentStatus: string) => {
     const statuses = ["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED", "REJECTED"];
-    // In a real app, you'd show a modal or ActionSheet to pick status. 
+    // In a real app, you'd show a modal or ActionSheet to pick status.
     // Here we'll just toggle to RESOLVED for demo purposes if not resolved, else CLOSED.
     const newStatus = currentStatus === "RESOLVED" ? "CLOSED" : "RESOLVED";
 
@@ -82,12 +91,19 @@ export default function ComplaintManagementScreen() {
           <Text style={[TextStyles.subtitle, { color: colors.textPrimary }]} numberOfLines={1}>
             {item.title}
           </Text>
-          <Badge label={item.status} variant={item.status === "RESOLVED" ? "success" : "brand"} size="sm" />
+          <Badge
+            label={item.status}
+            variant={item.status === "RESOLVED" ? "success" : "brand"}
+            size="sm"
+          />
         </View>
         <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{item.trackingId}</Text>
       </View>
 
-      <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]} numberOfLines={2}>
+      <Text
+        style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}
+        numberOfLines={2}
+      >
         {item.description}
       </Text>
 
@@ -125,7 +141,11 @@ export default function ComplaintManagementScreen() {
           renderItem={renderItem}
           contentContainerStyle={s.list}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.brand}
+            />
           }
           ListEmptyComponent={
             <Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center" }]}>
@@ -150,7 +170,12 @@ const s = StyleSheet.create({
   list: { padding: Spacing[5], gap: Spacing[4] },
   card: { padding: Spacing[4] },
   cardHeader: { marginBottom: Spacing[3] },
-  titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 2 },
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 2,
+  },
   cardFooter: {
     flexDirection: "row",
     justifyContent: "space-between",

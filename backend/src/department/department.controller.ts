@@ -62,7 +62,6 @@ export class DepartmentController {
     return this.departmentService.getAvailableEngineers();
   }
 
-
   @Get('reports')
   @ApiOperation({ summary: 'Generate analytical performance reports' })
   async getReports() {

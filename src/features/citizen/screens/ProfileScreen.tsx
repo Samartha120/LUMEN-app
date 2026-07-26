@@ -122,7 +122,9 @@ export default function ProfileScreen() {
     },
     {
       title: "",
-      items: [{ icon: "logout", label: "Sign Out", danger: true, onAction: () => AuthService.logout() }],
+      items: [
+        { icon: "logout", label: "Sign Out", danger: true, onAction: () => AuthService.logout() },
+      ],
     },
   ];
 

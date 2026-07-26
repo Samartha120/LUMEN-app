@@ -87,7 +87,12 @@ export class AdminController {
     @Body('status') status: string,
     @Body('notes') notes?: string,
   ) {
-    return this.adminService.updateComplaintStatus(admin.id, complaintId, status, notes);
+    return this.adminService.updateComplaintStatus(
+      admin.id,
+      complaintId,
+      status,
+      notes,
+    );
   }
 
   @Get('audit-logs')

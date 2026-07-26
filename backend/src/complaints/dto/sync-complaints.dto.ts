@@ -4,7 +4,10 @@ import { IsArray, ValidateNested } from 'class-validator';
 import { CreateComplaintDto } from './create-complaint.dto';
 
 export class SyncComplaintsDto {
-  @ApiProperty({ type: [CreateComplaintDto], description: 'Array of complaints created offline' })
+  @ApiProperty({
+    type: [CreateComplaintDto],
+    description: 'Array of complaints created offline',
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateComplaintDto)

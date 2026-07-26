@@ -6,6 +6,6 @@ import { AiTriageService } from './ai-triage.service';
 @Module({
   imports: [HttpModule],
   controllers: [AiTriageController],
-  providers: [AiTriageService]
+  providers: [AiTriageService],
 })
 export class AiTriageModule {}

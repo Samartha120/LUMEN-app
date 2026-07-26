@@ -40,23 +40,39 @@ export default function MunicipalPaymentsScreen() {
 
   const renderPayment = (payment: any) => {
     const isPaid = payment.status === "COMPLETED";
-    
+
     return (
-      <View key={payment.id} style={[styles.card, { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault }]}>
+      <View
+        key={payment.id}
+        style={[
+          styles.card,
+          { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault },
+        ]}
+      >
         <View style={styles.cardHeader}>
-          <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}>{payment.type} Bill</Text>
-          <Badge label={isPaid ? "Paid" : "Pending"} variant={isPaid ? "success" : "warning"} size="sm" />
+          <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}>
+            {payment.type} Bill
+          </Text>
+          <Badge
+            label={isPaid ? "Paid" : "Pending"}
+            variant={isPaid ? "success" : "warning"}
+            size="sm"
+          />
         </View>
-        
+
         <View style={styles.cardBody}>
-          <Text style={[TextStyles.heading2, { color: colors.textPrimary }]}>₹ {payment.amount || '450'}</Text>
-          <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>Due: {new Date(payment.createdAt).toLocaleDateString()}</Text>
+          <Text style={[TextStyles.heading2, { color: colors.textPrimary }]}>
+            ₹ {payment.amount || "450"}
+          </Text>
+          <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
+            Due: {new Date(payment.createdAt).toLocaleDateString()}
+          </Text>
         </View>
 
         {!isPaid && (
-          <Button 
-            label="Pay Now" 
-            onPress={() => handlePay(payment.id)} 
+          <Button
+            label="Pay Now"
+            onPress={() => handlePay(payment.id)}
             style={{ marginTop: Spacing[4] }}
           />
         )}
@@ -67,7 +83,7 @@ export default function MunicipalPaymentsScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.bgBase }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      
+
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.borderDefault }]}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
@@ -79,9 +95,13 @@ export default function MunicipalPaymentsScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {loading ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: 40 }}>Loading bills...</Text>
+          <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40 }}>
+            Loading bills...
+          </Text>
         ) : payments.length === 0 ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: 40 }}>No outstanding bills.</Text>
+          <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40 }}>
+            No outstanding bills.
+          </Text>
         ) : (
           payments.map(renderPayment)
         )}
@@ -117,5 +137,5 @@ const styles = StyleSheet.create({
   },
   cardBody: {
     flexDirection: "column",
-  }
+  },
 });

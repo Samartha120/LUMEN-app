@@ -19,6 +19,4 @@ export class AnalyticsController {
   getDashboardStats() {
     return this.analyticsService.getDashboardStats();
   }
-
-
 }

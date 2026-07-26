@@ -7,7 +7,10 @@ export class AnalyzeComplaintDto {
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty({ description: 'Optional image URL for computer vision analysis', required: false })
+  @ApiProperty({
+    description: 'Optional image URL for computer vision analysis',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   imageUrl?: string;

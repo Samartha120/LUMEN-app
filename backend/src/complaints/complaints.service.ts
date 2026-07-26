@@ -61,7 +61,7 @@ export class ComplaintsService {
             reporterId: user ? user.id : undefined,
           },
         });
-        
+
         if (dto.latitude && dto.longitude) {
           await tx.$executeRaw`
             UPDATE complaints

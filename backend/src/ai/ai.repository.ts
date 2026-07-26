@@ -10,7 +10,9 @@ export class AiRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOrUpdatePrediction(dto: CreatePredictionDto) {
-    this.logger.log(`Upserting AI prediction for complaint: ${dto.complaintId}`);
+    this.logger.log(
+      `Upserting AI prediction for complaint: ${dto.complaintId}`,
+    );
 
     return this.prisma.aiPrediction.upsert({
       where: { complaintId: dto.complaintId },

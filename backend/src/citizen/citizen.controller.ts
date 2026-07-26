@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Post, Body, UseGuards, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Body,
+  UseGuards,
+  Param,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CitizenService } from './citizen.service';
 import { UpdateCitizenProfileDto } from './dto/update-citizen-profile.dto';
@@ -83,10 +91,7 @@ export class CitizenController {
   @ApiOperation({
     summary: 'Simulate paying a municipal bill',
   })
-  async payBill(
-    @CurrentUser() user: User,
-    @Param('id') paymentId: string,
-  ) {
+  async payBill(@CurrentUser() user: User, @Param('id') paymentId: string) {
     return this.citizenService.payBill(user.id, paymentId);
   }
 }

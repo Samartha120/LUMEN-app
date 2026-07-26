@@ -15,7 +15,7 @@ export default function IdentityVerificationScreen() {
   const { user } = useAuthStore((s) => s);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<"UNVERIFIED" | "PENDING" | "VERIFIED">(
-    ((user as any)?.verificationStatus) || "UNVERIFIED"
+    (user as any)?.verificationStatus || "UNVERIFIED"
   );
 
   const handleSubmit = async () => {
@@ -94,14 +94,12 @@ export default function IdentityVerificationScreen() {
             status === "VERIFIED"
               ? colors.successText
               : status === "PENDING"
-              ? colors.warningText
-              : colors.textSecondary
+                ? colors.warningText
+                : colors.textSecondary
           }
           size="2xl"
         />
-        <Text style={s.statusText}>
-          Status: {status}
-        </Text>
+        <Text style={s.statusText}>Status: {status}</Text>
         {status === "UNVERIFIED" && (
           <Text style={[s.subtitle, { marginTop: Spacing[4] }]}>
             Upload a valid government ID to get verified.

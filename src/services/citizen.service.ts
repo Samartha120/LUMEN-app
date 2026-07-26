@@ -53,5 +53,5 @@ export const CitizenService = {
       throw new Error(`Failed to pay bill: ${response.status}`);
     }
     return response.json();
-  }
+  },
 };

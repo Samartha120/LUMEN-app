@@ -100,31 +100,31 @@ export default function VerifyOtpScreen() {
             Alert.alert(
               "Enable Face ID / Touch ID?",
               "Would you like to securely log in with biometrics next time?",
-            [
-              { 
-                text: "Not Now", 
-                style: "cancel", 
-                onPress: async () => {
-                  await AsyncStorage.setItem(declinedKey, "true");
-                  resolve();
-                } 
-              },
-              {
-                text: "Enable",
-                onPress: async () => {
-                  try {
-                    await AuthService.enrollBiometric(email);
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                  } catch (e: any) {
-                    Alert.alert("Failed to enroll", e.message);
-                  }
-                  resolve();
+              [
+                {
+                  text: "Not Now",
+                  style: "cancel",
+                  onPress: async () => {
+                    await AsyncStorage.setItem(declinedKey, "true");
+                    resolve();
+                  },
                 },
-              },
-            ]
-          );
-        });
-      }
+                {
+                  text: "Enable",
+                  onPress: async () => {
+                    try {
+                      await AuthService.enrollBiometric(email);
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    } catch (e: any) {
+                      Alert.alert("Failed to enroll", e.message);
+                    }
+                    resolve();
+                  },
+                },
+              ]
+            );
+          });
+        }
       }
     } catch (e) {
       console.error(e);

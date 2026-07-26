@@ -1,8 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import NetInfo from '@react-native-community/netinfo';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 import { api } from "@/services/api/client";
 
-const OFFLINE_QUEUE_KEY = '@lumen_offline_reports_queue';
+const OFFLINE_QUEUE_KEY = "@lumen_offline_reports_queue";
 
 export interface QueuedReport {
   id: string;
@@ -20,7 +20,7 @@ class SyncManager {
 
   constructor() {
     // Listen to network changes
-    NetInfo.addEventListener(state => {
+    NetInfo.addEventListener((state) => {
       const currentlyOnline = !!state.isConnected && !!state.isInternetReachable;
       if (currentlyOnline && !this.isOnline) {
         this.isOnline = true;
@@ -35,14 +35,14 @@ class SyncManager {
     return this.isOnline;
   }
 
-  async enqueueReport(report: Omit<QueuedReport, 'id' | 'queuedAt'>) {
+  async enqueueReport(report: Omit<QueuedReport, "id" | "queuedAt">) {
     const queue = await this.getQueue();
     const newReport: QueuedReport = {
       ...report,
       id: `offline-${Date.now()}`,
       queuedAt: Date.now(),
     };
-    
+
     queue.push(newReport);
     await AsyncStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
     return newReport;
@@ -63,7 +63,7 @@ class SyncManager {
 
   async syncOfflineReports() {
     if (this.isSyncing) return;
-    
+
     const queue = await this.getQueue();
     if (queue.length === 0) return;
 
@@ -71,7 +71,7 @@ class SyncManager {
 
     try {
       // Map queued reports to the format expected by the API
-      const payload = queue.map(q => ({
+      const payload = queue.map((q) => ({
         title: `Offline Report - ${q.category}`,
         description: q.description,
         category: q.category,
@@ -80,13 +80,13 @@ class SyncManager {
         longitude: q.longitude,
       }));
 
-      await api.post('/complaints/sync', { complaints: payload });
-      
+      await api.post("/complaints/sync", { complaints: payload });
+
       // Clear queue upon success
       await this.clearQueue();
       console.log(`Successfully synced ${queue.length} offline reports.`);
     } catch (e) {
-      console.error('Failed to sync offline reports', e);
+      console.error("Failed to sync offline reports", e);
       // Keep in queue for next time
     } finally {
       this.isSyncing = false;

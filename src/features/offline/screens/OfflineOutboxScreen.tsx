@@ -58,7 +58,7 @@ export default function OfflineOutboxScreen() {
       color: colors.textSecondary,
       textAlign: "center",
       marginTop: Spacing[12],
-    }
+    },
   });
 
   return (
@@ -77,23 +77,18 @@ export default function OfflineOutboxScreen() {
               <Text style={s.category}>{item.category.toUpperCase()}</Text>
               <LumenIcon name="alert" size="sm" color={colors.warningText} />
             </View>
-            <Text style={s.subtitle} numberOfLines={2}>{item.description}</Text>
+            <Text style={s.subtitle} numberOfLines={2}>
+              {item.description}
+            </Text>
             <Text style={s.date}>{new Date(item.queuedAt).toLocaleString()}</Text>
           </View>
         )}
-        ListEmptyComponent={
-          <Text style={s.empty}>No offline reports in queue.</Text>
-        }
+        ListEmptyComponent={<Text style={s.empty}>No offline reports in queue.</Text>}
       />
 
       <View style={{ marginTop: Spacing[6] }}>
         {queue.length > 0 && (
-          <Button
-            label="Sync Now"
-            onPress={handleSync}
-            loading={syncing}
-            variant="primary"
-          />
+          <Button label="Sync Now" onPress={handleSync} loading={syncing} variant="primary" />
         )}
         <View style={{ marginTop: Spacing[4] }}>
           <Button label="Back" onPress={() => router.back()} variant="outline" />

@@ -1,7 +1,11 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
-import { AI_PROCESSING_QUEUE, AI_JOB_NAMES, AI_PREDICTION_STATUS } from '../ai.constants';
+import {
+  AI_PROCESSING_QUEUE,
+  AI_JOB_NAMES,
+  AI_PREDICTION_STATUS,
+} from '../ai.constants';
 import { AiService } from '../ai.service';
 
 @Processor(AI_PROCESSING_QUEUE)
@@ -24,14 +28,18 @@ export class AiProcessor extends WorkerHost {
     }
   }
 
-  private async handlePredictVideo(job: Job<{ complaintId: string; videoUrl: string }>) {
+  private async handlePredictVideo(
+    job: Job<{ complaintId: string; videoUrl: string }>,
+  ) {
     const { complaintId, videoUrl } = job.data;
     try {
       this.logger.log(`Running async video prediction for ${complaintId}`);
       await this.aiService.processVideoPrediction(complaintId, videoUrl);
       this.logger.log(`Completed async video prediction for ${complaintId}`);
     } catch (error) {
-      this.logger.error(`Error processing video prediction for ${complaintId}: ${error.message}`);
+      this.logger.error(
+        `Error processing video prediction for ${complaintId}: ${error.message}`,
+      );
       await this.aiService.markPredictionFailed(complaintId, error.message);
       throw error;
     }

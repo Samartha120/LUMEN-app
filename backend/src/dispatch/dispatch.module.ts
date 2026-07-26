@@ -4,6 +4,6 @@ import { DispatchService } from './dispatch.service';
 
 @Module({
   controllers: [DispatchController],
-  providers: [DispatchService]
+  providers: [DispatchService],
 })
 export class DispatchModule {}

@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsArray, IsObject, IsEnum } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsArray,
+  IsObject,
+  IsEnum,
+} from 'class-validator';
 import { AI_PREDICTION_STATUS } from '../ai.constants';
 import type { BoundingBox, PredictionMetadata } from '../ai.types';
 

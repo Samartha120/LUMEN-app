@@ -37,7 +37,9 @@ export class HealthService {
     }
 
     this.redisClient.on('error', (err) => {
-      this.logger.warn('Redis is offline. Health checks will report Redis status as down.');
+      this.logger.warn(
+        'Redis is offline. Health checks will report Redis status as down.',
+      );
     });
   }
 

@@ -66,7 +66,10 @@ export class AuthenticationController {
   @UseGuards(JwtAuthGuard)
   @Post('biometric/enable')
   @HttpCode(HttpStatus.OK)
-  async enableBiometric(@Req() req: any, @Body() body: { biometricHash: string }) {
+  async enableBiometric(
+    @Req() req: any,
+    @Body() body: { biometricHash: string },
+  ) {
     return this.authService.enableBiometric(req.user.id, body.biometricHash);
   }
 

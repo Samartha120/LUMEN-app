@@ -14,7 +14,10 @@ export const AuthService = {
   },
 
   getBiometricKey(email: string) {
-    const safeEmail = email.toLowerCase().trim().replace(/[^a-z0-9._-]/g, "_");
+    const safeEmail = email
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9._-]/g, "_");
     return `${SECURE_STORE_CREDENTIALS_KEY}_${safeEmail}`;
   },
 
@@ -96,7 +99,7 @@ export const AuthService = {
 
     const data = await response.json();
     this.handleTokenResponse(data);
-    
+
     // Store last email for biometric login context
     await AsyncStorage.setItem("lumen_last_email", email);
 
@@ -136,9 +139,13 @@ export const AuthService = {
 
     if (!result.success) {
       if (__DEV__) {
-        console.warn(`Biometric authentication failed (${result.error}), but bypassing for DEV mode.`);
+        console.warn(
+          `Biometric authentication failed (${result.error}), but bypassing for DEV mode.`
+        );
       } else {
-        throw new Error(`Biometric authentication failed or was cancelled (${result.error || "unknown"}).`);
+        throw new Error(
+          `Biometric authentication failed or was cancelled (${result.error || "unknown"}).`
+        );
       }
     }
 
@@ -189,7 +196,7 @@ export const AuthService = {
     }
 
     // 2. Determine target email
-    const targetEmail = email || await AsyncStorage.getItem("lumen_last_email");
+    const targetEmail = email || (await AsyncStorage.getItem("lumen_last_email"));
     if (!targetEmail) {
       throw new Error("Please specify an email or enroll first");
     }
@@ -211,13 +218,15 @@ export const AuthService = {
       if (__DEV__) {
         console.warn(`Biometric login failed (${authResult.error}), but bypassing for DEV mode.`);
       } else {
-        throw new Error(`Biometric does not match. Please retry again. (${authResult.error || "unknown"})`);
+        throw new Error(
+          `Biometric does not match. Please retry again. (${authResult.error || "unknown"})`
+        );
       }
     }
 
     // 5. Parse credentials and login via new biometric endpoint
     const { email: storedEmail, biometricHash } = JSON.parse(storedCredentials);
-    
+
     // Instead of doing this.login(email, password), we use the hash.
     const response = await fetch(`${API_URL}/biometric/login`, {
       method: "POST",

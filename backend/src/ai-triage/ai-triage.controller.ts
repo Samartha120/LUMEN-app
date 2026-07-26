@@ -12,7 +12,9 @@ export class AiTriageController {
   constructor(private readonly aiTriageService: AiTriageService) {}
 
   @Post('analyze')
-  @ApiOperation({ summary: 'Analyze a civic complaint using AI models for smart routing' })
+  @ApiOperation({
+    summary: 'Analyze a civic complaint using AI models for smart routing',
+  })
   async analyze(@Body() dto: AnalyzeComplaintDto) {
     return this.aiTriageService.analyze(dto);
   }

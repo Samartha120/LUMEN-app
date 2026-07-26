@@ -36,12 +36,16 @@ export default function RootLayout() {
           role === "ADMIN" || role === "SUPER_ADMIN"
             ? "/(admin)/Dashboard"
             : "/(citizen)/Dashboard";
-        console.log(`[AUTH GUARD] Logged in user tried to access auth route ${pathname}. Redirecting to ${target}`);
+        console.log(
+          `[AUTH GUARD] Logged in user tried to access auth route ${pathname}. Redirecting to ${target}`
+        );
         router.replace(target as any);
       }
     } else {
       if (isCitizenRoute || isAdminRoute) {
-        console.log(`[AUTH GUARD] Logged-out user tried to access protected route ${pathname}. Redirecting to /Login`);
+        console.log(
+          `[AUTH GUARD] Logged-out user tried to access protected route ${pathname}. Redirecting to /Login`
+        );
         router.replace("/(auth)/Login" as any);
       }
     }

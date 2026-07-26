@@ -297,7 +297,7 @@ export default function CitizenDashboardScreen() {
       ]).start();
       setAiIdx((i) => (i + 1) % AI_INSIGHTS.length);
     }, 5000);
-    
+
     fetchDashboardData();
 
     return () => clearInterval(interval);
@@ -386,9 +386,7 @@ export default function CitizenDashboardScreen() {
                 {t("dashboard.live")}
               </Text>
             </View>
-            <Text style={[s.greetingName, { color: colors.textSecondary }]}>
-              {getGreeting(t)},
-            </Text>
+            <Text style={[s.greetingName, { color: colors.textSecondary }]}>{getGreeting(t)},</Text>
             <View style={s.locationRow}>
               <LumenIcon name="mapPin" size="xs" color={colors.textTertiary} />
               <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
@@ -517,12 +515,25 @@ export default function CitizenDashboardScreen() {
 
           {/* Dynamic Graph Section */}
           {dashboardData?.graphData && dashboardData.graphData.length > 0 && (
-            <View style={{ marginTop: 20, padding: 16, backgroundColor: colors.bgSurface, borderRadius: 16, borderColor: colors.borderDefault, borderWidth: 1 }}>
-              <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary, marginBottom: 12 }]}>Complaints Trend (Last 7 Days)</Text>
+            <View
+              style={{
+                marginTop: 20,
+                padding: 16,
+                backgroundColor: colors.bgSurface,
+                borderRadius: 16,
+                borderColor: colors.borderDefault,
+                borderWidth: 1,
+              }}
+            >
+              <Text
+                style={[TextStyles.bodyMedium, { color: colors.textPrimary, marginBottom: 12 }]}
+              >
+                Complaints Trend (Last 7 Days)
+              </Text>
               <LineChart
                 data={{
                   labels: dashboardData.graphData.map((d: any) => d.date),
-                  datasets: [{ data: dashboardData.graphData.map((d: any) => d.count) }]
+                  datasets: [{ data: dashboardData.graphData.map((d: any) => d.count) }],
                 }}
                 width={Dimensions.get("window").width - 56}
                 height={220}
@@ -537,7 +548,7 @@ export default function CitizenDashboardScreen() {
                   color: (opacity = 1) => `rgba(32, 138, 239, ${opacity})`,
                   labelColor: (opacity = 1) => colors.textSecondary,
                   style: { borderRadius: 16 },
-                  propsForDots: { r: "5", strokeWidth: "2", stroke: colors.brand }
+                  propsForDots: { r: "5", strokeWidth: "2", stroke: colors.brand },
                 }}
                 bezier
                 style={{ marginVertical: 8, borderRadius: 16 }}
@@ -558,7 +569,10 @@ export default function CitizenDashboardScreen() {
           <View style={s.actionsGrid}>
             {(() => {
               const actions: any[] = [...QUICK_ACTIONS];
-              if ((user as any)?.verificationStatus === 'UNVERIFIED' || !(user as any)?.verificationStatus) {
+              if (
+                (user as any)?.verificationStatus === "UNVERIFIED" ||
+                !(user as any)?.verificationStatus
+              ) {
                 actions.unshift({
                   icon: "profile" as any,
                   label: "Verify Identity",
@@ -679,7 +693,11 @@ export default function CitizenDashboardScreen() {
         <Animated.View style={[s.section, { opacity: fadeIn }]}>
           <View style={s.sectionHeader}>
             <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>Nearby Issues</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="View Map" style={[s.viewAllBtn, { borderColor: colors.borderDefault }]}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View Map"
+              style={[s.viewAllBtn, { borderColor: colors.borderDefault }]}
+            >
               <Text style={[TextStyles.caption, { color: colors.brand, fontWeight: "700" }]}>
                 View Map
               </Text>

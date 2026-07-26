@@ -15,7 +15,7 @@ export default function SplashScreen() {
     // Navigate to welcome screen or dashboard after 2 seconds
     const timer = setTimeout(() => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      
+
       const { user } = useAuthStore.getState();
       if (user) {
         // Force them to authenticate again via Biometrics or Credentials

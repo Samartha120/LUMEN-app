@@ -316,7 +316,6 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-
           {/* Header */}
           <MotiView
             from={{ opacity: 0, translateY: -20 }}
@@ -386,7 +385,8 @@ export default function RegisterScreen() {
                     </View>
                     <Text style={styles.errorText}>{errorText}</Text>
                   </MotiView>
-                )}{/* Full Name */}
+                )}
+                {/* Full Name */}
                 <Controller
                   control={control}
                   name="fullName"

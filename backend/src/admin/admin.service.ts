@@ -116,23 +116,32 @@ export class AdminService {
     return this.prisma.complaint.findMany({
       where: {
         ...(status && { status: status as any }),
-        ...(department && { dispatchRecords: { some: { department: department as any } } })
+        ...(department && {
+          dispatchRecords: { some: { department: department as any } },
+        }),
       },
       orderBy: { createdAt: 'desc' },
       include: {
         reporter: { select: { fullName: true, email: true } },
-        dispatchRecords: true
-      }
+        dispatchRecords: true,
+      },
     });
   }
 
-  async updateComplaintStatus(adminId: string, complaintId: string, status: string, notes?: string) {
-    const complaint = await this.prisma.complaint.findUnique({ where: { id: complaintId } });
+  async updateComplaintStatus(
+    adminId: string,
+    complaintId: string,
+    status: string,
+    notes?: string,
+  ) {
+    const complaint = await this.prisma.complaint.findUnique({
+      where: { id: complaintId },
+    });
     if (!complaint) throw new NotFoundException('Complaint not found');
 
     const updated = await this.prisma.complaint.update({
       where: { id: complaintId },
-      data: { status: status as any }
+      data: { status: status as any },
     });
 
     await this.prisma.complaintTimeline.create({
@@ -140,14 +149,20 @@ export class AdminService {
         complaintId,
         status: status as any,
         notes: notes || `Status updated to ${status} by admin`,
-        performedById: adminId
-      }
+        performedById: adminId,
+      },
     });
 
-    await this.logAudit(adminId, 'UPDATE_COMPLAINT_STATUS', 'Complaint', complaint.id, {
-      oldStatus: complaint.status,
-      newStatus: status
-    });
+    await this.logAudit(
+      adminId,
+      'UPDATE_COMPLAINT_STATUS',
+      'Complaint',
+      complaint.id,
+      {
+        oldStatus: complaint.status,
+        newStatus: status,
+      },
+    );
 
     return updated;
   }

@@ -104,7 +104,7 @@ export default function ReportIssueScreen() {
             priority,
             latitude: 12.9716,
             longitude: 77.5946,
-            isAnonymous: isAnonymous
+            isAnonymous: isAnonymous,
           }),
         });
         if (!res.ok) throw new Error("Failed to submit");
@@ -116,7 +116,10 @@ export default function ReportIssueScreen() {
           latitude: 12.9716,
           longitude: 77.5946,
         });
-        Alert.alert("Offline Mode", "Your report has been queued and will sync when you are back online.");
+        Alert.alert(
+          "Offline Mode",
+          "Your report has been queued and will sync when you are back online."
+        );
       }
 
       setSubmitted(true);
@@ -424,12 +427,17 @@ export default function ReportIssueScreen() {
                     </Text>
                   </View>
                 ))}
-                
-                <View style={[s.reviewRow, { borderBottomColor: colors.borderDefault, borderBottomWidth: 0 }]}>
+
+                <View
+                  style={[
+                    s.reviewRow,
+                    { borderBottomColor: colors.borderDefault, borderBottomWidth: 0 },
+                  ]}
+                >
                   <Text style={[TextStyles.label, { color: colors.textTertiary, width: 90 }]}>
                     Anonymous
                   </Text>
-                  <View style={{ flex: 1, alignItems: 'flex-start' }}>
+                  <View style={{ flex: 1, alignItems: "flex-start" }}>
                     <Switch
                       value={isAnonymous}
                       onValueChange={setIsAnonymous}
@@ -437,7 +445,6 @@ export default function ReportIssueScreen() {
                     />
                   </View>
                 </View>
-
               </View>
             </View>
           )}

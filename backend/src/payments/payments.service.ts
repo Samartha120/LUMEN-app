@@ -14,17 +14,17 @@ export class PaymentsService {
       {
         id: 'bill_1',
         type: 'WATER_BILL',
-        amount: 850.50,
+        amount: 850.5,
         dueDate: new Date(Date.now() + 86400000 * 5),
         description: 'Monthly Water Usage - Sector 4',
       },
       {
         id: 'bill_2',
         type: 'PROPERTY_TAX',
-        amount: 15400.00,
+        amount: 15400.0,
         dueDate: new Date(Date.now() + 86400000 * 15),
         description: 'Annual Property Tax (2025-2026)',
-      }
+      },
     ];
   }
 
@@ -38,7 +38,7 @@ export class PaymentsService {
         transactionId: dto.transactionId,
         status: 'COMPLETED',
         receiptUrl: `https://lumen-mock-s3.com/receipts/${dto.transactionId}.pdf`,
-      }
+      },
     });
   }
 

@@ -64,7 +64,9 @@ export default function AdminDashboardScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
         }
       >
-        <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[2] }]}>
+        <Text
+          style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[2] }]}
+        >
           High-Level Metrics
         </Text>
 
@@ -73,7 +75,9 @@ export default function AdminDashboardScreen() {
             <View style={[s.iconBox, { backgroundColor: colors.brand + "15" }]}>
               <LumenIcon name="report" size="md" color={colors.brand} />
             </View>
-            <Text style={[TextStyles.heading1, { color: colors.textPrimary, marginTop: Spacing[3] }]}>
+            <Text
+              style={[TextStyles.heading1, { color: colors.textPrimary, marginTop: Spacing[3] }]}
+            >
               {stats?.totalComplaints || 0}
             </Text>
             <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
@@ -85,7 +89,9 @@ export default function AdminDashboardScreen() {
             <View style={[s.iconBox, { backgroundColor: "#10B98115" }]}>
               <LumenIcon name="check" size="md" color="#10B981" />
             </View>
-            <Text style={[TextStyles.heading1, { color: colors.textPrimary, marginTop: Spacing[3] }]}>
+            <Text
+              style={[TextStyles.heading1, { color: colors.textPrimary, marginTop: Spacing[3] }]}
+            >
               {stats?.complaintsByStatus?.find((s: any) => s.status === "RESOLVED")?.count || 0}
             </Text>
             <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
@@ -116,11 +122,13 @@ export default function AdminDashboardScreen() {
             </View>
           ))}
           {!stats?.complaintsByStatus?.length && (
-            <Text style={[TextStyles.body, { color: colors.textSecondary }]}>No data available</Text>
+            <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
+              No data available
+            </Text>
           )}
         </Card>
-        
-        <View style={{height: Spacing[10]}} />
+
+        <View style={{ height: Spacing[10] }} />
       </ScrollView>
     </View>
   );

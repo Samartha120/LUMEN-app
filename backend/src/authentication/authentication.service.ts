@@ -149,9 +149,9 @@ export class AuthenticationService {
   async enableBiometric(userId: string, biometricHash: string) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { 
+      data: {
         biometricEnabled: true,
-        biometricHash: biometricHash
+        biometricHash: biometricHash,
       } as any,
     });
     return { success: true };
@@ -164,11 +164,15 @@ export class AuthenticationService {
     }
 
     if (!user.biometricEnabled || !user.biometricHash) {
-      throw new UnauthorizedException('Biometric login is not enabled for this user');
+      throw new UnauthorizedException(
+        'Biometric login is not enabled for this user',
+      );
     }
 
     if (user.biometricHash !== biometricHash) {
-      throw new UnauthorizedException('Biometric authentication failed or device unauthorized');
+      throw new UnauthorizedException(
+        'Biometric authentication failed or device unauthorized',
+      );
     }
 
     return this.generateTokens(user);

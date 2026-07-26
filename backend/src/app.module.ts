@@ -85,7 +85,9 @@ import { AiTriageModule } from './ai-triage/ai-triage.module';
         });
 
         redisConnection.on('error', (err) => {
-          console.warn(`[Redis Warning] Redis is offline. Queue and notification features will run in offline mode.`);
+          console.warn(
+            `[Redis Warning] Redis is offline. Queue and notification features will run in offline mode.`,
+          );
         });
 
         return {

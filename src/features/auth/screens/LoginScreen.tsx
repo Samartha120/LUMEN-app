@@ -192,7 +192,7 @@ export default function LoginScreen() {
     try {
       let hasHardware = await LocalAuthentication.hasHardwareAsync();
       let isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      
+
       if (__DEV__) {
         hasHardware = true;
         isEnrolled = true;
@@ -200,7 +200,7 @@ export default function LoginScreen() {
 
       const userBiometricKey = AuthService.getBiometricKey(emailValue);
       const storedCreds = await SecureStore.getItemAsync(userBiometricKey);
-      
+
       if (hasHardware && isEnrolled && storedCreds) {
         setCanUseBiometric(true);
       } else {
@@ -212,12 +212,14 @@ export default function LoginScreen() {
     }
   };
 
-
-
-  const promptEnableBiometric = async (email: string, password: string, biometricEnabledOnBackend: boolean) => {
+  const promptEnableBiometric = async (
+    email: string,
+    password: string,
+    biometricEnabledOnBackend: boolean
+  ) => {
     let hasHardware = await LocalAuthentication.hasHardwareAsync();
     let isEnrolled = await LocalAuthentication.isEnrolledAsync();
-    
+
     if (__DEV__) {
       hasHardware = true;
       isEnrolled = true;
@@ -238,13 +240,13 @@ export default function LoginScreen() {
             "Enable Face ID / Touch ID?",
             "Would you like to securely log in with biometrics next time?",
             [
-              { 
-                text: "Not Now", 
-                style: "cancel", 
+              {
+                text: "Not Now",
+                style: "cancel",
                 onPress: async () => {
                   await AsyncStorage.setItem(declinedKey, "true");
                   resolve();
-                } 
+                },
               },
               {
                 text: "Enable",
@@ -298,14 +300,15 @@ export default function LoginScreen() {
     } catch (err: any) {
       setErrorText(err.message || "Biometric login failed.");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      
+
       // If the backend rejects the credentials as unauthorized or not enabled (due to db reset/mismatch),
       // clear them locally so the user can log in with password once and cleanly re-enroll.
-      if (err.message && (
-        err.message.includes("device unauthorized") ||
-        err.message.includes("is not enabled") ||
-        err.message.includes("User not found")
-      )) {
+      if (
+        err.message &&
+        (err.message.includes("device unauthorized") ||
+          err.message.includes("is not enabled") ||
+          err.message.includes("User not found"))
+      ) {
         if (email) {
           try {
             const userBiometricKey = AuthService.getBiometricKey(email);

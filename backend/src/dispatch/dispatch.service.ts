@@ -2,10 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { AssignDispatchDto } from './dto/assign-dispatch.dto';
 import type { User } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class DispatchService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async assign(dto: AssignDispatchDto, user: User) {
     const complaint = await this.prisma.complaint.findUnique({
@@ -19,7 +23,7 @@ export class DispatchService {
     const estimatedResolutionAt = new Date();
     estimatedResolutionAt.setHours(estimatedResolutionAt.getHours() + 48); // Mock 48h ETA
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       // Create dispatch record
       const dispatchRecord = await tx.dispatchRecord.create({
         data: {
@@ -49,6 +53,27 @@ export class DispatchService {
 
       return dispatchRecord;
     });
+
+    // Phase 22: Send push notification to the reporter
+    if (complaint.reporterId) {
+      // @ts-ignore
+      const reporter = await this.prisma.user.findUnique({
+        where: { id: complaint.reporterId },
+        select: { fcmToken: true },
+      });
+      // @ts-ignore
+      if (reporter?.fcmToken) {
+        await this.notificationsService.sendPushNotification({
+          // @ts-ignore
+          token: reporter.fcmToken,
+          title: 'Complaint Assigned',
+          body: `Your complaint "${complaint.title}" has been assigned to the ${dto.department} department.`,
+          data: { complaintId: dto.complaintId },
+        });
+      }
+    }
+
+    return result;
   }
 
   async getDispatchDetails(complaintId: string) {

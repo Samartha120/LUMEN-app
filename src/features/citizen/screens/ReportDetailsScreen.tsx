@@ -21,7 +21,7 @@ import {
   View,
   Platform,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
@@ -31,98 +31,16 @@ import { Badge } from "@/design-system/components/Badge";
 import { Avatar } from "@/design-system/components/Avatar";
 import { LinearProgress } from "@/design-system/components/Progress";
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
+import { useQuery } from "@tanstack/react-query";
+import { ComplaintsService } from "@/services/complaints.service";
+import { CitizenService } from "@/services/citizen.service";
+import { socketService } from "@/services/socket.service";
+
 
 const { width: W } = Dimensions.get("window");
 
 // ── Report Data (replace with API / Supabase realtime) ────────
-const REPORT = {
-  id: "BLR-2026-RD-ZB-000023",
-  legacyId: "#R001",
-  title: "Large pothole on MG Road near City Bank",
-  category: "Road Damage",
-  status: "in_progress",
-  priority: "High Priority",
-  progress: 65,
-  estimatedCompletion: "Tomorrow by 5 PM",
-  location: {
-    address: "MG Road, Bengaluru",
-    lat: 12.9753,
-    lng: 77.6065,
-  },
-  department: "City Works & Roads",
-  zone: "Zone B — Central",
-  filed: "Today, 9:14 AM",
-  sla: "48 hours",
-  trackingId: "#R001-2024",
-  engineer: {
-    name: "Rajesh Kumar",
-    designation: "Senior Field Engineer",
-    zone: "Zone B",
-    status: "On Site",
-    rating: 4.8,
-    phone: "+919876543210",
-  },
-};
-
-const TIMELINE = [
-  { step: "Report Submitted", time: "Today, 9:14 AM", done: true, desc: "Logged by Samuel K." },
-  {
-    step: "Under Review",
-    time: "Today, 9:30 AM",
-    done: true,
-    desc: "Reviewed by City Works Dept.",
-  },
-  {
-    step: "Dispatched (Real-time)",
-    time: "Today, 9:35 AM",
-    done: true,
-    desc: "EBS auto-routed to Roads Dept.",
-  },
-  { step: "Engineer Assigned", time: "Today, 10:45 AM", done: true, desc: "Rajesh Kumar assigned" },
-  { step: "In Progress", time: "Today, 11:30 AM", done: true, desc: "Work commenced on site" },
-  { step: "Resolved", time: "Estimated: Tomorrow", done: false, desc: "Pending completion" },
-];
-
-const ACTIVITY = [
-  {
-    time: "11:30 AM",
-    action: "Rajesh K. started work on site",
-    icon: "tools" as const,
-    color: "#208AEF",
-  },
-  {
-    time: "10:45 AM",
-    action: "Task assigned to Rajesh Kumar",
-    icon: "engineer" as const,
-    color: "#7C3AED",
-  },
-  {
-    time: "9:35 AM",
-    action: "System auto-dispatched to Roads via EBS",
-    icon: "activity" as const,
-    color: "#F43F5E",
-  },
-  {
-    time: "9:30 AM",
-    action: "Report reviewed by supervisor",
-    icon: "check" as const,
-    color: "#12B76A",
-  },
-  {
-    time: "9:14 AM",
-    action: "Report submitted by Samuel K.",
-    icon: "report" as const,
-    color: "#F79009",
-  },
-];
-
-const DETAILS = [
-  { label: "Department", value: REPORT.department },
-  { label: "Zone", value: REPORT.zone },
-  { label: "Filed", value: REPORT.filed },
-  { label: "SLA", value: REPORT.sla },
-  { label: "Tracking ID", value: REPORT.trackingId, copyable: true },
-];
+// Dynamic data will be fetched from API instead of mock constants
 
 // ── Animated Number Counter ───────────────────────────────────
 function CounterText({
@@ -170,7 +88,7 @@ function TimelineStep({
   delay,
   colors,
 }: {
-  step: (typeof TIMELINE)[0];
+  step: any;
   done: boolean;
   isLast: boolean;
   isCurrent: boolean;
@@ -277,6 +195,31 @@ export default function ReportDetailsScreen() {
   const { colors, isDark, shadows } = useTheme();
   const [copied, setCopied] = useState(false);
 
+  const { id } = useLocalSearchParams<{ id: string }>();
+  
+  const { data: reportData, isLoading: loadingReport } = useQuery({
+    queryKey: ["complaint", id],
+    queryFn: () => ComplaintsService.getOne(id as string),
+    enabled: !!id,
+  });
+
+  const { data: timelineData } = useQuery({
+    queryKey: ["complaint_timeline", id],
+    queryFn: () => CitizenService.getComplaintTracking(id as string),
+    enabled: !!id,
+  });
+
+  useEffect(() => {
+    if (id) {
+      socketService.joinComplaint(id as string);
+    }
+    return () => {
+      if (id) {
+        socketService.leaveComplaint(id as string);
+      }
+    };
+  }, [id]);
+
   // Entrance animations
   const headerAnim = useRef(new Animated.Value(0)).current;
   const contentAnim = useRef(new Animated.Value(0)).current;
@@ -327,22 +270,50 @@ export default function ReportDetailsScreen() {
   };
 
   const handleShare = async () => {
+    if (!reportData) return;
     await Share.share({
       title: "LUMEN Report",
-      message: `Track my civic complaint:\n${REPORT.title}\nTracking ID: ${REPORT.trackingId}\nStatus: In Progress`,
+      message: `Track my civic complaint:\n${reportData.title}\nTracking ID: ${reportData.trackingId}\nStatus: ${reportData.status}`,
     });
   };
 
   const handleOpenMaps = () => {
-    const url = `https://maps.google.com/?q=${REPORT.location.lat},${REPORT.location.lng}`;
+    if (!reportData) return;
+    const url = `https://maps.google.com/?q=${reportData.latitude},${reportData.longitude}`;
     Linking.openURL(url);
   };
 
   const handleCall = () => {
-    Linking.openURL(`tel:${REPORT.engineer.phone}`);
+    Linking.openURL(`tel:+919876543210`);
   };
 
-  const doneCount = TIMELINE.filter((t) => t.done).length;
+  if (loadingReport || !reportData) {
+    return (
+      <View style={[s.root, { backgroundColor: colors.bgBase, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: colors.textSecondary }}>Loading...</Text>
+      </View>
+    );
+  }
+
+  // Derive variables from API
+  const timelineMapped = [
+    { step: "Report Submitted", time: new Date(reportData.createdAt).toLocaleString(), done: true, desc: "Logged automatically" },
+    ...((timelineData || []).map((t: any) => ({
+      step: t.status,
+      time: new Date(t.createdAt).toLocaleString(),
+      done: true,
+      desc: t.notes || "Status updated"
+    })))
+  ];
+  const doneCount = timelineMapped.filter((t) => t.done).length;
+  const progressPercent = reportData.status === "RESOLVED" || reportData.status === "CLOSED" ? 100 : (reportData.status === "IN_PROGRESS" ? 65 : 20);
+
+  const DETAILS = [
+    { label: "Department", value: reportData.category },
+    { label: "Zone", value: "City Wide" },
+    { label: "Filed", value: new Date(reportData.createdAt).toLocaleDateString() },
+    { label: "Tracking ID", value: reportData.trackingId, copyable: true },
+  ];
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
@@ -379,7 +350,7 @@ export default function ReportDetailsScreen() {
           </Pressable>
 
           <Text style={[s.headerTitle, { color: colors.textPrimary }]}>
-            Report {REPORT.legacyId}
+            Report Details
           </Text>
 
           <Pressable
@@ -408,8 +379,8 @@ export default function ReportDetailsScreen() {
             provider={PROVIDER_GOOGLE}
             style={StyleSheet.absoluteFill}
             initialRegion={{
-              latitude: REPORT.location.lat,
-              longitude: REPORT.location.lng,
+              latitude: reportData.latitude,
+              longitude: reportData.longitude,
               latitudeDelta: 0.009,
               longitudeDelta: 0.009,
             }}
@@ -419,9 +390,9 @@ export default function ReportDetailsScreen() {
             showsTraffic
           >
             <Marker
-              coordinate={{ latitude: REPORT.location.lat, longitude: REPORT.location.lng }}
-              title={REPORT.title}
-              description={REPORT.location.address}
+              coordinate={{ latitude: reportData.latitude, longitude: reportData.longitude }}
+              title={reportData.title}
+              description={reportData.description || "Location"}
             >
               {/* Custom animated marker */}
               <View style={s.markerWrapper}>
@@ -441,7 +412,7 @@ export default function ReportDetailsScreen() {
                 <Animated.View style={[s.liveDot, { transform: [{ scale: pulseAnim }] }]} />
                 <Text style={s.liveText}>ENGINEER ON SITE</Text>
               </View>
-              <Text style={s.heroReportId}>{REPORT.trackingId}</Text>
+              <Text style={s.heroReportId}>{reportData.trackingId}</Text>
             </View>
           </LinearGradient>
         </Animated.View>
@@ -452,11 +423,11 @@ export default function ReportDetailsScreen() {
         <Animated.View style={{ opacity: contentAnim }}>
           {/* TITLE & STATUS CHIPS */}
           <View style={s.titleSection}>
-            <Text style={[s.issueTitle, { color: colors.textPrimary }]}>{REPORT.title}</Text>
+            <Text style={[s.issueTitle, { color: colors.textPrimary }]}>{reportData.title}</Text>
             <View style={s.chipsRow}>
-              <Badge label="In Progress" variant="info" icon="timer" />
-              <Badge label="High Priority" variant="error" icon="alert" />
-              <Badge label="Road Damage" variant="neutral" icon="road" />
+              <Badge label={reportData.status} variant="info" icon="timer" />
+              <Badge label={reportData.priority} variant="error" icon="alert" />
+              <Badge label={reportData.category} variant="neutral" icon="road" />
             </View>
           </View>
 
@@ -467,16 +438,16 @@ export default function ReportDetailsScreen() {
             <View style={s.progressHeaderRow}>
               <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Resolution Progress</Text>
               <CounterText
-                target={REPORT.progress}
+                target={progressPercent}
                 suffix="%"
                 style={[s.progressPct, { color: colors.brand }]}
               />
             </View>
             <View style={s.progressBarWrap}>
-              <LinearProgress progress={REPORT.progress} color={colors.brand} height={8} />
+              <LinearProgress progress={progressPercent} color={colors.brand} height={8} />
             </View>
             <Text style={[TextStyles.caption, { color: colors.textTertiary, marginTop: 8 }]}>
-              Estimated completion: {REPORT.estimatedCompletion}
+              Estimated completion: TBD
             </Text>
           </View>
 
@@ -487,14 +458,14 @@ export default function ReportDetailsScreen() {
             <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>
               Status Timeline
             </Text>
-            {TIMELINE.map((t, i) => {
+            {timelineMapped.map((t, i) => {
               const isCurrent = t.done && i === doneCount - 1;
               return (
                 <TimelineStep
-                  key={t.step}
-                  step={t}
+                  key={i}
+                  step={t as any}
                   done={t.done}
-                  isLast={i === TIMELINE.length - 1}
+                  isLast={i === timelineMapped.length - 1}
                   isCurrent={isCurrent}
                   delay={i * 100}
                   colors={colors}
@@ -511,39 +482,15 @@ export default function ReportDetailsScreen() {
               Assigned Engineer
             </Text>
             <View style={s.engineerRow}>
-              <Avatar name={REPORT.engineer.name} size="lg" role="engineer" online />
+              <Avatar name="Unassigned" size="lg" role="engineer" />
               <View style={s.engineerInfo}>
                 <Text style={[s.engineerName, { color: colors.textPrimary }]}>
-                  {REPORT.engineer.name}
+                  Engineer
                 </Text>
                 <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
-                  {REPORT.engineer.designation} · {REPORT.engineer.zone}
+                  Pending Assignment
                 </Text>
-                <View style={s.engineerBadgeRow}>
-                  <View style={[s.onSiteBadge, { backgroundColor: colors.successBg }]}>
-                    <View style={s.onSiteDot} />
-                    <Text
-                      style={[TextStyles.caption, { color: colors.successText, fontWeight: "700" }]}
-                    >
-                      {REPORT.engineer.status}
-                    </Text>
-                  </View>
-                </View>
               </View>
-              <Pressable
-                onPress={handleCall}
-                style={({ pressed }) => [
-                  s.callBtn,
-                  {
-                    backgroundColor: colors.successBg,
-                    opacity: pressed ? 0.7 : 1,
-                    transform: [{ scale: pressed ? 0.92 : 1 }],
-                  },
-                ]}
-                accessibilityLabel="Call engineer"
-              >
-                <LumenIcon name="phone" size="md" color={colors.successText} strokeWidth={2} />
-              </Pressable>
             </View>
           </View>
 
@@ -600,8 +547,8 @@ export default function ReportDetailsScreen() {
                 provider={PROVIDER_GOOGLE}
                 style={StyleSheet.absoluteFill}
                 initialRegion={{
-                  latitude: REPORT.location.lat,
-                  longitude: REPORT.location.lng,
+                  latitude: reportData.latitude,
+                  longitude: reportData.longitude,
                   latitudeDelta: 0.006,
                   longitudeDelta: 0.006,
                 }}
@@ -610,7 +557,7 @@ export default function ReportDetailsScreen() {
                 showsBuildings
               >
                 <Marker
-                  coordinate={{ latitude: REPORT.location.lat, longitude: REPORT.location.lng }}
+                  coordinate={{ latitude: reportData.latitude, longitude: reportData.longitude }}
                 >
                   <LinearGradient colors={["#208AEF", "#1D6FD1"]} style={s.inlineMarker}>
                     <LumenIcon name="mapPin" size="sm" color="#FFFFFF" strokeWidth={2.5} />
@@ -628,7 +575,7 @@ export default function ReportDetailsScreen() {
             <View style={s.mapCardFooter}>
               <LumenIcon name="mapPin" size="md" color={colors.brand} strokeWidth={2} />
               <Text style={[s.mapAddress, { color: colors.textPrimary }]}>
-                {REPORT.location.address}
+                {reportData.latitude.toFixed(4)}, {reportData.longitude.toFixed(4)}
               </Text>
               <Pressable
                 onPress={handleOpenMaps}
@@ -643,23 +590,7 @@ export default function ReportDetailsScreen() {
             </View>
           </View>
 
-          {/* ════════════════════════════════════════ */}
-          {/* ACTIVITY LOG                            */}
-          {/* ════════════════════════════════════════ */}
-          <View style={[s.card, { backgroundColor: colors.bgSurface, ...shadows.lg }, s.mx]}>
-            <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>
-              Activity Log
-            </Text>
-            {ACTIVITY.map((a, i) => (
-              <ActivityRow
-                key={i}
-                item={a}
-                colors={colors}
-                delay={i * 80}
-                isLast={i === ACTIVITY.length - 1}
-              />
-            ))}
-          </View>
+
 
           <View style={{ height: 48 }} />
         </Animated.View>
@@ -675,7 +606,7 @@ function ActivityRow({
   delay,
   isLast,
 }: {
-  item: (typeof ACTIVITY)[0];
+  item: any;
   colors: any;
   delay: number;
   isLast: boolean;

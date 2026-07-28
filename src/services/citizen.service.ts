@@ -1,57 +1,38 @@
-import { useAuthStore } from "../store/AuthStore";
-import { env } from "../config/env";
-
-const API_URL = `${env.apiUrl}/api/v1/citizen`;
+import { apiClient } from "./api.client";
 
 export const CitizenService = {
   async getDashboard() {
-    const session = useAuthStore.getState().session;
-    if (!session || !session.access_token) throw new Error("No active session");
-
-    const response = await fetch(`${API_URL}/dashboard`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch dashboard: ${response.status}`);
-    }
-    return response.json();
+    const response = await apiClient.get("/api/v1/citizen/dashboard");
+    return response.data;
   },
 
   async getPayments() {
-    const session = useAuthStore.getState().session;
-    if (!session || !session.access_token) throw new Error("No active session");
-
-    const response = await fetch(`${API_URL}/payments`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch payments: ${response.status}`);
-    }
-    return response.json();
+    const response = await apiClient.get("/api/v1/citizen/payments");
+    return response.data;
   },
 
   async payBill(paymentId: string) {
-    const session = useAuthStore.getState().session;
-    if (!session || !session.access_token) throw new Error("No active session");
-
-    const response = await fetch(`${API_URL}/payments/${paymentId}/pay`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to pay bill: ${response.status}`);
-    }
-    return response.json();
+    const response = await apiClient.post(`/api/v1/citizen/payments/${paymentId}/pay`);
+    return response.data;
   },
+
+  async getProfile() {
+    const response = await apiClient.get("/api/v1/citizen/profile");
+    return response.data;
+  },
+
+  async updateProfile(data: any) {
+    const response = await apiClient.patch("/api/v1/citizen/profile", data);
+    return response.data;
+  },
+
+  async getComplaints() {
+    const response = await apiClient.get("/api/v1/citizen/complaints");
+    return response.data;
+  },
+
+  async getComplaintTracking(id: string) {
+    const response = await apiClient.get(`/api/v1/citizen/complaints/${id}/tracking`);
+    return response.data;
+  }
 };

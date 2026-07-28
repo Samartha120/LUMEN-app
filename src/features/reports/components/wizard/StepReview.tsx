@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text, ScrollView, Image } from "react-native";
+import { Image } from "expo-image";
+import { View, StyleSheet, Text, ScrollView } from "react-native";
 import { useTheme, LumenIcon, Button, Spacing, Radius, TextStyles } from "@/design-system";
 import { WizardData } from "../../screens/CreateReportWizard";
 import { RoutingEngine } from "../../application/RoutingEngine";

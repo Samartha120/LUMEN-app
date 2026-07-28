@@ -10,8 +10,11 @@ import { useAuthStore } from "@/store/AuthStore";
 import { env } from "@/config/env";
 import { router } from "expo-router";
 import { syncManager } from "@/features/offline/services/SyncManager";
+import { ComplaintsService } from "@/services/complaints.service";
 import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
 import React, { useRef, useState } from "react";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
 import {
   Animated,
   Dimensions,
@@ -54,6 +57,8 @@ const PRIORITIES = [
   { id: "high", label: "High", desc: "Urgent & dangerous", color: "#F04438" },
 ];
 
+import * as Location from "expo-location";
+
 const STEPS = ["Category", "Location", "Details", "Submit"];
 
 export default function ReportIssueScreen() {
@@ -64,6 +69,8 @@ export default function ReportIssueScreen() {
   const [priority, setPriority] = useState("medium");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const goNext = () => {
@@ -90,31 +97,42 @@ export default function ReportIssueScreen() {
 
   const submit = async () => {
     try {
+      // 1. Check and request location permission
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission Denied", "GPS access is required to submit a report.");
+        return;
+      }
+
+      // 2. Fetch current location
+      const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const { latitude, longitude } = location.coords;
+
       if (syncManager.isCurrentlyOnline) {
-        const res = await fetch(`${env.apiUrl}/complaints`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(guestMode ? {} : { Authorization: `Bearer ${session?.access_token}` }),
-          },
-          body: JSON.stringify({
-            title: `Report - ${category}`,
-            description,
-            category,
-            priority,
-            latitude: 12.9716,
-            longitude: 77.5946,
-            isAnonymous: isAnonymous,
-          }),
-        });
-        if (!res.ok) throw new Error("Failed to submit");
+        const formData = new FormData();
+        formData.append("title", `Report - ${category}`);
+        formData.append("description", description);
+        formData.append("category", category);
+        formData.append("priority", priority);
+        formData.append("latitude", latitude.toString());
+        formData.append("longitude", longitude.toString());
+        formData.append("isAnonymous", isAnonymous ? "true" : "false");
+
+        if (imageUri) {
+          const filename = imageUri.split("/").pop();
+          const match = /\.(\w+)$/.exec(filename || "");
+          const type = match ? `image/${match[1]}` : `image`;
+          formData.append("file", { uri: imageUri, name: filename, type } as any);
+        }
+
+        await ComplaintsService.create(formData);
       } else {
         await syncManager.enqueueReport({
           category,
           description,
           priority,
-          latitude: 12.9716,
-          longitude: 77.5946,
+          latitude,
+          longitude,
         });
         Alert.alert(
           "Offline Mode",
@@ -130,6 +148,74 @@ export default function ReportIssueScreen() {
       router.replace("/(citizen)/Dashboard" as any);
     } catch (e: any) {
       Alert.alert("Error", e.message || "Failed to submit report");
+    }
+  };
+
+  const handlePermission = async (type: 'camera' | 'gallery') => {
+    if (type === 'camera') {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert("Permission Denied", "Camera access is required to take photos. Please enable it in your settings.");
+        return false;
+      }
+    } else {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert("Permission Denied", "Gallery access is required to pick photos. Please enable it in your settings.");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const pickImage = async () => {
+    const hasPermission = await handlePermission('gallery');
+    if (!hasPermission) return;
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  const takePhoto = async () => {
+    const hasPermission = await handlePermission('camera');
+    if (!hasPermission) return;
+
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      quality: 1,
+    });
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  const handleAIAnalysis = async () => {
+    if (!description && !imageUri) {
+      return Alert.alert("Required", "Please provide a description or photo to analyze.");
+    }
+    try {
+      setIsAnalyzing(true);
+      // Optional: upload image and get URL first, or pass base64, but currently AI endpoint expects imageUrl or description.
+      // We will pass description. The backend mock will use description.
+      const result = await ComplaintsService.analyzeAI(description, imageUri || undefined);
+      if (result.success) {
+        const cat = CATEGORIES.find(c => c.label.toLowerCase() === result.triageResult.category.toLowerCase() || c.id === result.triageResult.category.toLowerCase());
+        if (cat) setCategory(cat.id);
+        const prio = PRIORITIES.find(p => p.id.toLowerCase() === result.triageResult.priority.toLowerCase());
+        if (prio) setPriority(prio.id);
+        
+        Alert.alert("AI Triage Complete", result.triageResult.aiSummary);
+      }
+    } catch (e) {
+      Alert.alert("Error", "Failed to analyze with AI");
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -322,27 +408,44 @@ export default function ReportIssueScreen() {
               />
               {/* Photo Upload */}
               <View style={s.fieldGroup}>
-                <Text style={[TextStyles.label, { color: colors.textSecondary }]}>
-                  Photos (optional)
-                </Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={[TextStyles.label, { color: colors.textSecondary }]}>
+                    Photos (optional)
+                  </Text>
+                  {(description.length > 5 || imageUri) && (
+                    <Pressable onPress={handleAIAnalysis} style={s.aiBtn}>
+                      <LumenIcon name="spark" size="sm" color={colors.brand} strokeWidth={2} />
+                      <Text style={[TextStyles.label, { color: colors.brand }]}>
+                        {isAnalyzing ? "Analyzing..." : "Auto-fill with AI"}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
                 <Pressable
+                  onPress={pickImage}
                   style={[
                     s.photoUpload,
                     { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault },
                   ]}
                 >
-                  <LumenIcon
-                    name="camera"
-                    size="xl"
-                    color={colors.textTertiary}
-                    strokeWidth={1.5}
-                  />
-                  <Text style={[TextStyles.body, { color: colors.textTertiary }]}>
-                    Tap to add photos
-                  </Text>
-                  <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
-                    JPG, PNG · Max 10MB
-                  </Text>
+                  {imageUri ? (
+                    <Image source={{ uri: imageUri }} style={{ width: '100%', height: '100%', borderRadius: Radius.xl }} />
+                  ) : (
+                    <>
+                      <LumenIcon
+                        name="camera"
+                        size="xl"
+                        color={colors.textTertiary}
+                        strokeWidth={1.5}
+                      />
+                      <Text style={[TextStyles.body, { color: colors.textTertiary }]}>
+                        Tap to add photos
+                      </Text>
+                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                        JPG, PNG · Max 10MB
+                      </Text>
+                    </>
+                  )}
                 </Pressable>
               </View>
               {/* Priority */}
@@ -598,6 +701,15 @@ const s = StyleSheet.create({
     padding: Spacing[4],
     borderBottomWidth: 1,
     alignItems: "flex-start",
+  },
+  aiBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing[2],
+    backgroundColor: "#208AEF15",
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[2],
+    borderRadius: Radius.full,
   },
   footer: {
     padding: Spacing[5],

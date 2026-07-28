@@ -19,6 +19,12 @@ export class PaymentsController {
     return this.paymentsService.getPendingBills(user.id);
   }
 
+  @Post('create-payment-intent')
+  @ApiOperation({ summary: 'Create Stripe Payment Intent' })
+  async createPaymentIntent(@Body() dto: { amount: number; type: string }, @CurrentUser() user: User) {
+    return this.paymentsService.createPaymentIntent(user.id, dto.amount, dto.type);
+  }
+
   @Post('pay')
   @ApiOperation({ summary: 'Process a municipal payment' })
   async payBill(@Body() dto: PayBillDto, @CurrentUser() user: User) {

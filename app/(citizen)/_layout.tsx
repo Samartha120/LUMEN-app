@@ -23,9 +23,13 @@ export default function CitizenLayout() {
 
   useEffect(() => {
     const onBackPress = () => {
-      // If we are at the root of the citizen tab, prevent going back to Auth screens.
-      // We can either exit the app or just return true to do nothing.
-      if (activeTab === "Dashboard") {
+      if (router.canGoBack()) {
+        router.back();
+        return true;
+      }
+
+      // If we are at the root of the citizen tab (Dashboard), prompt to exit the app.
+      if (currentPath === "Dashboard") {
         Alert.alert("Exit App", "Are you sure you want to exit?", [
           { text: "Cancel", style: "cancel" },
           { text: "Exit", onPress: () => BackHandler.exitApp() },
@@ -33,14 +37,14 @@ export default function CitizenLayout() {
         return true;
       }
 
-      // If they are on a different tab, go back to Dashboard
+      // If they are on a different root tab/screen, go back to Dashboard
       router.push("/(citizen)/Dashboard" as any);
       return true;
     };
 
     const backHandler = BackHandler.addEventListener("hardwareBackPress", onBackPress);
     return () => backHandler.remove();
-  }, [activeTab]);
+  }, [currentPath]);
 
   const navItems: NavItem[] = [
     { name: "Dashboard", icon: "home", label: "Home" },

@@ -11,6 +11,11 @@ export default function AdminLayout() {
 
   useEffect(() => {
     const onBackPress = () => {
+      if (router.canGoBack()) {
+        router.back();
+        return true;
+      }
+
       // If we are at the root of the admin tab, prevent going back to Auth screens.
       if (currentPath === "Dashboard") {
         Alert.alert("Exit App", "Are you sure you want to exit?", [
@@ -20,7 +25,7 @@ export default function AdminLayout() {
         return true;
       }
 
-      // If they are on a different tab, go back to Dashboard
+      // If they are on a different root tab/screen, go back to Dashboard
       router.push("/(admin)/Dashboard" as any);
       return true;
     };

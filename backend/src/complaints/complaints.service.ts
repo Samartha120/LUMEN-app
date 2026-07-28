@@ -4,10 +4,16 @@ import { CreateComplaintDto } from './dto/create-complaint.dto';
 import { UpdateComplaintDto } from './dto/update-complaint.dto';
 import { SyncComplaintsDto } from './dto/sync-complaints.dto';
 import type { User, Complaint } from '@prisma/client';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class ComplaintsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsGateway: NotificationsGateway,
+    private aiService: AiService
+  ) {}
 
   async create(createComplaintDto: CreateComplaintDto, user: User | null) {
     const complaint = await this.prisma.complaint.create({
@@ -34,6 +40,18 @@ export class ComplaintsService {
         SET location = ST_SetSRID(ST_MakePoint(${createComplaintDto.longitude}, ${createComplaintDto.latitude}), 4326)
         WHERE id = ${complaint.id};
       `;
+    }
+
+    // Phase 20: Queue background jobs for AI prediction
+    // @ts-ignore
+    if (createComplaintDto.imageUrl) {
+      // @ts-ignore
+      await this.aiService.queueImagePrediction(complaint.id, createComplaintDto.imageUrl);
+      // @ts-ignore
+      await this.aiService.queueYoloPrediction(complaint.id, createComplaintDto.imageUrl);
+    } else if (createComplaintDto.videoUrl) {
+      // @ts-ignore
+      await this.aiService.queueVideoPrediction(complaint.id, createComplaintDto.videoUrl);
     }
 
     return this.prisma.complaint.findUnique({ where: { id: complaint.id } });
@@ -73,6 +91,20 @@ export class ComplaintsService {
       }
     });
 
+    for (let i = 0; i < results.length; i++) {
+      const complaint = results[i];
+      const dto = syncDto.complaints[i];
+      // @ts-ignore
+      if (dto.imageUrl) {
+        // @ts-ignore
+        await this.aiService.queueImagePrediction(complaint.id, dto.imageUrl);
+        // @ts-ignore
+        await this.aiService.queueYoloPrediction(complaint.id, dto.imageUrl);
+      } else if (dto.videoUrl) { // @ts-ignore
+        await this.aiService.queueVideoPrediction(complaint.id, dto.videoUrl);
+      }
+    }
+
     return { synced: results.length, complaints: results };
   }
 
@@ -106,9 +138,14 @@ export class ComplaintsService {
   }
 
   async update(id: string, updateComplaintDto: UpdateComplaintDto) {
-    return this.prisma.complaint.update({
+    const updated = await this.prisma.complaint.update({
       where: { id },
       data: updateComplaintDto,
     });
+    
+    // Broadcast the update
+    this.notificationsGateway.emitComplaintUpdate(id, updated);
+    
+    return updated;
   }
 }

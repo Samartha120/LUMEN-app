@@ -1,15 +1,13 @@
 from collections import Counter
 
-def format_predictions(results, names) -> dict:
-    if not results or len(results) == 0:
+def format_single_prediction(result, names) -> dict:
+    """
+    Format a single YOLO Result object into the output schema.
+    """
+    if not result or result.boxes is None or len(result.boxes) == 0:
         return {"damageClass": "UNKNOWN", "confidenceScore": 0.0, "boundingBoxes": []}
         
-    result = results[0]
     boxes = result.boxes
-    
-    if len(boxes) == 0:
-        return {"damageClass": "UNKNOWN", "confidenceScore": 0.0, "boundingBoxes": []}
-        
     formatted_boxes = []
     classes = []
     confidences = []
@@ -42,7 +40,18 @@ def format_predictions(results, names) -> dict:
         "boundingBoxes": formatted_boxes
     }
 
+def format_predictions(results, names) -> dict:
+    """
+    Backwards-compatible formatter for a list of YOLO Results (assumes list length of 1).
+    """
+    if not results or len(results) == 0:
+        return {"damageClass": "UNKNOWN", "confidenceScore": 0.0, "boundingBoxes": []}
+    return format_single_prediction(results[0], names)
+
 def merge_video_predictions(frame_predictions: list) -> dict:
+    """
+    Combines frame predictions into a single summary for a video.
+    """
     if not frame_predictions:
         return {"damageClass": "UNKNOWN", "confidenceScore": 0.0, "boundingBoxes": []}
         
@@ -61,9 +70,7 @@ def merge_video_predictions(frame_predictions: list) -> dict:
     most_common_class = Counter(all_classes).most_common(1)[0][0]
     avg_confidence = sum(all_confidences) / len(all_confidences)
     
-    # For bounding boxes in video, we could return all or sample them. 
-    # Returning empty to save payload size, as tracking bboxes across video is complex.
-    # We will just return the most confident frame's boxes.
+    # Return the most confident frame's bounding boxes
     best_frame = max(frame_predictions, key=lambda x: x["confidenceScore"])
     
     return {

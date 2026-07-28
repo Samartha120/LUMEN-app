@@ -3,12 +3,10 @@ import * as SecureStore from "expo-secure-store";
 import * as LocalAuthentication from "expo-local-authentication";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from "expo-crypto";
-import { env } from "../config/env";
-
-const API_URL = `${env.apiUrl}/auth`;
-const SECURE_STORE_CREDENTIALS_KEY = "lumen_biometric_credentials";
+import { apiClient } from "./api.client";
 
 export const AuthService = {
+
   initialize() {
     // Check tokens on startup if needed
   },
@@ -18,7 +16,7 @@ export const AuthService = {
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9._-]/g, "_");
-    return `${SECURE_STORE_CREDENTIALS_KEY}_${safeEmail}`;
+    return `lumen_biometric_credentials_${safeEmail}`;
   },
 
   async generateOtp(data: {
@@ -27,109 +25,72 @@ export const AuthService = {
     phoneNumber?: string;
     password?: string;
   }) {
-    const response = await fetch(`${API_URL}/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || "Failed to generate OTP");
+    try {
+      const response = await apiClient.post("/auth/register", data);
+      return response.data;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || "Failed to generate OTP");
     }
-
-    return response.json();
   },
 
   async generateForgotPasswordOtp(email: string) {
-    // Same as generateOtp for now, or dedicated endpoint
-    // We'll just use generateOtp without password to simulate a password reset OTP if needed
-    // or add a new endpoint later. For now, assuming backend uses the same OTP flow.
-    // NOTE: In a real system, you'd have a separate /auth/forgot-password that triggers OTP
-    const response = await fetch(`${API_URL}/forgot-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || "Failed to generate OTP for password reset");
+    try {
+      await apiClient.post("/auth/forgot-password", { email });
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || "Failed to generate OTP for password reset");
     }
   },
 
   async resetPassword(email: string, otp: string, newPassword: string) {
-    const response = await fetch(`${API_URL}/reset-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, otp, newPassword }),
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || "Failed to reset password");
+    try {
+      await apiClient.post("/auth/reset-password", { email, otp, newPassword });
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || "Failed to reset password");
     }
   },
 
   async resendOtp(data: { email: string }) {
-    const response = await fetch(`${API_URL}/resend-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to resend OTP");
+    try {
+      const response = await apiClient.post("/auth/resend-otp", data);
+      return response.data;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || "Failed to resend OTP");
     }
-    return response.json();
   },
 
   async verifyOtp(email: string, otp: string) {
-    const response = await fetch(`${API_URL}/verify-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, otp }),
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || "Verification failed");
+    try {
+      const response = await apiClient.post("/auth/verify-otp", { email, otp });
+      const data = response.data;
+      this.handleTokenResponse(data);
+      await AsyncStorage.setItem("lumen_last_email", email);
+      return data.user;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || "Verification failed");
     }
-
-    const data = await response.json();
-    this.handleTokenResponse(data);
-
-    // Store last email for biometric login context
-    await AsyncStorage.setItem("lumen_last_email", email);
-
-    return data.user;
   },
 
   async login(email: string, password: string) {
-    const response = await fetch(`${API_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || "Login failed");
+    try {
+      const response = await apiClient.post("/auth/login", { email, password });
+      const data = response.data;
+      this.handleTokenResponse(data);
+      await AsyncStorage.setItem("lumen_last_email", email);
+      return data.user;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || "Login failed");
     }
-
-    const data = await response.json();
-    this.handleTokenResponse(data);
-
-    // Store last email for biometric login context
-    await AsyncStorage.setItem("lumen_last_email", email);
-
-    return data.user;
   },
 
   async enrollBiometric(email: string, password?: string) {
     const session = useAuthStore.getState().session;
     if (!session || !session.access_token) throw new Error("No active session");
+
+    const hasHardware = await LocalAuthentication.hasHardwareAsync();
+    if (!hasHardware) throw new Error("Biometric hardware not found on this device.");
+
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    if (!isEnrolled) throw new Error("No biometrics enrolled. Please set up FaceID/TouchID in your device settings.");
 
     // Authenticate with FaceID/Fingerprint first
     const result = await LocalAuthentication.authenticateAsync({
@@ -139,13 +100,9 @@ export const AuthService = {
 
     if (!result.success) {
       if (__DEV__) {
-        console.warn(
-          `Biometric authentication failed (${result.error}), but bypassing for DEV mode.`
-        );
+        console.warn(`Biometric authentication failed, but bypassing for DEV mode.`);
       } else {
-        throw new Error(
-          `Biometric authentication failed or was cancelled (${result.error || "unknown"}).`
-        );
+        throw new Error(`Biometric authentication failed or was cancelled.`);
       }
     }
 
@@ -159,30 +116,14 @@ export const AuthService = {
     const userBiometricKey = this.getBiometricKey(email);
     await SecureStore.setItemAsync(userBiometricKey, credentials);
 
-    // Tell backend this user has biometric enabled and provide the hash
-    const response = await fetch(`${API_URL}/biometric/enable`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ biometricHash }),
-    });
-
-    if (!response.ok) {
-      let errMessage = "Unknown error";
-      try {
-        const err = await response.json();
-        errMessage = err.message || JSON.stringify(err);
-      } catch (e) {
-        errMessage = response.statusText;
-      }
-      throw new Error(`Failed to enable biometric on backend: ${response.status} ${errMessage}`);
+    try {
+      await apiClient.post("/auth/biometric/enable", { biometricHash });
+    } catch (err: any) {
+      throw new Error(`Failed to enable biometric on backend: ${err.response?.status} ${err.response?.data?.message || "Unknown error"}`);
     }
   },
 
   async loginWithBiometric(email?: string) {
-    // 1. Check if hardware exists
     let hasHardware = await LocalAuthentication.hasHardwareAsync();
     let isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
@@ -195,20 +136,17 @@ export const AuthService = {
       throw new Error("Biometric hardware not available or not enrolled");
     }
 
-    // 2. Determine target email
     const targetEmail = email || (await AsyncStorage.getItem("lumen_last_email"));
     if (!targetEmail) {
       throw new Error("Please specify an email or enroll first");
     }
 
-    // 3. Check if credentials exist in SecureStore for this specific email
     const userBiometricKey = this.getBiometricKey(targetEmail);
     const storedCredentials = await SecureStore.getItemAsync(userBiometricKey);
     if (!storedCredentials) {
       throw new Error(`No biometric credentials found for ${targetEmail}`);
     }
 
-    // 4. Authenticate with FaceID/Fingerprint to unlock
     const authResult = await LocalAuthentication.authenticateAsync({
       promptMessage: "Login to LUMEN",
       cancelLabel: "Cancel",
@@ -216,35 +154,23 @@ export const AuthService = {
 
     if (!authResult.success) {
       if (__DEV__) {
-        console.warn(`Biometric login failed (${authResult.error}), but bypassing for DEV mode.`);
+        console.warn(`Biometric login failed, but bypassing for DEV mode.`);
       } else {
-        throw new Error(
-          `Biometric does not match. Please retry again. (${authResult.error || "unknown"})`
-        );
+        throw new Error(`Biometric does not match. Please retry again.`);
       }
     }
 
-    // 5. Parse credentials and login via new biometric endpoint
     const { email: storedEmail, biometricHash } = JSON.parse(storedCredentials);
 
-    // Instead of doing this.login(email, password), we use the hash.
-    const response = await fetch(`${API_URL}/biometric/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: storedEmail, biometricHash }),
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || "Biometric login failed");
+    try {
+      const response = await apiClient.post("/auth/biometric/login", { email: storedEmail, biometricHash });
+      const data = response.data;
+      this.handleTokenResponse(data);
+      await AsyncStorage.setItem("lumen_last_email", storedEmail);
+      return data.user;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || "Biometric login failed");
     }
-
-    const data = await response.json();
-    this.handleTokenResponse(data);
-
-    await AsyncStorage.setItem("lumen_last_email", storedEmail);
-
-    return data.user;
   },
 
   async logout(keepBiometric: boolean = true) {
@@ -252,16 +178,11 @@ export const AuthService = {
 
     if (session?.access_token) {
       // Best effort backend logout
-      try {
-        await fetch(`${API_URL}/auth/logout`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ refreshToken: session.refresh_token }),
-        });
-      } catch (e) {}
+      apiClient.post("/auth/logout", { refreshToken: session.refresh_token }).catch((e) => {
+        if (__DEV__) {
+          console.warn("Backend logout failed:", e);
+        }
+      });
     }
 
     if (!keepBiometric) {

@@ -48,6 +48,7 @@ export class CitizenService {
         preferences: true,
         savedLocations: true,
         emergencyContacts: true,
+        civicScore: true,
         createdAt: true,
       },
     });

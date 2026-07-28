@@ -11,7 +11,27 @@ export class AuditService {
     entityId?: string,
     userId?: string,
     details?: any,
+    req?: any,
+    status: string = 'SUCCESS',
   ) {
+    let ipAddress = null;
+    let device = 'Unknown';
+    let os = 'Unknown';
+    let appVersion = 'Unknown';
+    let gpsLocation: any = undefined;
+
+    if (req) {
+      ipAddress = req.ip || req.connection?.remoteAddress;
+      device = req.headers['x-device'] as string || 'Unknown';
+      os = req.headers['x-os'] as string || 'Unknown';
+      appVersion = req.headers['x-app-version'] as string || 'Unknown';
+      if (req.headers['x-gps-location']) {
+        try {
+          gpsLocation = JSON.parse(req.headers['x-gps-location'] as string);
+        } catch (e) {}
+      }
+    }
+
     return this.prisma.auditLog.create({
       data: {
         action,
@@ -19,6 +39,12 @@ export class AuditService {
         entityId,
         userId,
         details: details || {},
+        ipAddress,
+        device,
+        os,
+        appVersion,
+        gpsLocation,
+        status,
       },
     });
   }

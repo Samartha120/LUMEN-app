@@ -1,9 +1,24 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { Session, User } from "@supabase/supabase-js";
+export interface User {
+  id: string;
+  email: string;
+  role: string;
+  fullName?: string;
+  phoneNumber?: string;
+  isActive: boolean;
+  isVerified: boolean;
+  verificationStatus: string;
+}
 
-export type Role = "citizen" | "engineer" | "GUEST" | "ADMIN" | "SUPER_ADMIN" | null;
+export interface Session {
+  access_token: string;
+  refresh_token: string;
+  user: User;
+}
+
+export type Role = "CITIZEN" | "DEPARTMENT" | "SUPERVISOR" | "ENGINEER" | "ADMIN" | "SUPER_ADMIN" | "GUEST" | null;
 
 interface AuthState {
   session: Session | null;
@@ -84,7 +99,7 @@ export const useAuthStore = create<AuthState>()(
       loginAsGuest: () =>
         set({
           session: null,
-          user: { id: "guest", email: "guest@lumen.city", role: "GUEST" } as any,
+          user: { id: "guest", email: "guest@lumen.city", role: "GUEST", isActive: true, isVerified: false, verificationStatus: "UNVERIFIED" },
           role: "GUEST",
           guestMode: true,
         }),
@@ -100,6 +115,9 @@ export const useAuthStore = create<AuthState>()(
       name: "lumen-auth-storage",
       storage: createJSONStorage(() => safeStorage),
       partialize: (state) => ({
+        session: state.session,
+        user: state.user,
+        role: state.role,
         isOnboardingComplete: state.isOnboardingComplete,
         preferences: state.preferences,
       }),

@@ -19,6 +19,8 @@ import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
 import type { LumenIconName } from "@/design-system";
 import { useAuthStore } from "@/store/AuthStore";
 import { AuthService } from "@/services/auth.service";
+import { useQuery } from "@tanstack/react-query";
+import { CitizenService } from "@/services/citizen.service";
 
 const { width: W } = Dimensions.get("window");
 
@@ -39,7 +41,14 @@ export default function ProfileScreen() {
   const userId = user?.id || "mock-user-id";
   const avatarUri = userAvatars[userId] || null;
   const userEmail = user?.email || "citizen@lumen.app";
-  const userFullName = user?.user_metadata?.full_name || "Samuel Krishnamurthy";
+  const userFullName = (user as any)?.fullName || "Samuel Krishnamurthy";
+
+  const { data: profile } = useQuery({
+    queryKey: ["citizen_profile"],
+    queryFn: CitizenService.getProfile,
+  });
+  
+  const civicScore = profile?.civicScore || 0;
 
   const handleThemeToggle = () => {
     if (mode === "system") setMode("light");
@@ -220,7 +229,7 @@ export default function ProfileScreen() {
             isDark={isDark}
           />
           <SquircleStat label="Resolved" value="9" icon="success" color="#12B76A" isDark={isDark} />
-          <SquircleStat label="Points" value="240" icon="star" color="#F79009" isDark={isDark} />
+          <SquircleStat label="Points" value={civicScore.toString()} icon="star" color="#F79009" isDark={isDark} />
         </Animated.View>
 
         {/* ── Menu Sections ── */}

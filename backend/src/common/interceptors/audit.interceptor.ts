@@ -28,12 +28,25 @@ export class AuditInterceptor implements NestInterceptor {
             this.auditService
               .logAction(method, url, params?.id, currentUser?.id, {
                 body: method !== 'DELETE' ? body : undefined,
-              })
+              }, req, 'SUCCESS')
               .catch((err) =>
                 this.logger.error('Failed to save audit log', err),
               );
           }
         },
+        error: (err) => {
+          if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+            const currentUser = user as User;
+            this.auditService
+              .logAction(method, url, params?.id, currentUser?.id, {
+                body: method !== 'DELETE' ? body : undefined,
+                error: err.message,
+              }, req, 'FAILURE')
+              .catch((e) =>
+                this.logger.error('Failed to save audit log (FAILURE)', e),
+              );
+          }
+        }
       }),
     );
   }

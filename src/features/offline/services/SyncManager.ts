@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
-import { api } from "@/services/api/client";
+import { apiClient } from "@/services/api.client";
 
 const OFFLINE_QUEUE_KEY = "@lumen_offline_reports_queue";
 
@@ -80,7 +80,7 @@ class SyncManager {
         longitude: q.longitude,
       }));
 
-      await api.post("/complaints/sync", { complaints: payload });
+      await apiClient.post("/complaints/sync", { complaints: payload });
 
       // Clear queue upon success
       await this.clearQueue();

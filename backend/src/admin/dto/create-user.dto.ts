@@ -17,12 +17,12 @@ export class CreateUserDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  firstName?: string;
+  password?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  lastName?: string;
+  fullName?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

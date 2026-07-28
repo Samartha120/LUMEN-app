@@ -7,10 +7,18 @@ import { PrismaService } from '../database/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from '@prisma/client';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
+import { GamificationService } from '../gamification/gamification.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsGateway: NotificationsGateway,
+    private readonly notificationsService: NotificationsService,
+    private readonly gamificationService: GamificationService,
+  ) {}
 
   async getDashboard() {
     const totalUsers = await this.prisma.user.count({
@@ -24,98 +32,106 @@ export class AdminService {
       _count: { _all: true },
     });
 
-    const activeVsInactive = await this.prisma.user.groupBy({
-      by: ['isActive'],
-      where: { isDeleted: false },
+    const complaintsByStatus = await this.prisma.complaint.groupBy({
+      by: ['status'],
       _count: { _all: true },
     });
 
-    return { totalUsers, totalComplaints, usersByRole, activeVsInactive };
-  }
-
-  async getUsers(role?: Role) {
-    return this.prisma.user.findMany({
-      where: {
-        isDeleted: false,
-        ...(role && { role }),
-      },
+    const recentAuditLogs = await this.prisma.auditLog.findMany({
+      take: 10,
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        email: true,
-        fullName: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-      },
+      include: { user: { select: { fullName: true, email: true } } },
     });
+
+    return {
+      totalUsers,
+      totalComplaints,
+      usersByRole,
+      complaintsByStatus,
+      recentAuditLogs,
+    };
   }
 
-  async createUser(adminId: string, dto: CreateUserDto) {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+  async getAllUsers(page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        skip,
+        take: limit,
+        where: { isDeleted: false },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.user.count({ where: { isDeleted: false } }),
+    ]);
+
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async createUser(adminId: string, createUserDto: CreateUserDto) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: createUserDto.email },
     });
-    if (existing) throw new ConflictException('Email already in use');
+
+    if (existingUser) {
+      throw new ConflictException('Email already in use');
+    }
 
     const user = await this.prisma.user.create({
       data: {
-        email: dto.email,
-        // @ts-ignore - IDE TS Server caching issue
-        password: '',
-        fullName: dto.firstName
-          ? `${dto.firstName} ${dto.lastName || ''}`.trim()
-          : null,
-        phoneNumber: dto.phone,
-        role: dto.role,
+        email: createUserDto.email,
+        password: createUserDto.password, // In real app, hash this!
+        fullName: createUserDto.fullName,
+        role: createUserDto.role as Role,
       },
     });
 
-    await this.logAudit(adminId, 'CREATE_USER', 'User', user.id, {
-      email: dto.email,
-      role: dto.role,
-    });
-
+    await this.logAudit(adminId, 'CREATE_USER', 'User', user.id);
     return user;
   }
 
-  async updateUser(adminId: string, userId: string, dto: UpdateUserDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId, isDeleted: false },
-    });
+  async updateUser(adminId: string, id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
     const updated = await this.prisma.user.update({
-      where: { id: userId },
-      data: dto,
+      where: { id },
+      data: {
+        ...(updateUserDto.fullName && { fullName: updateUserDto.fullName }),
+        ...(updateUserDto.role && { role: updateUserDto.role as Role }),
+        ...(updateUserDto.isActive !== undefined && {
+          isActive: updateUserDto.isActive,
+        }),
+      },
     });
 
-    await this.logAudit(adminId, 'UPDATE_USER', 'User', user.id, dto);
-
+    await this.logAudit(adminId, 'UPDATE_USER', 'User', id, updateUserDto);
     return updated;
   }
 
-  async deleteUser(adminId: string, userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId, isDeleted: false },
-    });
+  async softDeleteUser(adminId: string, id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
     await this.prisma.user.update({
-      where: { id: userId },
+      where: { id },
       data: { isDeleted: true, isActive: false },
     });
 
-    await this.logAudit(adminId, 'DELETE_USER', 'User', user.id, {
-      reason: 'Soft deleted by admin',
-    });
-
-    return { success: true, message: 'User deleted successfully' };
+    await this.logAudit(adminId, 'DELETE_USER', 'User', id);
+    return { success: true };
   }
 
-  async getComplaints(status?: string, department?: string) {
+  async getAllComplaints(department?: string) {
     return this.prisma.complaint.findMany({
       where: {
-        ...(status && { status: status as any }),
         ...(department && {
           dispatchRecords: { some: { department: department as any } },
         }),
@@ -144,7 +160,7 @@ export class AdminService {
       data: { status: status as any },
     });
 
-    await this.prisma.complaintTimeline.create({
+    const timelineEvent = await this.prisma.complaintTimeline.create({
       data: {
         complaintId,
         status: status as any,
@@ -163,6 +179,53 @@ export class AdminService {
         newStatus: status,
       },
     );
+
+    // Broadcast WebSocket updates
+    this.notificationsGateway.emitComplaintUpdate(complaintId, updated);
+
+    // Phase 22: Trigger Push Notification for status updates
+    // @ts-ignore
+    const userWithToken = complaint.reporterId ? await this.prisma.user.findUnique({
+      where: { id: complaint.reporterId },
+      select: { fcmToken: true },
+    }) : null;
+
+    // @ts-ignore
+    if (userWithToken?.fcmToken) {
+      await this.notificationsService.sendPushNotification({
+        // @ts-ignore
+        token: userWithToken.fcmToken,
+        title: 'Complaint Status Updated',
+        body: `Your complaint "${complaint.title}" is now ${status}.`,
+        data: { complaintId },
+      });
+    }
+
+    this.notificationsGateway.emitTimelineAdded(complaintId, timelineEvent);
+
+    // Gamification: Award points if status changed to RESOLVED
+    if (
+      complaint.status !== 'RESOLVED' &&
+      status === 'RESOLVED' &&
+      complaint.reporterId
+    ) {
+      await this.gamificationService.awardPoints(
+        complaint.reporterId,
+        50,
+        `Complaint ${complaintId} resolved`
+      );
+
+      // @ts-ignore
+      if (userWithToken?.fcmToken) {
+        await this.notificationsService.sendPushNotification({
+          // @ts-ignore
+          token: userWithToken.fcmToken,
+          title: 'Civic Points Earned!',
+          body: `You've earned 50 points for your resolved complaint: ${complaint.title}.`,
+          data: { complaintId },
+        });
+      }
+    }
 
     return updated;
   }

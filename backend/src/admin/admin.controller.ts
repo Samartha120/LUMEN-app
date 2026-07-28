@@ -41,9 +41,9 @@ export class AdminController {
 
   @Get('users')
   @ApiOperation({ summary: 'List all users in the system' })
-  @ApiQuery({ name: 'role', enum: Role, required: false })
-  async getUsers(@Query('role') role?: Role) {
-    return this.adminService.getUsers(role);
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  async getUsers(@Query('page') page?: number) {
+    return this.adminService.getAllUsers(page ? Number(page) : 1);
   }
 
   @Post('users')
@@ -65,18 +65,14 @@ export class AdminController {
   @Delete('users/:id')
   @ApiOperation({ summary: 'Soft delete a user' })
   async deleteUser(@CurrentUser() admin: User, @Param('id') userId: string) {
-    return this.adminService.deleteUser(admin.id, userId);
+    return this.adminService.softDeleteUser(admin.id, userId);
   }
 
   @Get('complaints')
   @ApiOperation({ summary: 'Get all complaints' })
-  @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'department', required: false })
-  async getComplaints(
-    @Query('status') status?: string,
-    @Query('department') department?: string,
-  ) {
-    return this.adminService.getComplaints(status, department);
+  async getComplaints(@Query('department') department?: string) {
+    return this.adminService.getAllComplaints(department);
   }
 
   @Patch('complaints/:id/status')

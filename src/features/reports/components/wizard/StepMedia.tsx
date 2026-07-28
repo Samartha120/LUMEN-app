@@ -1,5 +1,6 @@
 import React from "react";
-import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Image } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from "react-native";
+import { Image } from "expo-image";
 import { useTheme, LumenIcon, Button, Spacing, Radius, TextStyles } from "@/design-system";
 import { WizardData } from "../../screens/CreateReportWizard";
 import * as ImagePicker from "expo-image-picker";

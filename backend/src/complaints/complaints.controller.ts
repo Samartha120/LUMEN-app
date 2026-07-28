@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ComplaintsService } from './complaints.service';
 import { CreateComplaintDto } from './dto/create-complaint.dto';
@@ -23,9 +24,8 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
+import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 
-@ApiTags('Complaints')
-@ApiBearerAuth()
 @ApiTags('Complaints')
 @ApiBearerAuth()
 @Controller('complaints')
@@ -54,6 +54,8 @@ export class ComplaintsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(30000) // 30 seconds
   @Get()
   @ApiOperation({ summary: 'Get all complaints' })
   findAll() {
@@ -61,6 +63,8 @@ export class ComplaintsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(30000) // 30 seconds
   @Get('nearby')
   @ApiOperation({ summary: 'Get nearby complaints using PostGIS' })
   findNearby(

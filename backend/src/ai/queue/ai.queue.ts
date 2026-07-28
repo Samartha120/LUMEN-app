@@ -25,4 +25,34 @@ export class AiQueueService {
       },
     );
   }
+
+  async queueImagePrediction(complaintId: string, imageUrl: string) {
+    this.logger.log(`Queueing image prediction for complaint: ${complaintId}`);
+
+    await this.aiQueue.add(
+      AI_JOB_NAMES.PREDICT_IMAGE,
+      { complaintId, imageUrl },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
+  }
+
+  async queueYoloPrediction(complaintId: string, imageUrl: string) {
+    this.logger.log(`Queueing YOLO prediction for complaint: ${complaintId}`);
+
+    await this.aiQueue.add(
+      AI_JOB_NAMES.PREDICT_YOLO,
+      { complaintId, imageUrl },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
+  }
 }

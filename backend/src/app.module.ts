@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { BullModule } from '@nestjs/bullmq';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 import Redis from 'ioredis';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -31,6 +33,7 @@ import { OtpModule } from './otp/otp.module';
 import { DispatchModule } from './dispatch/dispatch.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AiTriageModule } from './ai-triage/ai-triage.module';
+import { GamificationModule } from './gamification/gamification.module';
 
 @Module({
   imports: [
@@ -50,6 +53,21 @@ import { AiTriageModule } from './ai-triage/ai-triage.module';
         limit: 100, // Max 100 requests per minute globally
       },
     ]),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const redisUrl = configService.get('REDIS_URL') || 'redis://localhost:6379';
+        try {
+          const store = await redisStore({ url: redisUrl, ttl: 60000, socket: { connectTimeout: 1000 } });
+          return { store };
+        } catch (e) {
+          console.warn('Redis cache failed to connect, falling back to memory store');
+          return { ttl: 60000 }; // defaults to memory store
+        }
+      },
+      inject: [ConfigService],
+    }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
@@ -118,6 +136,7 @@ import { AiTriageModule } from './ai-triage/ai-triage.module';
     DispatchModule,
     PaymentsModule,
     AiTriageModule,
+    GamificationModule,
   ],
   controllers: [AppController],
   providers: [

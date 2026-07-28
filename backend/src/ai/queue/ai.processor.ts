@@ -22,6 +22,10 @@ export class AiProcessor extends WorkerHost {
     switch (job.name) {
       case AI_JOB_NAMES.PREDICT_VIDEO:
         return this.handlePredictVideo(job);
+      case AI_JOB_NAMES.PREDICT_IMAGE:
+        return this.handlePredictImage(job);
+      case AI_JOB_NAMES.PREDICT_YOLO:
+        return this.handlePredictYolo(job);
       default:
         this.logger.warn(`Unknown job name: ${job.name}`);
         return null;
@@ -40,6 +44,36 @@ export class AiProcessor extends WorkerHost {
       this.logger.error(
         `Error processing video prediction for ${complaintId}: ${error.message}`,
       );
+      await this.aiService.markPredictionFailed(complaintId, error.message);
+      throw error;
+    }
+  }
+
+  private async handlePredictImage(
+    job: Job<{ complaintId: string; imageUrl: string }>,
+  ) {
+    const { complaintId, imageUrl } = job.data;
+    try {
+      this.logger.log(`Running async image prediction for ${complaintId}`);
+      await this.aiService.processImagePrediction(complaintId, imageUrl);
+      this.logger.log(`Completed async image prediction for ${complaintId}`);
+    } catch (error) {
+      this.logger.error(`Error processing image prediction for ${complaintId}: ${error.message}`);
+      await this.aiService.markPredictionFailed(complaintId, error.message);
+      throw error;
+    }
+  }
+
+  private async handlePredictYolo(
+    job: Job<{ complaintId: string; imageUrl: string }>,
+  ) {
+    const { complaintId, imageUrl } = job.data;
+    try {
+      this.logger.log(`Running async YOLO prediction for ${complaintId}`);
+      await this.aiService.processYoloPrediction(complaintId, imageUrl);
+      this.logger.log(`Completed async YOLO prediction for ${complaintId}`);
+    } catch (error) {
+      this.logger.error(`Error processing YOLO prediction for ${complaintId}: ${error.message}`);
       await this.aiService.markPredictionFailed(complaintId, error.message);
       throw error;
     }

@@ -28,8 +28,23 @@ export class PaymentsService {
     ];
   }
 
+  async createPaymentIntent(userId: string, amount: number, type: string) {
+    const stripe = new (require('stripe'))(process.env.STRIPE_SECRET_KEY || 'sk_test_mock_key');
+    
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100), // Stripe expects amounts in cents
+      currency: 'inr',
+      metadata: { userId, type },
+    });
+
+    return {
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    };
+  }
+
   async payBill(dto: PayBillDto, user: User) {
-    // Simulate payment processing and record it in database
+    // Record payment in database
     return this.prisma.paymentTransaction.create({
       data: {
         userId: user.id,

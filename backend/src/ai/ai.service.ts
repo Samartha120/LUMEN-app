@@ -208,6 +208,67 @@ export class AiService {
     });
   }
 
+  async queueImagePrediction(complaintId: string, imageUrl: string) {
+    await this.aiRepository.createOrUpdatePrediction({
+      complaintId,
+      damageClass: 'UNKNOWN',
+      confidenceScore: 0,
+      boundingBoxes: [],
+      metadata: { processingTimeMs: 0, device: 'unknown', type: 'image' },
+      status: AI_PREDICTION_STATUS.PENDING,
+    });
+    await this.aiQueueService.queueImagePrediction(complaintId, imageUrl);
+    return {
+      status: AI_PREDICTION_STATUS.PENDING,
+      message: 'Image queued for analysis',
+    };
+  }
+
+  async queueYoloPrediction(complaintId: string, imageUrl: string) {
+    await this.aiRepository.createOrUpdatePrediction({
+      complaintId,
+      damageClass: 'UNKNOWN',
+      confidenceScore: 0,
+      boundingBoxes: [],
+      metadata: { processingTimeMs: 0, device: 'unknown', type: 'yolo' },
+      status: AI_PREDICTION_STATUS.PENDING,
+    });
+    await this.aiQueueService.queueYoloPrediction(complaintId, imageUrl);
+    return {
+      status: AI_PREDICTION_STATUS.PENDING,
+      message: 'YOLO prediction queued',
+    };
+  }
+
+  async processYoloPrediction(complaintId: string, imageUrl: string) {
+    this.logger.log(`Processing YOLO prediction for complaint: ${complaintId}`);
+    const inferenceUrl = this.configService.get<string>('FASTAPI_INFERENCE_URL');
+    const apiKey = this.configService.get<string>('FASTAPI_API_KEY');
+
+    try {
+      const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : {};
+      const response = await firstValueFrom(
+        this.httpService.post<FastApiPredictionResponse>(
+          `${inferenceUrl}/detect/yolo`,
+          { url: imageUrl },
+          { headers },
+        ),
+      );
+
+      await this.aiRepository.createOrUpdatePrediction({
+        complaintId,
+        damageClass: response.data.damageClass,
+        confidenceScore: response.data.confidenceScore,
+        boundingBoxes: response.data.boundingBoxes,
+        metadata: response.data.metadata,
+        status: AI_PREDICTION_STATUS.COMPLETED,
+      });
+    } catch (error) {
+      this.logger.error(`Failed YOLO inference for ${complaintId}: ${error.message}`);
+      await this.aiRepository.markPredictionAsFailed(complaintId, error.message);
+    }
+  }
+
   async markPredictionFailed(complaintId: string, reason: string) {
     return this.aiRepository.markPredictionAsFailed(complaintId, reason);
   }

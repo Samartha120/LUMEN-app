@@ -48,18 +48,21 @@ model User {
   biometricEnabled Boolean @default(false)
   biometricHash    String?
   isDeleted Boolean  @default(false)
+  civicScore Int @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   preferences       Json?
   savedLocations    Json?
   emergencyContacts Json?
+  fcmToken          String?
 
   reportedComplaints Complaint[]         @relation("ReportedComplaints")
   performedActions   ComplaintTimeline[] @relation("PerformedActions")
   payments           PaymentTransaction[]
   auditLogs          AuditLog[]
   refreshTokens      RefreshToken[]
+  badges             UserBadge[]
 
   @@map("users")
 }
@@ -169,6 +172,29 @@ model ComplaintTimeline {
   @@map("complaint_timelines")
 }
 
+model Badge {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String
+  iconUrl     String?
+  users       UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String
+  badgeId   String
+  awardedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
 
 model AuditLog {
   id          String   @id @default(uuid())
@@ -178,6 +204,13 @@ model AuditLog {
   userId      String?
   user        User?    @relation(fields: [userId], references: [id])
   details     Json?
+  
+  device      String?
+  os          String?
+  appVersion  String?
+  ipAddress   String?
+  gpsLocation Json?
+  status      String   @default("SUCCESS")
   
   createdAt   DateTime @default(now())
 

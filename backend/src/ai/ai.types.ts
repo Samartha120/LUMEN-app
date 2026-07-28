@@ -10,6 +10,6 @@ export interface BoundingBox {
 export interface PredictionMetadata {
   processingTimeMs: number;
   device: string;
-  type: 'image' | 'video';
+  type: 'image' | 'video' | 'yolo';
   sampleRateFps?: number;
 }

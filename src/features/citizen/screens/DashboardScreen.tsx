@@ -12,8 +12,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useAuthStore } from "@/store/AuthStore";
 import { CitizenService } from "@/services/citizen.service";
+import { ComplaintsService } from "@/services/complaints.service";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { LineChart } from "react-native-chart-kit";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   Animated,
@@ -51,136 +53,7 @@ const getDateString = () => {
   return now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
 };
 
-// ── Mock Data ────────────────────────────────────────────────
-type ReportStatus = "pending" | "in_progress" | "resolved";
-
-interface MockReport {
-  id: string;
-  title: string;
-  category: "road" | "water" | "streetlight" | "garbage" | "electricity";
-  status: ReportStatus;
-  time: string;
-  priority: "low" | "medium" | "high";
-  dept: string;
-  progress: number;
-}
-
-const MOCK_REPORTS: MockReport[] = [
-  {
-    id: "1",
-    title: "Pothole on MG Road",
-    category: "road",
-    status: "in_progress",
-    time: "2h ago",
-    priority: "high",
-    dept: "Roads & Transport",
-    progress: 65,
-  },
-  {
-    id: "2",
-    title: "Street light outage, Sector 7",
-    category: "streetlight",
-    status: "pending",
-    time: "5h ago",
-    priority: "medium",
-    dept: "Electricity Board",
-    progress: 10,
-  },
-  {
-    id: "3",
-    title: "Water pipeline leak near Park",
-    category: "water",
-    status: "resolved",
-    time: "Yesterday",
-    priority: "high",
-    dept: "Water Authority",
-    progress: 100,
-  },
-];
-
-const PRIORITY_COLOR: Record<string, string> = {
-  high: "#F04438",
-  medium: "#F79009",
-  low: "#12B76A",
-};
-
-const CATEGORY_ICON: Record<string, any> = {
-  road: "road",
-  streetlight: "streetlight",
-  water: "water",
-  garbage: "garbage",
-  electricity: "electricity",
-};
-
-const CATEGORY_GRADIENT: Record<string, [string, string]> = {
-  road: ["#667EEA", "#764BA2"],
-  streetlight: ["#F79009", "#D97706"],
-  water: ["#06B6D4", "#0E7490"],
-  garbage: ["#12B76A", "#027A48"],
-  electricity: ["#F04438", "#B42318"],
-};
-
-const STATUS_CONFIG: Record<ReportStatus, { label: string; color: string; bg: string }> = {
-  pending: { label: "Pending", color: "#F79009", bg: "#FFFAEB" },
-  in_progress: { label: "In Progress", color: "#208AEF", bg: "#EBF5FF" },
-  resolved: { label: "Resolved", color: "#12B76A", bg: "#ECFDF3" },
-};
-
-const QUICK_ACTIONS = [
-  {
-    icon: "report" as const,
-    label: "Report Issue",
-    subtitle: "Create civic complaint",
-    route: "/(citizen)/Report-issue",
-    gradients: ["#F04438", "#DC2626"] as [string, string],
-  },
-  {
-    icon: "reportList" as const,
-    label: "My Reports",
-    subtitle: "Track your progress",
-    route: "/(citizen)/My-report",
-    gradients: ["#208AEF", "#1D6FD1"] as [string, string],
-  },
-  {
-    icon: "map" as const,
-    label: "Nearby Issues",
-    subtitle: "Explore live city map",
-    route: "/(citizen)/Report-details",
-    gradients: ["#7C3AED", "#5B21B6"] as [string, string],
-  },
-  {
-    icon: "emergency" as const,
-    label: "Emergency",
-    subtitle: "Emergency services",
-    route: "/(citizen)/Help",
-    gradients: ["#F79009", "#D97706"] as [string, string],
-  },
-  {
-    icon: "document" as const,
-    label: "Pay Bills",
-    subtitle: "Municipal utilities",
-    route: "/(citizen)/Municipal-payments",
-    gradients: ["#12B76A", "#027A48"] as [string, string],
-  },
-] as const;
-
-const AI_INSIGHTS = [
-  {
-    icon: "trend",
-    text: "Water complaints increased 17% this week. Suggest inspection on Hosur Rd.",
-    action: "View Hotspot",
-  },
-  {
-    icon: "activity",
-    text: "3 high-priority issues near you are unresolved for over 48 hours.",
-    action: "View Issues",
-  },
-  {
-    icon: "spark",
-    text: "Pothole repairs on MG Road are 70% complete. Estimated finish: 3 hrs.",
-    action: "Track Progress",
-  },
-];
+// Removing MOCK_REPORTS and AI_INSIGHTS. Real data will be fetched via React Query.
 
 // ── Animated Counter ─────────────────────────────────────────
 function AnimatedCounter({
@@ -214,33 +87,59 @@ function AnimatedCounter({
   );
 }
 
+const QUICK_ACTIONS = [
+  {
+    icon: "tools" as const,
+    label: "Report Issue",
+    subtitle: "File civic complaint",
+    route: "/(citizen)/Report-issue",
+    gradients: ["#F04438", "#DC2626"] as [string, string],
+  },
+  {
+    icon: "reportList" as const,
+    label: "My Reports",
+    subtitle: "Track your complaints",
+    route: "/(citizen)/My-report",
+    gradients: ["#208AEF", "#0B63C5"] as [string, string],
+  },
+  {
+    icon: "bridge" as const,
+    label: "Municipal Payments",
+    subtitle: "Pay bills & taxes",
+    route: "/(citizen)/Municipal-payments",
+    gradients: ["#12B76A", "#027A48"] as [string, string],
+  },
+];
+
 // ── Main Component ────────────────────────────────────────────
 export default function CitizenDashboardScreen() {
   const { colors, isDark, shadows } = useTheme();
   const { user } = useAuthStore((s) => s);
   const { t } = useTranslation();
-  const [refreshing, setRefreshing] = useState(false);
-  const [dashboardData, setDashboardData] = useState<any>(null);
-  const [aiIdx, setAiIdx] = useState(0);
   const [currentTime, setCurrentTime] = useState(getTimeString());
 
-  const fetchDashboardData = async () => {
-    try {
-      const data = await CitizenService.getDashboard();
-      setDashboardData(data);
-    } catch (e) {
-      console.error("Failed to load dashboard data", e);
-    }
-  };
+  const { data: dashboardData, refetch: refetchDashboard, isLoading: isLoadingDashboard } = useQuery({
+    queryKey: ["citizen-dashboard"],
+    queryFn: () => CitizenService.getDashboard(),
+  });
+
+  const { data: myReports, refetch: refetchReports } = useQuery({
+    queryKey: ["citizen-complaints"],
+    queryFn: () => CitizenService.getComplaints(),
+  });
+
+  const { data: nearbyIssues, refetch: refetchNearby } = useQuery({
+    queryKey: ["nearby-complaints"],
+    queryFn: () => ComplaintsService.getNearby(12.9716, 77.5946), // Default location for now
+  });
 
   // Animation refs
   const fadeIn = useRef(new Animated.Value(0)).current;
   const slideUp = useRef(new Animated.Value(40)).current;
   const statsScale = useRef(new Animated.Value(0.92)).current;
   const actionsSlide = useRef(new Animated.Value(30)).current;
-  const aiOpacity = useRef(new Animated.Value(1)).current;
-  const pulsAnim = useRef(new Animated.Value(1)).current;
   const alertSlide = useRef(new Animated.Value(-60)).current;
+  const pulsAnim = useRef(new Animated.Value(1)).current;
 
   // Live clock
   useEffect(() => {
@@ -289,25 +188,11 @@ export default function CitizenDashboardScreen() {
       }).start();
     }, 350);
 
-    // AI carousel
-    const interval = setInterval(() => {
-      Animated.sequence([
-        Animated.timing(aiOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
-        Animated.timing(aiOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
-      ]).start();
-      setAiIdx((i) => (i + 1) % AI_INSIGHTS.length);
-    }, 5000);
-
-    fetchDashboardData();
-
-    return () => clearInterval(interval);
   }, []);
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchDashboardData();
-    setRefreshing(false);
-  }, []);
+    await Promise.all([refetchDashboard(), refetchReports(), refetchNearby()]);
+  }, [refetchDashboard, refetchReports, refetchNearby]);
 
   // ── Sub-Components ──
   const MetricCell = ({
@@ -340,8 +225,6 @@ export default function CitizenDashboardScreen() {
     </View>
   );
 
-  const insight = AI_INSIGHTS[aiIdx];
-
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
       <StatusBar
@@ -365,7 +248,7 @@ export default function CitizenDashboardScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
+          <RefreshControl refreshing={isLoadingDashboard} onRefresh={onRefresh} tintColor={colors.brand} />
         }
       >
         {/* ═══════════════════════════════════════════════ */}
@@ -601,91 +484,7 @@ export default function CitizenDashboardScreen() {
           </View>
         </Animated.View>
 
-        {/* ═══════════════════════════════════════════════ */}
-        {/* AI INSIGHT CARD                                 */}
-        {/* ═══════════════════════════════════════════════ */}
-        <Animated.View style={[s.section, { opacity: fadeIn }]}>
-          <BlurView
-            intensity={isDark ? 40 : 20}
-            tint={isDark ? "dark" : "light"}
-            style={[s.aiCard, { borderColor: colors.brand + "30" }]}
-          >
-            <LinearGradient
-              colors={
-                isDark
-                  ? ["rgba(32,138,239,0.08)", "rgba(124,58,237,0.05)"]
-                  : ["rgba(235,245,255,0.95)", "rgba(245,243,255,0.85)"]
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-            {/* Gradient border top */}
-            <LinearGradient
-              colors={[colors.brand, "#7C3AED"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={s.aiGradientBar}
-            />
-            <View style={s.aiInner}>
-              <View style={s.aiHeader}>
-                <View style={[s.aiAvatarRing, { borderColor: colors.brand + "40" }]}>
-                  <LinearGradient colors={[colors.brand, "#7C3AED"]} style={s.aiAvatar}>
-                    <LumenIcon name="spark" size="md" color="#FFFFFF" strokeWidth={2.5} />
-                  </LinearGradient>
-                </View>
-                <View style={s.aiTitleBlock}>
-                  <Text style={[s.aiLabel, { color: colors.brand }]}>LUMEN AI · INSIGHTS</Text>
-                  <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
-                    Updating every 5s
-                  </Text>
-                </View>
-                <Animated.View
-                  style={[
-                    s.aiPulse,
-                    { backgroundColor: "#12B76A", transform: [{ scale: pulsAnim }] },
-                  ]}
-                />
-              </View>
 
-              <Animated.Text
-                style={[s.aiInsightText, { color: colors.textPrimary, opacity: aiOpacity }]}
-              >
-                {insight.text}
-              </Animated.Text>
-
-              <View style={s.aiActions}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={insight.action}
-                  style={[
-                    s.aiActionBtn,
-                    { backgroundColor: colors.brand + "15", borderColor: colors.brand + "30" },
-                  ]}
-                >
-                  <Text style={[TextStyles.caption, { color: colors.brand, fontWeight: "700" }]}>
-                    {insight.action}
-                  </Text>
-                  <LumenIcon name="arrowLeft" size="xs" color={colors.brand} />
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Dismiss AI insight"
-                  style={[
-                    s.aiActionBtn,
-                    { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault },
-                  ]}
-                >
-                  <Text
-                    style={[TextStyles.caption, { color: colors.textSecondary, fontWeight: "600" }]}
-                  >
-                    Dismiss
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          </BlurView>
-        </Animated.View>
 
         {/* ═══════════════════════════════════════════════ */}
         {/* NEARBY ISSUES MAP PLACEHOLDER                   */}
@@ -705,7 +504,7 @@ export default function CitizenDashboardScreen() {
             </Pressable>
           </View>
 
-          <Pressable onPress={() => router.push("/(citizen)/Report-details" as any)}>
+          <Pressable onPress={() => router.push(`/(citizen)/Report-details` as any)}>
             <BlurView
               intensity={isDark ? 25 : 10}
               tint={isDark ? "dark" : "light"}
@@ -768,7 +567,9 @@ export default function CitizenDashboardScreen() {
                         { backgroundColor: "#F04438" + "20", borderColor: "#F04438" + "40" },
                       ]}
                     >
-                      <Text style={[s.mapStatNum, { color: "#F04438" }]}>5</Text>
+                      <Text style={[s.mapStatNum, { color: "#F04438" }]}>
+                        {nearbyIssues?.filter((i: any) => i.priority === "HIGH" || i.priority === "CRITICAL").length || 0}
+                      </Text>
                       <Text style={[s.mapStatLabel, { color: "#F04438" }]}>High</Text>
                     </View>
                     <View
@@ -777,7 +578,9 @@ export default function CitizenDashboardScreen() {
                         { backgroundColor: "#F79009" + "20", borderColor: "#F79009" + "40" },
                       ]}
                     >
-                      <Text style={[s.mapStatNum, { color: "#F79009" }]}>8</Text>
+                      <Text style={[s.mapStatNum, { color: "#F79009" }]}>
+                        {nearbyIssues?.filter((i: any) => i.priority === "MEDIUM").length || 0}
+                      </Text>
                       <Text style={[s.mapStatLabel, { color: "#F79009" }]}>Medium</Text>
                     </View>
                     <View
@@ -786,7 +589,9 @@ export default function CitizenDashboardScreen() {
                         { backgroundColor: "#12B76A" + "20", borderColor: "#12B76A" + "40" },
                       ]}
                     >
-                      <Text style={[s.mapStatNum, { color: "#12B76A" }]}>3</Text>
+                      <Text style={[s.mapStatNum, { color: "#12B76A" }]}>
+                        {nearbyIssues?.filter((i: any) => i.priority === "LOW").length || 0}
+                      </Text>
                       <Text style={[s.mapStatLabel, { color: "#12B76A" }]}>Low</Text>
                     </View>
                   </View>
@@ -817,9 +622,14 @@ export default function CitizenDashboardScreen() {
           </View>
 
           <View style={s.reportsList}>
-            {MOCK_REPORTS.map((report) => (
+            {myReports?.slice(0, 3).map((report: any) => (
               <ReportCard key={report.id} report={report} colors={colors} isDark={isDark} />
             ))}
+            {(!myReports || myReports.length === 0) && (
+              <Text style={{ textAlign: "center", color: colors.textSecondary, marginTop: 16 }}>
+                You have no recent reports.
+              </Text>
+            )}
           </View>
         </Animated.View>
 
@@ -948,22 +758,40 @@ function ReportCard({
   colors,
   isDark,
 }: {
-  report: MockReport;
+  report: any;
   colors: any;
   isDark: boolean;
 }) {
   const statusConfig = {
-    pending: { label: "Pending", color: "#C2410C", bg: "#FFEDD5" },
-    in_progress: { label: "In Progress", color: "#0F766E", bg: "#CCFBF1" },
-    resolved: { label: "Resolved", color: "#15803D", bg: "#DCFCE7" },
+    PENDING: { label: "Pending", color: "#C2410C", bg: "#FFEDD5" },
+    IN_PROGRESS: { label: "In Progress", color: "#0F766E", bg: "#CCFBF1" },
+    RESOLVED: { label: "Resolved", color: "#15803D", bg: "#DCFCE7" },
+    CLOSED: { label: "Closed", color: "#15803D", bg: "#DCFCE7" },
+    REJECTED: { label: "Rejected", color: "#B91C1C", bg: "#FEE2E2" },
   };
 
-  const status = statusConfig[report.status as keyof typeof statusConfig] || statusConfig.pending;
+  const status = statusConfig[report.status as keyof typeof statusConfig] || statusConfig.PENDING;
+  
+  const PRIORITY_COLOR: Record<string, string> = {
+    HIGH: "#F04438",
+    CRITICAL: "#F04438",
+    MEDIUM: "#F79009",
+    LOW: "#12B76A",
+  };
+  
+  const CATEGORY_ICON: Record<string, any> = {
+    road: "road",
+    streetlight: "streetlight",
+    water: "water",
+    garbage: "garbage",
+    electricity: "electricity",
+  };
+
   const priorityColor = PRIORITY_COLOR[report.priority] || "#F79009";
 
   return (
     <Pressable
-      onPress={() => router.push("/(citizen)/Report-details" as any)}
+      onPress={() => router.push(`/(citizen)/Report-details?id=${report.id}` as any)}
       style={({ pressed }) => [
         rc.card,
         {

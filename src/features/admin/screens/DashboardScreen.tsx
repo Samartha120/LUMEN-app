@@ -5,15 +5,13 @@
 import { useTheme } from "@/design-system/ThemeContext";
 import { Avatar } from "@/design-system/components/Avatar";
 import { Badge } from "@/design-system/components/Badge";
-import { BarChart } from "@/design-system/components/BarChart";
-import { DonutChart } from "@/design-system/components/DonutChart";
 import { KPICard } from "@/design-system/components/KPICard";
-import { LineChart } from "@/design-system/components/LineChart";
 import { TimeFilter } from "@/design-system/components/TimeFilter";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
 import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { LineChart, BarChart, PieChart } from "react-native-chart-kit";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -245,12 +243,40 @@ export default function AdminDashboardScreen() {
                   <Badge label="This Week" variant="brand" size="sm" />
                 </View>
                 <LineChart
-                  data={[65, 78, 90, 81, 95, 110, 125]}
+                  data={{
+                    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                    datasets: [
+                      {
+                        data: [65, 78, 90, 81, 95, 110, 125],
+                      }
+                    ]
+                  }}
                   width={W - 80}
                   height={180}
-                  color={colors.brand}
-                  showGradient
-                  showPoints
+                  yAxisLabel=""
+                  yAxisSuffix=""
+                  yAxisInterval={1}
+                  chartConfig={{
+                    backgroundColor: "transparent",
+                    backgroundGradientFrom: isDark ? "#1a1a2e" : "#ffffff",
+                    backgroundGradientTo: isDark ? "#1a1a2e" : "#ffffff",
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(32, 138, 239, ${opacity})`,
+                    labelColor: (opacity = 1) => colors.textSecondary,
+                    style: {
+                      borderRadius: 16
+                    },
+                    propsForDots: {
+                      r: "4",
+                      strokeWidth: "2",
+                      stroke: colors.brand
+                    }
+                  }}
+                  bezier
+                  style={{
+                    marginVertical: 8,
+                    borderRadius: 16
+                  }}
                 />
                 <View style={s.chartLegend}>
                   <View style={s.legendItem}>
@@ -292,16 +318,27 @@ export default function AdminDashboardScreen() {
                 >
                   By Category
                 </Text>
-                <DonutChart
+                <PieChart
                   data={[
-                    { value: 35, color: "#208AEF", label: "Roads" },
-                    { value: 25, color: "#12B76A", label: "Water" },
-                    { value: 20, color: "#F79009", label: "Lighting" },
-                    { value: 15, color: "#7C3AED", label: "Garbage" },
-                    { value: 5, color: "#F04438", label: "Other" },
+                    { name: "Roads", value: 35, color: "#208AEF", legendFontColor: colors.textSecondary, legendFontSize: 10 },
+                    { name: "Water", value: 25, color: "#12B76A", legendFontColor: colors.textSecondary, legendFontSize: 10 },
+                    { name: "Lighting", value: 20, color: "#F79009", legendFontColor: colors.textSecondary, legendFontSize: 10 },
+                    { name: "Garbage", value: 15, color: "#7C3AED", legendFontColor: colors.textSecondary, legendFontSize: 10 },
+                    { name: "Other", value: 5, color: "#F04438", legendFontColor: colors.textSecondary, legendFontSize: 10 },
                   ]}
-                  size={140}
-                  showLabels
+                  width={150}
+                  height={140}
+                  chartConfig={{
+                    backgroundColor: "transparent",
+                    backgroundGradientFrom: "transparent",
+                    backgroundGradientTo: "transparent",
+                    color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                  }}
+                  accessor={"value"}
+                  backgroundColor={"transparent"}
+                  paddingLeft={"0"}
+                  center={[10, 0]}
+                  absolute
                 />
               </View>
             </BlurView>
@@ -326,11 +363,33 @@ export default function AdminDashboardScreen() {
                   By Priority
                 </Text>
                 <BarChart
-                  data={[45, 30, 25]}
-                  width={140}
+                  data={{
+                    labels: ["High", "Medium", "Low"],
+                    datasets: [
+                      {
+                        data: [45, 30, 25]
+                      }
+                    ]
+                  }}
+                  width={150}
                   height={140}
-                  color={colors.brand}
-                  showGradient
+                  yAxisLabel=""
+                  yAxisSuffix=""
+                  withHorizontalLabels={false}
+                  withInnerLines={false}
+                  showBarTops={false}
+                  fromZero={true}
+                  chartConfig={{
+                    backgroundColor: "transparent",
+                    backgroundGradientFrom: "transparent",
+                    backgroundGradientTo: "transparent",
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => colors.brand,
+                    labelColor: (opacity = 1) => colors.textSecondary,
+                  }}
+                  style={{
+                    marginLeft: -10,
+                  }}
                 />
                 <View style={s.priorityLegend}>
                   <View style={s.legendItem}>

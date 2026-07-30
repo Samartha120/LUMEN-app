@@ -6,6 +6,7 @@ import {
   HttpStatus,
   UseGuards,
   Req,
+  Get,
 } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 // @ts-ignore - IDE TS Server caching issue
@@ -77,6 +78,12 @@ export class AuthenticationController {
   @HttpCode(HttpStatus.OK)
   async biometricLogin(@Body() body: { email: string; biometricHash: string }) {
     return this.authService.loginWithBiometric(body.email, body.biometricHash);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getMe(@Req() req: any) {
+    return { user: req.user };
   }
 
   @UseGuards(JwtAuthGuard)

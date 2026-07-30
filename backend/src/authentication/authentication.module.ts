@@ -32,6 +32,6 @@ import { DatabaseModule } from '../database/database.module';
   ],
   controllers: [AuthenticationController],
   providers: [AuthenticationService, JwtStrategy],
-  exports: [PassportModule, JwtModule],
+  exports: [PassportModule, JwtModule, AuthenticationService],
 })
 export class AuthenticationModule {}

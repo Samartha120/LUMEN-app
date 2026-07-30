@@ -34,6 +34,7 @@ import { DispatchModule } from './dispatch/dispatch.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AiTriageModule } from './ai-triage/ai-triage.module';
 import { GamificationModule } from './gamification/gamification.module';
+import { WebIntegrationModule } from './web-integration/web-integration.module';
 
 @Module({
   imports: [
@@ -137,6 +138,7 @@ import { GamificationModule } from './gamification/gamification.module';
     PaymentsModule,
     AiTriageModule,
     GamificationModule,
+    WebIntegrationModule,
   ],
   controllers: [AppController],
   providers: [

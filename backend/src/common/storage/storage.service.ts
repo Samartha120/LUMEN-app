@@ -31,10 +31,16 @@ export class StorageService {
 
     if (!region || !accessKeyId || !secretAccessKey || !this.bucketName) {
       if (process.env.NODE_ENV === 'production') {
-        this.logger.error('CRITICAL: AWS credentials or bucket name are missing in production environment');
-        throw new InternalServerErrorException('AWS S3 credentials are strictly required in production');
+        this.logger.error(
+          'CRITICAL: AWS credentials or bucket name are missing in production environment',
+        );
+        throw new InternalServerErrorException(
+          'AWS S3 credentials are strictly required in production',
+        );
       } else {
-        this.logger.warn('AWS credentials or bucket name are not fully configured. S3 file operations will fail.');
+        this.logger.warn(
+          'AWS credentials or bucket name are not fully configured. S3 file operations will fail.',
+        );
       }
     }
 

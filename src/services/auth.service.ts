@@ -6,7 +6,6 @@ import * as Crypto from "expo-crypto";
 import { apiClient } from "./api.client";
 
 export const AuthService = {
-
   initialize() {
     // Check tokens on startup if needed
   },
@@ -90,7 +89,10 @@ export const AuthService = {
     if (!hasHardware) throw new Error("Biometric hardware not found on this device.");
 
     const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-    if (!isEnrolled) throw new Error("No biometrics enrolled. Please set up FaceID/TouchID in your device settings.");
+    if (!isEnrolled)
+      throw new Error(
+        "No biometrics enrolled. Please set up FaceID/TouchID in your device settings."
+      );
 
     // Authenticate with FaceID/Fingerprint first
     const result = await LocalAuthentication.authenticateAsync({
@@ -119,7 +121,9 @@ export const AuthService = {
     try {
       await apiClient.post("/auth/biometric/enable", { biometricHash });
     } catch (err: any) {
-      throw new Error(`Failed to enable biometric on backend: ${err.response?.status} ${err.response?.data?.message || "Unknown error"}`);
+      throw new Error(
+        `Failed to enable biometric on backend: ${err.response?.status} ${err.response?.data?.message || "Unknown error"}`
+      );
     }
   },
 
@@ -163,7 +167,10 @@ export const AuthService = {
     const { email: storedEmail, biometricHash } = JSON.parse(storedCredentials);
 
     try {
-      const response = await apiClient.post("/auth/biometric/login", { email: storedEmail, biometricHash });
+      const response = await apiClient.post("/auth/biometric/login", {
+        email: storedEmail,
+        biometricHash,
+      });
       const data = response.data;
       this.handleTokenResponse(data);
       await AsyncStorage.setItem("lumen_last_email", storedEmail);

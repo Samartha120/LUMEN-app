@@ -58,7 +58,9 @@ export class AiProcessor extends WorkerHost {
       await this.aiService.processImagePrediction(complaintId, imageUrl);
       this.logger.log(`Completed async image prediction for ${complaintId}`);
     } catch (error) {
-      this.logger.error(`Error processing image prediction for ${complaintId}: ${error.message}`);
+      this.logger.error(
+        `Error processing image prediction for ${complaintId}: ${error.message}`,
+      );
       await this.aiService.markPredictionFailed(complaintId, error.message);
       throw error;
     }
@@ -73,7 +75,9 @@ export class AiProcessor extends WorkerHost {
       await this.aiService.processYoloPrediction(complaintId, imageUrl);
       this.logger.log(`Completed async YOLO prediction for ${complaintId}`);
     } catch (error) {
-      this.logger.error(`Error processing YOLO prediction for ${complaintId}: ${error.message}`);
+      this.logger.error(
+        `Error processing YOLO prediction for ${complaintId}: ${error.message}`,
+      );
       await this.aiService.markPredictionFailed(complaintId, error.message);
       throw error;
     }

@@ -7,6 +7,6 @@ import { DatabaseModule } from '../database/database.module';
   imports: [DatabaseModule],
   providers: [GamificationService],
   controllers: [GamificationController],
-  exports: [GamificationService]
+  exports: [GamificationService],
 })
 export class GamificationModule {}

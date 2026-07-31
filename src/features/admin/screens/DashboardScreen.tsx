@@ -248,8 +248,8 @@ export default function AdminDashboardScreen() {
                     datasets: [
                       {
                         data: [65, 78, 90, 81, 95, 110, 125],
-                      }
-                    ]
+                      },
+                    ],
                   }}
                   width={W - 80}
                   height={180}
@@ -264,18 +264,18 @@ export default function AdminDashboardScreen() {
                     color: (opacity = 1) => `rgba(32, 138, 239, ${opacity})`,
                     labelColor: (opacity = 1) => colors.textSecondary,
                     style: {
-                      borderRadius: 16
+                      borderRadius: 16,
                     },
                     propsForDots: {
                       r: "4",
                       strokeWidth: "2",
-                      stroke: colors.brand
-                    }
+                      stroke: colors.brand,
+                    },
                   }}
                   bezier
                   style={{
                     marginVertical: 8,
-                    borderRadius: 16
+                    borderRadius: 16,
                   }}
                 />
                 <View style={s.chartLegend}>
@@ -320,11 +320,41 @@ export default function AdminDashboardScreen() {
                 </Text>
                 <PieChart
                   data={[
-                    { name: "Roads", value: 35, color: "#208AEF", legendFontColor: colors.textSecondary, legendFontSize: 10 },
-                    { name: "Water", value: 25, color: "#12B76A", legendFontColor: colors.textSecondary, legendFontSize: 10 },
-                    { name: "Lighting", value: 20, color: "#F79009", legendFontColor: colors.textSecondary, legendFontSize: 10 },
-                    { name: "Garbage", value: 15, color: "#7C3AED", legendFontColor: colors.textSecondary, legendFontSize: 10 },
-                    { name: "Other", value: 5, color: "#F04438", legendFontColor: colors.textSecondary, legendFontSize: 10 },
+                    {
+                      name: "Roads",
+                      value: 35,
+                      color: "#208AEF",
+                      legendFontColor: colors.textSecondary,
+                      legendFontSize: 10,
+                    },
+                    {
+                      name: "Water",
+                      value: 25,
+                      color: "#12B76A",
+                      legendFontColor: colors.textSecondary,
+                      legendFontSize: 10,
+                    },
+                    {
+                      name: "Lighting",
+                      value: 20,
+                      color: "#F79009",
+                      legendFontColor: colors.textSecondary,
+                      legendFontSize: 10,
+                    },
+                    {
+                      name: "Garbage",
+                      value: 15,
+                      color: "#7C3AED",
+                      legendFontColor: colors.textSecondary,
+                      legendFontSize: 10,
+                    },
+                    {
+                      name: "Other",
+                      value: 5,
+                      color: "#F04438",
+                      legendFontColor: colors.textSecondary,
+                      legendFontSize: 10,
+                    },
                   ]}
                   width={150}
                   height={140}
@@ -367,9 +397,9 @@ export default function AdminDashboardScreen() {
                     labels: ["High", "Medium", "Low"],
                     datasets: [
                       {
-                        data: [45, 30, 25]
-                      }
-                    ]
+                        data: [45, 30, 25],
+                      },
+                    ],
                   }}
                   width={150}
                   height={140}

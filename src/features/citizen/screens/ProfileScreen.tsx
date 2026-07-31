@@ -47,7 +47,7 @@ export default function ProfileScreen() {
     queryKey: ["citizen_profile"],
     queryFn: CitizenService.getProfile,
   });
-  
+
   const civicScore = profile?.civicScore || 0;
 
   const handleThemeToggle = () => {
@@ -229,7 +229,13 @@ export default function ProfileScreen() {
             isDark={isDark}
           />
           <SquircleStat label="Resolved" value="9" icon="success" color="#12B76A" isDark={isDark} />
-          <SquircleStat label="Points" value={civicScore.toString()} icon="star" color="#F79009" isDark={isDark} />
+          <SquircleStat
+            label="Points"
+            value={civicScore.toString()}
+            icon="star"
+            color="#F79009"
+            isDark={isDark}
+          />
         </Animated.View>
 
         {/* ── Menu Sections ── */}

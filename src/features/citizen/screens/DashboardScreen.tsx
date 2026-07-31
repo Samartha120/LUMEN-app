@@ -118,7 +118,11 @@ export default function CitizenDashboardScreen() {
   const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(getTimeString());
 
-  const { data: dashboardData, refetch: refetchDashboard, isLoading: isLoadingDashboard } = useQuery({
+  const {
+    data: dashboardData,
+    refetch: refetchDashboard,
+    isLoading: isLoadingDashboard,
+  } = useQuery({
     queryKey: ["citizen-dashboard"],
     queryFn: () => CitizenService.getDashboard(),
   });
@@ -187,7 +191,6 @@ export default function CitizenDashboardScreen() {
         bounciness: 6,
       }).start();
     }, 350);
-
   }, []);
 
   const onRefresh = useCallback(async () => {
@@ -248,7 +251,11 @@ export default function CitizenDashboardScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
         refreshControl={
-          <RefreshControl refreshing={isLoadingDashboard} onRefresh={onRefresh} tintColor={colors.brand} />
+          <RefreshControl
+            refreshing={isLoadingDashboard}
+            onRefresh={onRefresh}
+            tintColor={colors.brand}
+          />
         }
       >
         {/* ═══════════════════════════════════════════════ */}
@@ -484,8 +491,6 @@ export default function CitizenDashboardScreen() {
           </View>
         </Animated.View>
 
-
-
         {/* ═══════════════════════════════════════════════ */}
         {/* NEARBY ISSUES MAP PLACEHOLDER                   */}
         {/* ═══════════════════════════════════════════════ */}
@@ -568,7 +573,9 @@ export default function CitizenDashboardScreen() {
                       ]}
                     >
                       <Text style={[s.mapStatNum, { color: "#F04438" }]}>
-                        {nearbyIssues?.filter((i: any) => i.priority === "HIGH" || i.priority === "CRITICAL").length || 0}
+                        {nearbyIssues?.filter(
+                          (i: any) => i.priority === "HIGH" || i.priority === "CRITICAL"
+                        ).length || 0}
                       </Text>
                       <Text style={[s.mapStatLabel, { color: "#F04438" }]}>High</Text>
                     </View>
@@ -753,15 +760,7 @@ function ActionCard({
 }
 
 // ── Report Card Component ─────────────────────────────────────
-function ReportCard({
-  report,
-  colors,
-  isDark,
-}: {
-  report: any;
-  colors: any;
-  isDark: boolean;
-}) {
+function ReportCard({ report, colors, isDark }: { report: any; colors: any; isDark: boolean }) {
   const statusConfig = {
     PENDING: { label: "Pending", color: "#C2410C", bg: "#FFEDD5" },
     IN_PROGRESS: { label: "In Progress", color: "#0F766E", bg: "#CCFBF1" },
@@ -771,14 +770,14 @@ function ReportCard({
   };
 
   const status = statusConfig[report.status as keyof typeof statusConfig] || statusConfig.PENDING;
-  
+
   const PRIORITY_COLOR: Record<string, string> = {
     HIGH: "#F04438",
     CRITICAL: "#F04438",
     MEDIUM: "#F79009",
     LOW: "#12B76A",
   };
-  
+
   const CATEGORY_ICON: Record<string, any> = {
     road: "road",
     streetlight: "streetlight",

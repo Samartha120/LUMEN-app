@@ -89,7 +89,7 @@ export class AdminService {
         email: createUserDto.email,
         password: createUserDto.password, // In real app, hash this!
         fullName: createUserDto.fullName,
-        role: createUserDto.role as Role,
+        role: createUserDto.role,
       },
     });
 
@@ -105,7 +105,7 @@ export class AdminService {
       where: { id },
       data: {
         ...(updateUserDto.fullName && { fullName: updateUserDto.fullName }),
-        ...(updateUserDto.role && { role: updateUserDto.role as Role }),
+        ...(updateUserDto.role && { role: updateUserDto.role }),
         ...(updateUserDto.isActive !== undefined && {
           isActive: updateUserDto.isActive,
         }),
@@ -185,10 +185,12 @@ export class AdminService {
 
     // Phase 22: Trigger Push Notification for status updates
     // @ts-ignore
-    const userWithToken = complaint.reporterId ? await this.prisma.user.findUnique({
-      where: { id: complaint.reporterId },
-      select: { fcmToken: true },
-    }) : null;
+    const userWithToken = complaint.reporterId
+      ? await this.prisma.user.findUnique({
+          where: { id: complaint.reporterId },
+          select: { fcmToken: true },
+        })
+      : null;
 
     // @ts-ignore
     if (userWithToken?.fcmToken) {
@@ -212,7 +214,7 @@ export class AdminService {
       await this.gamificationService.awardPoints(
         complaint.reporterId,
         50,
-        `Complaint ${complaintId} resolved`
+        `Complaint ${complaintId} resolved`,
       );
 
       // @ts-ignore

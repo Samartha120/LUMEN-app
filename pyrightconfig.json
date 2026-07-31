@@ -1,7 +1,5 @@
 {
   "venvPath": "${workspaceFolder}",
   "venv": ".venv",
-  "extraPaths": [
-    "backend/src/ai/python"
-  ]
+  "extraPaths": ["backend/src/ai/python"]
 }

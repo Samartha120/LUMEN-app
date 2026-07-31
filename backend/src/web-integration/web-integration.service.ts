@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
@@ -32,7 +37,12 @@ const SKILL_PENALTY_KM = 8;
 const WORKLOAD_PENALTY_KM = 3;
 const URGENCY_WEIGHT_KM = 12;
 
-function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+function haversineMeters(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
   const R = 6371000;
   const toRad = (d: number) => (d * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
@@ -50,7 +60,7 @@ function hungarian(cost: number[][]): number[] {
   const dim = Math.max(n, m);
 
   const a: number[][] = Array.from({ length: dim }, (_, i) =>
-    Array.from({ length: dim }, (_, j) => (i < n && j < m ? cost[i][j] : 0))
+    Array.from({ length: dim }, (_, j) => (i < n && j < m ? cost[i][j] : 0)),
   );
 
   const INF = Number.POSITIVE_INFINITY;
@@ -109,10 +119,14 @@ function hungarian(cost: number[][]): number[] {
 }
 
 function pairCost(c: AssignComplaint, e: AssignEngineer): number {
-  if (e.status === 'OFF_DUTY' || e.departmentId !== c.departmentId) return INFEASIBLE;
+  if (e.status === 'OFF_DUTY' || e.departmentId !== c.departmentId)
+    return INFEASIBLE;
 
   const km = haversineMeters(c.lat, c.lng, e.lat, e.lng) / 1000;
-  const skilled = e.skills.split(',').map((s) => s.trim()).includes(c.category);
+  const skilled = e.skills
+    .split(',')
+    .map((s) => s.trim())
+    .includes(c.category);
   const skillPenalty = skilled ? 0 : SKILL_PENALTY_KM;
   const workloadPenalty = e.openJobs * WORKLOAD_PENALTY_KM;
   const urgencyRebate = (c.severityScore / 100) * URGENCY_WEIGHT_KM;
@@ -120,10 +134,15 @@ function pairCost(c: AssignComplaint, e: AssignEngineer): number {
   return km + skillPenalty + workloadPenalty - urgencyRebate;
 }
 
-function greedyAssign(complaints: AssignComplaint[], engineers: AssignEngineer[]) {
+function greedyAssign(
+  complaints: AssignComplaint[],
+  engineers: AssignEngineer[],
+) {
   const taken = new Set<string>();
   const out: any[] = [];
-  const order = [...complaints].sort((x, y) => y.severityScore - x.severityScore);
+  const order = [...complaints].sort(
+    (x, y) => y.severityScore - x.severityScore,
+  );
 
   for (const c of order) {
     let best: AssignEngineer | null = null;
@@ -144,18 +163,25 @@ function greedyAssign(complaints: AssignComplaint[], engineers: AssignEngineer[]
         engineer: best,
         distanceKm: Math.round(bestKm * 100) / 100,
         cost: Math.round(pairCost(c, best) * 100) / 100,
-        skillMatch: best.skills.split(',').map((s) => s.trim()).includes(c.category),
+        skillMatch: best.skills
+          .split(',')
+          .map((s) => s.trim())
+          .includes(c.category),
       });
     }
   }
   return {
     assignments: out,
-    totalDistanceKm: Math.round(out.reduce((s, a) => s + a.distanceKm, 0) * 100) / 100,
+    totalDistanceKm:
+      Math.round(out.reduce((s, a) => s + a.distanceKm, 0) * 100) / 100,
     totalCost: Math.round(out.reduce((s, a) => s + a.cost, 0) * 100) / 100,
   };
 }
 
-function optimiseAssignments(complaints: AssignComplaint[], engineers: AssignEngineer[]) {
+function optimiseAssignments(
+  complaints: AssignComplaint[],
+  engineers: AssignEngineer[],
+) {
   if (complaints.length === 0 || engineers.length === 0) {
     return {
       assignments: [],
@@ -186,17 +212,25 @@ function optimiseAssignments(complaints: AssignComplaint[], engineers: AssignEng
       engineer: e,
       distanceKm: Math.round(km * 100) / 100,
       cost: Math.round(cost[i][j] * 100) / 100,
-      skillMatch: e.skills.split(',').map((s) => s.trim()).includes(c.category),
+      skillMatch: e.skills
+        .split(',')
+        .map((s) => s.trim())
+        .includes(c.category),
     });
     assignedRows.add(i);
   }
 
-  const totalDistanceKm = Math.round(assignments.reduce((s, a) => s + a.distanceKm, 0) * 100) / 100;
-  const totalCost = Math.round(assignments.reduce((s, a) => s + a.cost, 0) * 100) / 100;
+  const totalDistanceKm =
+    Math.round(assignments.reduce((s, a) => s + a.distanceKm, 0) * 100) / 100;
+  const totalCost =
+    Math.round(assignments.reduce((s, a) => s + a.cost, 0) * 100) / 100;
   const naive = greedyAssign(complaints, engineers);
 
   const denom = Math.abs(naive.totalCost);
-  const costImprovementPct = denom > 1e-9 ? Math.round(((naive.totalCost - totalCost) / denom) * 1000) / 10 : 0;
+  const costImprovementPct =
+    denom > 1e-9
+      ? Math.round(((naive.totalCost - totalCost) / denom) * 1000) / 10
+      : 0;
 
   return {
     assignments,
@@ -207,6 +241,32 @@ function optimiseAssignments(complaints: AssignComplaint[], engineers: AssignEng
     totalDistanceKm,
     naiveTotalDistanceKm: naive.totalDistanceKm,
   };
+}
+
+interface ComplaintWithRelations {
+  id: string;
+  trackingId: string;
+  title: string;
+  description: string | null;
+  category: string;
+  priority: Priority;
+  status: ComplaintStatus;
+  latitude: number | null;
+  longitude: number | null;
+  imageUrl: string | null;
+  createdAt: Date;
+  reporter?: { fullName: string | null } | null;
+  aiPrediction?: { confidenceScore: number } | null;
+  dispatchRecords?: { department: string }[] | null;
+  timeline?:
+    | {
+        id: string;
+        status: string;
+        notes: string | null;
+        createdAt: Date;
+        performedBy?: { fullName: string | null } | null;
+      }[]
+    | null;
 }
 
 @Injectable()
@@ -257,7 +317,9 @@ export class WebIntegrationService implements OnModuleInit {
       ];
 
       for (const u of users) {
-        const existing = await this.prisma.user.findUnique({ where: { email: u.email } });
+        const existing = await this.prisma.user.findUnique({
+          where: { email: u.email },
+        });
         if (!existing) {
           await this.prisma.user.create({ data: u });
           this.logger.log(`Created seed user: ${u.email}`);
@@ -267,14 +329,52 @@ export class WebIntegrationService implements OnModuleInit {
       const complaintCount = await this.prisma.complaint.count();
       if (complaintCount === 0) {
         this.logger.log('No complaints found. Seeding demo complaints...');
-        const adminUser = await this.prisma.user.findUnique({ where: { email: 'admin@lumen.gov' } });
+        const adminUser = await this.prisma.user.findUnique({
+          where: { email: 'admin@lumen.gov' },
+        });
         const adminId = adminUser?.id;
 
         const demoSpecs = [
-          { title: "Deep pothole outside Jayanagar 4th Block bus stop", description: "Large pothole in the left lane, two-wheelers swerving into traffic to avoid it.", category: "Pothole", priority: Priority.CRITICAL, status: ComplaintStatus.PENDING, lat: 12.995, lng: 77.58 },
-          { title: "Pothole cluster near Ring Road service lane", description: "Several potholes forming after last week's rain, worsening daily.", category: "Pothole", priority: Priority.HIGH, status: ComplaintStatus.ASSIGNED, lat: 12.915, lng: 77.61 },
-          { title: "Alligator cracking on MG Road stretch 4", description: "Surface has broken into interconnected cracks across most of the lane width.", category: "Alligator Crack", priority: Priority.MEDIUM, status: ComplaintStatus.IN_PROGRESS, lat: 12.96, lng: 77.68 },
-          { title: "Transverse cracks near Silk Board flyover approach", description: "Cracks running across the carriageway, felt strongly by vehicles.", category: "Transverse Crack", priority: Priority.LOW, status: ComplaintStatus.RESOLVED, lat: 12.94, lng: 77.52 }
+          {
+            title: 'Deep pothole outside Jayanagar 4th Block bus stop',
+            description:
+              'Large pothole in the left lane, two-wheelers swerving into traffic to avoid it.',
+            category: 'Pothole',
+            priority: Priority.CRITICAL,
+            status: ComplaintStatus.PENDING,
+            lat: 12.995,
+            lng: 77.58,
+          },
+          {
+            title: 'Pothole cluster near Ring Road service lane',
+            description:
+              "Several potholes forming after last week's rain, worsening daily.",
+            category: 'Pothole',
+            priority: Priority.HIGH,
+            status: ComplaintStatus.ASSIGNED,
+            lat: 12.915,
+            lng: 77.61,
+          },
+          {
+            title: 'Alligator cracking on MG Road stretch 4',
+            description:
+              'Surface has broken into interconnected cracks across most of the lane width.',
+            category: 'Alligator Crack',
+            priority: Priority.MEDIUM,
+            status: ComplaintStatus.IN_PROGRESS,
+            lat: 12.96,
+            lng: 77.68,
+          },
+          {
+            title: 'Transverse cracks near Silk Board flyover approach',
+            description:
+              'Cracks running across the carriageway, felt strongly by vehicles.',
+            category: 'Transverse Crack',
+            priority: Priority.LOW,
+            status: ComplaintStatus.RESOLVED,
+            lat: 12.94,
+            lng: 77.52,
+          },
         ];
 
         let seq = 10245;
@@ -297,9 +397,9 @@ export class WebIntegrationService implements OnModuleInit {
                   boundingBoxes: [100, 150, 300, 400],
                   metadata: {},
                   status: 'SUCCESSFUL',
-                }
-              }
-            }
+                },
+              },
+            },
           });
 
           if (adminId) {
@@ -309,7 +409,7 @@ export class WebIntegrationService implements OnModuleInit {
                 status: spec.status,
                 notes: `Seeded demo complaint status initialized to ${spec.status}`,
                 performedById: adminId,
-              }
+              },
             });
           }
 
@@ -319,13 +419,15 @@ export class WebIntegrationService implements OnModuleInit {
               complaintId: created.id,
               department: 'ROADS',
               estimatedResolutionAt: new Date(Date.now() + 48 * 3600 * 1000),
-            }
+            },
           });
         }
         this.logger.log('Demo complaints seeded successfully.');
       }
     } catch (err) {
-      this.logger.error('Failed to seed database users/complaints: ' + err.message);
+      this.logger.error(
+        'Failed to seed database users/complaints: ' + err.message,
+      );
     }
   }
 
@@ -345,9 +447,11 @@ export class WebIntegrationService implements OnModuleInit {
     return priority;
   }
 
-  private formatComplaint(c: any) {
+  private formatComplaint(c: ComplaintWithRelations) {
     const aiPred = c.aiPrediction;
-    const severityScore = aiPred?.confidenceScore ? aiPred.confidenceScore * 100 : 35.0;
+    const severityScore = aiPred?.confidenceScore
+      ? aiPred.confidenceScore * 100
+      : 35.0;
     let severityBand = 'MODERATE';
     if (severityScore >= 75) severityBand = 'SEVERE';
     else if (severityScore >= 50) severityBand = 'SIGNIFICANT';
@@ -358,7 +462,7 @@ export class WebIntegrationService implements OnModuleInit {
     const deptId = deptName;
 
     // Timeline event mock / mapping
-    const events = (c.timeline || []).map((t: any) => {
+    const events = (c.timeline || []).map((t) => {
       let type = 'STATUS_CHANGE';
       if (t.status === 'PENDING') type = 'CREATED';
       return {
@@ -399,7 +503,8 @@ export class WebIntegrationService implements OnModuleInit {
 
     if (c.status === 'RESOLVED' || c.status === 'CLOSED') {
       verifyVerdict = 'VERIFIED';
-      verifyReason = 'AI model matched before and after photographs with high confidence.';
+      verifyReason =
+        'AI model matched before and after photographs with high confidence.';
       verifyReduction = 92;
       verifySsim = 0.894;
       images.push({
@@ -418,7 +523,10 @@ export class WebIntegrationService implements OnModuleInit {
       description: c.description,
       category: c.category,
       zone: 'Central Zone',
-      address: c.latitude ? `${c.latitude.toFixed(4)}, ${c.longitude.toFixed(4)}` : 'Lumen City',
+      address:
+        c.latitude && c.longitude
+          ? `${c.latitude.toFixed(4)}, ${c.longitude.toFixed(4)}`
+          : 'Lumen City',
       lat: c.latitude || 12.9716,
       lng: c.longitude || 77.5946,
       status: this.mapStatusToFrontend(c.status),
@@ -428,7 +536,12 @@ export class WebIntegrationService implements OnModuleInit {
       aiModelMode: 'TRAINED',
       aiConfidence: aiPred?.confidenceScore || 0.85,
       detections: JSON.stringify([
-        { label: c.category, confidence: aiPred?.confidenceScore || 0.85, box: [100, 150, 300, 400], area_ratio: 0.12 }
+        {
+          label: c.category,
+          confidence: aiPred?.confidenceScore || 0.85,
+          box: [100, 150, 300, 400],
+          area_ratio: 0.12,
+        },
       ]),
       severityScore,
       severityBand,
@@ -451,12 +564,19 @@ export class WebIntegrationService implements OnModuleInit {
   }
 
   private async queryAiHealth() {
-    const aiUrl = this.configService.get<string>('FASTAPI_INFERENCE_URL') || 'http://localhost:8100';
+    const aiUrl =
+      this.configService.get<string>('FASTAPI_INFERENCE_URL') ||
+      'http://localhost:8100';
     try {
-      const response = await firstValueFrom(this.httpService.get(`${aiUrl}/health`, { timeout: 2000 }));
+      const response = await firstValueFrom(
+        this.httpService.get(`${aiUrl}/health`, { timeout: 2000 }),
+      );
       return response.data;
     } catch {
-      return { model_mode: 'HEURISTIC', note: 'Heuristic CV pipeline active (OpenCV fallbacks)' };
+      return {
+        model_mode: 'HEURISTIC',
+        note: 'Heuristic CV pipeline active (OpenCV fallbacks)',
+      };
     }
   }
 
@@ -629,7 +749,9 @@ export class WebIntegrationService implements OnModuleInit {
       lat: c.latitude || 12.9716,
       lng: c.longitude || 77.5946,
       category: c.category,
-      severityScore: c.aiPrediction?.confidenceScore ? c.aiPrediction.confidenceScore * 100 : 35,
+      severityScore: c.aiPrediction?.confidenceScore
+        ? c.aiPrediction.confidenceScore * 100
+        : 35,
       departmentId: 'ROADS',
     }));
 
@@ -640,8 +762,8 @@ export class WebIntegrationService implements OnModuleInit {
         id: e.id,
         code: `ENG-${e.id.substring(0, 5).toUpperCase()}`,
         name: e.fullName || 'Field Engineer',
-        lat: 12.97 + (index * 0.01),
-        lng: 77.59 + (index * 0.01),
+        lat: 12.97 + index * 0.01,
+        lng: 77.59 + index * 0.01,
         skills,
         status: 'AVAILABLE',
         departmentId: 'ROADS',
@@ -650,7 +772,9 @@ export class WebIntegrationService implements OnModuleInit {
     });
 
     const result = optimiseAssignments(cs, es);
-    const titles = Object.fromEntries(complaints.map((c) => [c.id, { title: c.title, priority: c.priority }]));
+    const titles = Object.fromEntries(
+      complaints.map((c) => [c.id, { title: c.title, priority: c.priority }]),
+    );
 
     return {
       result,
@@ -684,7 +808,15 @@ export class WebIntegrationService implements OnModuleInit {
 
   async getGisData() {
     const complaints = await this.prisma.complaint.findMany({
-      where: { status: { in: [ComplaintStatus.PENDING, ComplaintStatus.ASSIGNED, ComplaintStatus.IN_PROGRESS] } },
+      where: {
+        status: {
+          in: [
+            ComplaintStatus.PENDING,
+            ComplaintStatus.ASSIGNED,
+            ComplaintStatus.IN_PROGRESS,
+          ],
+        },
+      },
     });
 
     const engineers = await this.prisma.user.findMany({
@@ -705,8 +837,8 @@ export class WebIntegrationService implements OnModuleInit {
       id: e.id,
       code: `ENG-${e.id.substring(0, 5).toUpperCase()}`,
       name: e.fullName || 'Field Engineer',
-      lat: 12.97 + (index * 0.01),
-      lng: 77.59 + (index * 0.01),
+      lat: 12.97 + index * 0.01,
+      lng: 77.59 + index * 0.01,
       status: 'AVAILABLE',
     }));
 
@@ -726,8 +858,8 @@ export class WebIntegrationService implements OnModuleInit {
       zone: 'Central Zone',
       skills: 'Pothole,Alligator Crack,Transverse Crack',
       status: 'AVAILABLE',
-      lat: 12.97 + (index * 0.01),
-      lng: 77.59 + (index * 0.01),
+      lat: 12.97 + index * 0.01,
+      lng: 77.59 + index * 0.01,
       resolvedJobs: 5,
       department: { name: 'ROADS' },
       complaints: [],

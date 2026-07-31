@@ -18,7 +18,8 @@ export interface Session {
   user: User;
 }
 
-export type Role = "CITIZEN" | "DEPARTMENT" | "SUPERVISOR" | "ENGINEER" | "ADMIN" | "SUPER_ADMIN" | "GUEST" | null;
+export type Role =
+  "CITIZEN" | "DEPARTMENT" | "SUPERVISOR" | "ENGINEER" | "ADMIN" | "SUPER_ADMIN" | "GUEST" | null;
 
 interface AuthState {
   session: Session | null;
@@ -103,7 +104,14 @@ export const useAuthStore = create<AuthState>()(
       loginAsGuest: () =>
         set({
           session: null,
-          user: { id: "guest", email: "guest@lumen.city", role: "GUEST", isActive: true, isVerified: false, verificationStatus: "UNVERIFIED" },
+          user: {
+            id: "guest",
+            email: "guest@lumen.city",
+            role: "GUEST",
+            isActive: true,
+            isVerified: false,
+            verificationStatus: "UNVERIFIED",
+          },
           role: "GUEST",
           guestMode: true,
           isUnlocked: true,

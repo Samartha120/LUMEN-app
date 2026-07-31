@@ -21,8 +21,15 @@ export class PaymentsController {
 
   @Post('create-payment-intent')
   @ApiOperation({ summary: 'Create Stripe Payment Intent' })
-  async createPaymentIntent(@Body() dto: { amount: number; type: string }, @CurrentUser() user: User) {
-    return this.paymentsService.createPaymentIntent(user.id, dto.amount, dto.type);
+  async createPaymentIntent(
+    @Body() dto: { amount: number; type: string },
+    @CurrentUser() user: User,
+  ) {
+    return this.paymentsService.createPaymentIntent(
+      user.id,
+      dto.amount,
+      dto.type,
+    );
   }
 
   @Post('pay')

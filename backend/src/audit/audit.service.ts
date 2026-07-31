@@ -22,13 +22,15 @@ export class AuditService {
 
     if (req) {
       ipAddress = req.ip || req.connection?.remoteAddress;
-      device = req.headers['x-device'] as string || 'Unknown';
-      os = req.headers['x-os'] as string || 'Unknown';
-      appVersion = req.headers['x-app-version'] as string || 'Unknown';
+      device = (req.headers['x-device'] as string) || 'Unknown';
+      os = (req.headers['x-os'] as string) || 'Unknown';
+      appVersion = (req.headers['x-app-version'] as string) || 'Unknown';
       if (req.headers['x-gps-location']) {
         try {
           gpsLocation = JSON.parse(req.headers['x-gps-location'] as string);
-        } catch (e) {}
+        } catch (e) {
+          gpsLocation = undefined;
+        }
       }
     }
 

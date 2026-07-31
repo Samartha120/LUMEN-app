@@ -14,7 +14,11 @@ import { NotificationsGateway } from './notifications.gateway';
       secret: process.env.JWT_SECRET || 'lumen-super-secret-jwt-key',
     }),
   ],
-  providers: [NotificationsService, NotificationProcessor, NotificationsGateway],
+  providers: [
+    NotificationsService,
+    NotificationProcessor,
+    NotificationsGateway,
+  ],
   exports: [NotificationsService, NotificationsGateway],
 })
 export class NotificationsModule {}

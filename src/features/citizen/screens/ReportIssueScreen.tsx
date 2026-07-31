@@ -105,7 +105,9 @@ export default function ReportIssueScreen() {
       }
 
       // 2. Fetch current location
-      const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
       const { latitude, longitude } = location.coords;
 
       if (syncManager.isCurrentlyOnline) {
@@ -151,17 +153,23 @@ export default function ReportIssueScreen() {
     }
   };
 
-  const handlePermission = async (type: 'camera' | 'gallery') => {
-    if (type === 'camera') {
+  const handlePermission = async (type: "camera" | "gallery") => {
+    if (type === "camera") {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert("Permission Denied", "Camera access is required to take photos. Please enable it in your settings.");
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Camera access is required to take photos. Please enable it in your settings."
+        );
         return false;
       }
     } else {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert("Permission Denied", "Gallery access is required to pick photos. Please enable it in your settings.");
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Gallery access is required to pick photos. Please enable it in your settings."
+        );
         return false;
       }
     }
@@ -169,7 +177,7 @@ export default function ReportIssueScreen() {
   };
 
   const pickImage = async () => {
-    const hasPermission = await handlePermission('gallery');
+    const hasPermission = await handlePermission("gallery");
     if (!hasPermission) return;
 
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -183,7 +191,7 @@ export default function ReportIssueScreen() {
   };
 
   const takePhoto = async () => {
-    const hasPermission = await handlePermission('camera');
+    const hasPermission = await handlePermission("camera");
     if (!hasPermission) return;
 
     let result = await ImagePicker.launchCameraAsync({
@@ -205,11 +213,17 @@ export default function ReportIssueScreen() {
       // We will pass description. The backend mock will use description.
       const result = await ComplaintsService.analyzeAI(description, imageUri || undefined);
       if (result.success) {
-        const cat = CATEGORIES.find(c => c.label.toLowerCase() === result.triageResult.category.toLowerCase() || c.id === result.triageResult.category.toLowerCase());
+        const cat = CATEGORIES.find(
+          (c) =>
+            c.label.toLowerCase() === result.triageResult.category.toLowerCase() ||
+            c.id === result.triageResult.category.toLowerCase()
+        );
         if (cat) setCategory(cat.id);
-        const prio = PRIORITIES.find(p => p.id.toLowerCase() === result.triageResult.priority.toLowerCase());
+        const prio = PRIORITIES.find(
+          (p) => p.id.toLowerCase() === result.triageResult.priority.toLowerCase()
+        );
         if (prio) setPriority(prio.id);
-        
+
         Alert.alert("AI Triage Complete", result.triageResult.aiSummary);
       }
     } catch (e) {
@@ -408,7 +422,13 @@ export default function ReportIssueScreen() {
               />
               {/* Photo Upload */}
               <View style={s.fieldGroup}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
                   <Text style={[TextStyles.label, { color: colors.textSecondary }]}>
                     Photos (optional)
                   </Text>
@@ -429,7 +449,10 @@ export default function ReportIssueScreen() {
                   ]}
                 >
                   {imageUri ? (
-                    <Image source={{ uri: imageUri }} style={{ width: '100%', height: '100%', borderRadius: Radius.xl }} />
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={{ width: "100%", height: "100%", borderRadius: Radius.xl }}
+                    />
                   ) : (
                     <>
                       <LumenIcon

@@ -36,7 +36,6 @@ import { ComplaintsService } from "@/services/complaints.service";
 import { CitizenService } from "@/services/citizen.service";
 import { socketService } from "@/services/socket.service";
 
-
 const { width: W } = Dimensions.get("window");
 
 // ── Report Data (replace with API / Supabase realtime) ────────
@@ -196,7 +195,7 @@ export default function ReportDetailsScreen() {
   const [copied, setCopied] = useState(false);
 
   const { id } = useLocalSearchParams<{ id: string }>();
-  
+
   const { data: reportData, isLoading: loadingReport } = useQuery({
     queryKey: ["complaint", id],
     queryFn: () => ComplaintsService.getOne(id as string),
@@ -289,7 +288,12 @@ export default function ReportDetailsScreen() {
 
   if (loadingReport || !reportData) {
     return (
-      <View style={[s.root, { backgroundColor: colors.bgBase, justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          s.root,
+          { backgroundColor: colors.bgBase, justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <Text style={{ color: colors.textSecondary }}>Loading...</Text>
       </View>
     );
@@ -297,16 +301,26 @@ export default function ReportDetailsScreen() {
 
   // Derive variables from API
   const timelineMapped = [
-    { step: "Report Submitted", time: new Date(reportData.createdAt).toLocaleString(), done: true, desc: "Logged automatically" },
-    ...((timelineData || []).map((t: any) => ({
+    {
+      step: "Report Submitted",
+      time: new Date(reportData.createdAt).toLocaleString(),
+      done: true,
+      desc: "Logged automatically",
+    },
+    ...(timelineData || []).map((t: any) => ({
       step: t.status,
       time: new Date(t.createdAt).toLocaleString(),
       done: true,
-      desc: t.notes || "Status updated"
-    })))
+      desc: t.notes || "Status updated",
+    })),
   ];
   const doneCount = timelineMapped.filter((t) => t.done).length;
-  const progressPercent = reportData.status === "RESOLVED" || reportData.status === "CLOSED" ? 100 : (reportData.status === "IN_PROGRESS" ? 65 : 20);
+  const progressPercent =
+    reportData.status === "RESOLVED" || reportData.status === "CLOSED"
+      ? 100
+      : reportData.status === "IN_PROGRESS"
+        ? 65
+        : 20;
 
   const DETAILS = [
     { label: "Department", value: reportData.category },
@@ -349,9 +363,7 @@ export default function ReportDetailsScreen() {
             <LumenIcon name="back" size="md" color={colors.textPrimary} strokeWidth={2.5} />
           </Pressable>
 
-          <Text style={[s.headerTitle, { color: colors.textPrimary }]}>
-            Report Details
-          </Text>
+          <Text style={[s.headerTitle, { color: colors.textPrimary }]}>Report Details</Text>
 
           <Pressable
             onPress={handleShare}
@@ -484,9 +496,7 @@ export default function ReportDetailsScreen() {
             <View style={s.engineerRow}>
               <Avatar name="Unassigned" size="lg" role="engineer" />
               <View style={s.engineerInfo}>
-                <Text style={[s.engineerName, { color: colors.textPrimary }]}>
-                  Engineer
-                </Text>
+                <Text style={[s.engineerName, { color: colors.textPrimary }]}>Engineer</Text>
                 <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
                   Pending Assignment
                 </Text>
@@ -589,8 +599,6 @@ export default function ReportDetailsScreen() {
               </Pressable>
             </View>
           </View>
-
-
 
           <View style={{ height: 48 }} />
         </Animated.View>

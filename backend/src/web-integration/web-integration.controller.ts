@@ -29,7 +29,10 @@ export class WebIntegrationController {
   @Post('auth/login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() body: any) {
-    return this.authService.login({ email: body.email, password: body.password });
+    return this.authService.login({
+      email: body.email,
+      password: body.password,
+    });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -58,7 +61,10 @@ export class WebIntegrationController {
 
   @UseGuards(JwtAuthGuard)
   @Get('complaints')
-  async getComplaints(@Query('status') status?: string, @Query('q') q?: string) {
+  async getComplaints(
+    @Query('status') status?: string,
+    @Query('q') q?: string,
+  ) {
     return this.integrationService.getComplaints(status, q);
   }
 

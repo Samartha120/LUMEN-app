@@ -12,7 +12,7 @@ export class ComplaintsService {
   constructor(
     private prisma: PrismaService,
     private notificationsGateway: NotificationsGateway,
-    private aiService: AiService
+    private aiService: AiService,
   ) {}
 
   async create(createComplaintDto: CreateComplaintDto, user: User | null) {
@@ -46,12 +46,21 @@ export class ComplaintsService {
     // @ts-ignore
     if (createComplaintDto.imageUrl) {
       // @ts-ignore
-      await this.aiService.queueImagePrediction(complaint.id, createComplaintDto.imageUrl);
+      await this.aiService.queueImagePrediction(
+        complaint.id,
+        createComplaintDto.imageUrl,
+      );
       // @ts-ignore
-      await this.aiService.queueYoloPrediction(complaint.id, createComplaintDto.imageUrl);
+      await this.aiService.queueYoloPrediction(
+        complaint.id,
+        createComplaintDto.imageUrl,
+      );
     } else if (createComplaintDto.videoUrl) {
       // @ts-ignore
-      await this.aiService.queueVideoPrediction(complaint.id, createComplaintDto.videoUrl);
+      await this.aiService.queueVideoPrediction(
+        complaint.id,
+        createComplaintDto.videoUrl,
+      );
     }
 
     return this.prisma.complaint.findUnique({ where: { id: complaint.id } });
@@ -100,7 +109,8 @@ export class ComplaintsService {
         await this.aiService.queueImagePrediction(complaint.id, dto.imageUrl);
         // @ts-ignore
         await this.aiService.queueYoloPrediction(complaint.id, dto.imageUrl);
-      } else if (dto.videoUrl) { // @ts-ignore
+      } else if (dto.videoUrl) {
+        // @ts-ignore
         await this.aiService.queueVideoPrediction(complaint.id, dto.videoUrl);
       }
     }
@@ -142,10 +152,10 @@ export class ComplaintsService {
       where: { id },
       data: updateComplaintDto,
     });
-    
+
     // Broadcast the update
     this.notificationsGateway.emitComplaintUpdate(id, updated);
-    
+
     return updated;
   }
 }

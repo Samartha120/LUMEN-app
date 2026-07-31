@@ -26,7 +26,7 @@ export default function RootLayout() {
     } else {
       socketService.disconnect();
     }
-    
+
     return () => {
       socketService.disconnect();
     };

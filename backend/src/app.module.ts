@@ -58,12 +58,19 @@ import { WebIntegrationModule } from './web-integration/web-integration.module';
       isGlobal: true,
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const redisUrl = configService.get('REDIS_URL') || 'redis://localhost:6379';
+        const redisUrl =
+          configService.get('REDIS_URL') || 'redis://localhost:6379';
         try {
-          const store = await redisStore({ url: redisUrl, ttl: 60000, socket: { connectTimeout: 1000 } });
+          const store = await redisStore({
+            url: redisUrl,
+            ttl: 60000,
+            socket: { connectTimeout: 1000 },
+          });
           return { store };
         } catch (e) {
-          console.warn('Redis cache failed to connect, falling back to memory store');
+          console.warn(
+            'Redis cache failed to connect, falling back to memory store',
+          );
           return { ttl: 60000 }; // defaults to memory store
         }
       },

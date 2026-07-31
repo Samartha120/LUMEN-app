@@ -25,11 +25,20 @@ export class AuditInterceptor implements NestInterceptor {
         next: (res) => {
           if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
             const currentUser = user as User;
-            const sanitizedBody = method !== 'DELETE' ? this.sanitizeBody(body) : undefined;
+            const sanitizedBody =
+              method !== 'DELETE' ? this.sanitizeBody(body) : undefined;
             this.auditService
-              .logAction(method, url, params?.id, currentUser?.id, {
-                body: sanitizedBody,
-              }, req, 'SUCCESS')
+              .logAction(
+                method,
+                url,
+                params?.id,
+                currentUser?.id,
+                {
+                  body: sanitizedBody,
+                },
+                req,
+                'SUCCESS',
+              )
               .catch((err) =>
                 this.logger.error('Failed to save audit log', err),
               );
@@ -38,17 +47,26 @@ export class AuditInterceptor implements NestInterceptor {
         error: (err) => {
           if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
             const currentUser = user as User;
-            const sanitizedBody = method !== 'DELETE' ? this.sanitizeBody(body) : undefined;
+            const sanitizedBody =
+              method !== 'DELETE' ? this.sanitizeBody(body) : undefined;
             this.auditService
-              .logAction(method, url, params?.id, currentUser?.id, {
-                body: sanitizedBody,
-                error: err.message,
-              }, req, 'FAILURE')
+              .logAction(
+                method,
+                url,
+                params?.id,
+                currentUser?.id,
+                {
+                  body: sanitizedBody,
+                  error: err.message,
+                },
+                req,
+                'FAILURE',
+              )
               .catch((e) =>
                 this.logger.error('Failed to save audit log (FAILURE)', e),
               );
           }
-        }
+        },
       }),
     );
   }
@@ -62,7 +80,16 @@ export class AuditInterceptor implements NestInterceptor {
       return body.map((item) => this.sanitizeBody(item));
     }
 
-    const sensitiveKeys = ['password', 'otp', 'token', 'secret', 'key', 'biometric', 'credential', 'auth'];
+    const sensitiveKeys = [
+      'password',
+      'otp',
+      'token',
+      'secret',
+      'key',
+      'biometric',
+      'credential',
+      'auth',
+    ];
     const sanitized = {};
 
     for (const key of Object.keys(body)) {

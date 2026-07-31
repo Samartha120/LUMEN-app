@@ -17,7 +17,9 @@ import { Injectable, Logger } from '@nestjs/common';
     origin: '*',
   },
 })
-export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class NotificationsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -39,7 +41,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
       // Join a room specific to the user for direct notifications
       client.join(`user_${payload.sub}`);
-      
+
       // If user is department/admin, join department rooms
       if (['DEPARTMENT', 'ADMIN', 'SUPER_ADMIN'].includes(payload.role)) {
         client.join('department_updates');
@@ -59,7 +61,9 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   // Called by other services to broadcast updates
   emitComplaintUpdate(complaintId: string, update: any) {
     this.server.emit(`complaint_${complaintId}_update`, update);
-    this.server.to('department_updates').emit('complaint_status_changed', update);
+    this.server
+      .to('department_updates')
+      .emit('complaint_status_changed', update);
   }
 
   emitTimelineAdded(complaintId: string, event: any) {
@@ -67,13 +71,19 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   @SubscribeMessage('join_complaint')
-  handleJoinComplaint(@ConnectedSocket() client: Socket, @MessageBody() complaintId: string) {
+  handleJoinComplaint(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() complaintId: string,
+  ) {
     client.join(`complaint_${complaintId}`);
     return { event: 'joined', data: complaintId };
   }
 
   @SubscribeMessage('leave_complaint')
-  handleLeaveComplaint(@ConnectedSocket() client: Socket, @MessageBody() complaintId: string) {
+  handleLeaveComplaint(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() complaintId: string,
+  ) {
     client.leave(`complaint_${complaintId}`);
     return { event: 'left', data: complaintId };
   }

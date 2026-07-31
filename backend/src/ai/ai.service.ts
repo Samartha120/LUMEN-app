@@ -242,7 +242,9 @@ export class AiService {
 
   async processYoloPrediction(complaintId: string, imageUrl: string) {
     this.logger.log(`Processing YOLO prediction for complaint: ${complaintId}`);
-    const inferenceUrl = this.configService.get<string>('FASTAPI_INFERENCE_URL');
+    const inferenceUrl = this.configService.get<string>(
+      'FASTAPI_INFERENCE_URL',
+    );
     const apiKey = this.configService.get<string>('FASTAPI_API_KEY');
 
     try {
@@ -264,8 +266,13 @@ export class AiService {
         status: AI_PREDICTION_STATUS.COMPLETED,
       });
     } catch (error) {
-      this.logger.error(`Failed YOLO inference for ${complaintId}: ${error.message}`);
-      await this.aiRepository.markPredictionAsFailed(complaintId, error.message);
+      this.logger.error(
+        `Failed YOLO inference for ${complaintId}: ${error.message}`,
+      );
+      await this.aiRepository.markPredictionAsFailed(
+        complaintId,
+        error.message,
+      );
     }
   }
 

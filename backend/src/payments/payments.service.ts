@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { PayBillDto } from './dto/pay-bill.dto';
 import type { User, PaymentType } from '@prisma/client';
+import Stripe from 'stripe';
 
 @Injectable()
 export class PaymentsService {
@@ -29,8 +30,13 @@ export class PaymentsService {
   }
 
   async createPaymentIntent(userId: string, amount: number, type: string) {
-    const stripe = new (require('stripe'))(process.env.STRIPE_SECRET_KEY || 'sk_test_mock_key');
-    
+    const stripe = new Stripe(
+      process.env.STRIPE_SECRET_KEY || 'sk_test_mock_key',
+      {
+        apiVersion: '2022-11-15' as any,
+      },
+    );
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Stripe expects amounts in cents
       currency: 'inr',

@@ -25,9 +25,10 @@ export class AuditInterceptor implements NestInterceptor {
         next: (res) => {
           if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
             const currentUser = user as User;
+            const sanitizedBody = method !== 'DELETE' ? this.sanitizeBody(body) : undefined;
             this.auditService
               .logAction(method, url, params?.id, currentUser?.id, {
-                body: method !== 'DELETE' ? body : undefined,
+                body: sanitizedBody,
               }, req, 'SUCCESS')
               .catch((err) =>
                 this.logger.error('Failed to save audit log', err),
@@ -37,9 +38,10 @@ export class AuditInterceptor implements NestInterceptor {
         error: (err) => {
           if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
             const currentUser = user as User;
+            const sanitizedBody = method !== 'DELETE' ? this.sanitizeBody(body) : undefined;
             this.auditService
               .logAction(method, url, params?.id, currentUser?.id, {
-                body: method !== 'DELETE' ? body : undefined,
+                body: sanitizedBody,
                 error: err.message,
               }, req, 'FAILURE')
               .catch((e) =>
@@ -49,5 +51,35 @@ export class AuditInterceptor implements NestInterceptor {
         }
       }),
     );
+  }
+
+  private sanitizeBody(body: any): any {
+    if (!body || typeof body !== 'object') {
+      return body;
+    }
+
+    if (Array.isArray(body)) {
+      return body.map((item) => this.sanitizeBody(item));
+    }
+
+    const sensitiveKeys = ['password', 'otp', 'token', 'secret', 'key', 'biometric', 'credential', 'auth'];
+    const sanitized = {};
+
+    for (const key of Object.keys(body)) {
+      const value = body[key];
+      const isSensitive = sensitiveKeys.some((sKey) =>
+        key.toLowerCase().includes(sKey),
+      );
+
+      if (isSensitive) {
+        sanitized[key] = '********';
+      } else if (typeof value === 'object' && value !== null) {
+        sanitized[key] = this.sanitizeBody(value);
+      } else {
+        sanitized[key] = value;
+      }
+    }
+
+    return sanitized;
   }
 }

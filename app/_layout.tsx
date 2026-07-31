@@ -16,7 +16,7 @@ LogBox.ignoreLogs(["SafeAreaView has been deprecated", "setLayoutAnimationEnable
 export default function RootLayout() {
   const pathname = usePathname();
   const segments = useSegments() as string[];
-  const { user, role } = useAuthStore();
+  const { user, role, isUnlocked } = useAuthStore();
 
   const segmentsJoined = segments.join("/");
 
@@ -47,26 +47,26 @@ export default function RootLayout() {
     const isCitizenRoute = segments.includes("(citizen)");
     const isAdminRoute = segments.includes("(admin)");
 
-    if (user) {
+    if (user && isUnlocked) {
       if (isAuthRoute) {
         const target =
           role === "ADMIN" || role === "SUPER_ADMIN"
             ? "/(admin)/Dashboard"
             : "/(citizen)/Dashboard";
         console.log(
-          `[AUTH GUARD] Logged in user tried to access auth route /${segmentsJoined}. Redirecting to ${target}`
+          `[AUTH GUARD] Logged in and unlocked user tried to access auth route /${segmentsJoined}. Redirecting to ${target}`
         );
         setTimeout(() => router.replace(target as any), 0);
       }
     } else {
       if (isCitizenRoute || isAdminRoute) {
         console.log(
-          `[AUTH GUARD] Logged-out user tried to access protected route /${segmentsJoined}. Redirecting to /Login`
+          `[AUTH GUARD] Logged-out or locked user tried to access protected route /${segmentsJoined}. Redirecting to /Login`
         );
         setTimeout(() => router.replace("/(auth)/Login" as any), 0);
       }
     }
-  }, [segmentsJoined, user, role]);
+  }, [segmentsJoined, user, role, isUnlocked]);
 
   return (
     <GestureHandlerRootView style={s.root}>

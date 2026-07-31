@@ -26,6 +26,7 @@ interface AuthState {
   role: Role;
   guestMode: boolean;
   isOnboardingComplete: boolean;
+  isUnlocked: boolean;
   preferences: {
     theme: "light" | "dark" | "system";
     language: string;
@@ -34,6 +35,7 @@ interface AuthState {
   setSession: (session: Session | null) => void;
   setUser: (user: User | null) => void;
   setRole: (role: Role) => void;
+  setUnlocked: (unlocked: boolean) => void;
   completeOnboarding: () => void;
   updatePreferences: (prefs: Partial<AuthState["preferences"]>) => void;
   setAvatarUri: (userId: string, uri: string | null) => void;
@@ -75,14 +77,16 @@ export const useAuthStore = create<AuthState>()(
       role: null,
       guestMode: false,
       isOnboardingComplete: false,
+      isUnlocked: false,
       preferences: {
         theme: "system",
         language: "en",
       },
       userAvatars: {},
-      setSession: (session) => set({ session, user: session?.user || null }),
-      setUser: (user) => set({ user }),
+      setSession: (session) => set({ session, user: session?.user || null, isUnlocked: !!session }),
+      setUser: (user) => set({ user, isUnlocked: !!user }),
       setRole: (role) => set({ role }),
+      setUnlocked: (isUnlocked) => set({ isUnlocked }),
       completeOnboarding: () => set({ isOnboardingComplete: true }),
       updatePreferences: (prefs) =>
         set((state) => ({ preferences: { ...state.preferences, ...prefs } })),
@@ -102,6 +106,7 @@ export const useAuthStore = create<AuthState>()(
           user: { id: "guest", email: "guest@lumen.city", role: "GUEST", isActive: true, isVerified: false, verificationStatus: "UNVERIFIED" },
           role: "GUEST",
           guestMode: true,
+          isUnlocked: true,
         }),
       logout: () =>
         set({
@@ -109,6 +114,7 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           role: null,
           guestMode: false,
+          isUnlocked: false,
         }),
     }),
     {

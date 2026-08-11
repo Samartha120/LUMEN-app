@@ -11,6 +11,7 @@ import {
   FileTypeValidator,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StorageService } from './storage.service';
@@ -32,6 +33,8 @@ import { extname } from 'path';
 @ApiTags('Storage')
 @Controller('storage')
 export class StorageController {
+  private readonly logger = new Logger(StorageController.name);
+
   constructor(private readonly storageService: StorageService) {}
 
   @Post('upload')
@@ -61,6 +64,7 @@ export class StorageController {
     )
     file: Express.Multer.File,
   ) {
+    this.logger.log('Upload received');
     const extension = extname(file.originalname).toLowerCase().replace('.', '');
     const mimeType = file.mimetype;
 

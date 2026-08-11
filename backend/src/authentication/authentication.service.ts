@@ -29,7 +29,8 @@ export class AuthenticationService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this.usersService.findByEmail(registerDto.email);
+    const emailNormalized = registerDto.email.trim().toLowerCase();
+    const existingUser = await this.usersService.findByEmail(emailNormalized);
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
@@ -39,7 +40,7 @@ export class AuthenticationService {
 
     // Call OTP service to generate and send email
     await this.otpService.generateAndSendOtp(
-      registerDto.email,
+      emailNormalized,
       registerDto.fullName,
       registerDto.phoneNumber,
       hashedPassword,
@@ -51,16 +52,17 @@ export class AuthenticationService {
   }
 
   async verifyOtp(verifyOtpDto: VerifyOtpDto) {
+    const emailNormalized = verifyOtpDto.email.trim().toLowerCase();
     // Verifies OTP. Will throw if invalid, expired, or max attempts reached.
     const validData = await this.otpService.verifyOtp(
-      verifyOtpDto.email,
+      emailNormalized,
       verifyOtpDto.otp,
     );
 
     // Create user in DB now that OTP is successful
     const user = await this.usersService.create({
       fullName: validData.fullName,
-      email: verifyOtpDto.email,
+      email: emailNormalized,
       phoneNumber: validData.phoneNumber,
       password: validData.passwordHash,
       isVerified: true,
@@ -70,18 +72,25 @@ export class AuthenticationService {
   }
 
   async resendOtp(email: string) {
-    await this.otpService.resendOtp(email);
+    const emailNormalized = email.trim().toLowerCase();
+    await this.otpService.resendOtp(emailNormalized);
     return { message: 'OTP successfully resent.' };
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.usersService.findByEmail(loginDto.email);
+    const emailNormalized = loginDto.email.trim().toLowerCase();
+    console.log(
+      `[Login] Attempting login for email: "${loginDto.email}" -> Normalized: "${emailNormalized}"`,
+    );
+    const user = await this.usersService.findByEmail(emailNormalized);
     if (!user) {
+      console.log(`[Login] User not found for email: "${emailNormalized}"`);
       throw new UnauthorizedException('Invalid credentials');
     }
 
     // @ts-ignore - IDE TS Server caching issue
     if (!(user as any).password) {
+      console.log(`[Login] User has no password set in database`);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -89,6 +98,7 @@ export class AuthenticationService {
       loginDto.password,
       (user as any).password,
     );
+    console.log(`[Login] Password comparison result: ${isPasswordValid}`);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -119,26 +129,28 @@ export class AuthenticationService {
   }
 
   async forgotPassword(email: string) {
-    const user = await this.usersService.findByEmail(email);
+    const emailNormalized = email.trim().toLowerCase();
+    const user = await this.usersService.findByEmail(emailNormalized);
     if (!user) {
       // Don't leak that user doesn't exist
       return { message: 'If the email exists, an OTP was sent.' };
     }
 
-    await this.otpService.generateAndSendOtp(email);
+    await this.otpService.generateAndSendOtp(emailNormalized);
     return { message: 'If the email exists, an OTP was sent.' };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
+    const emailNormalized = dto.email.trim().toLowerCase();
     // Verifies OTP
-    await this.otpService.verifyOtp(dto.email, dto.otp);
+    await this.otpService.verifyOtp(emailNormalized, dto.otp);
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
 
-    const user = await this.usersService.findByEmail(dto.email);
+    const user = await this.usersService.findByEmail(emailNormalized);
     if (user) {
       await this.prisma.user.update({
-        where: { email: dto.email },
+        where: { email: emailNormalized },
         data: { password: hashedPassword } as any,
       });
     }
@@ -158,7 +170,8 @@ export class AuthenticationService {
   }
 
   async loginWithBiometric(email: string, biometricHash: string) {
-    const user = await this.usersService.findByEmail(email);
+    const emailNormalized = email.trim().toLowerCase();
+    const user = await this.usersService.findByEmail(emailNormalized);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }

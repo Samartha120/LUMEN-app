@@ -1,10 +1,11 @@
 import { io, Socket } from "socket.io-client";
 import { useAuthStore } from "../store/AuthStore";
 import { queryClient } from "./api.client";
+import { env } from "../config/env";
 
 class SocketService {
   private socket: Socket | null = null;
-  private backendUrl = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
+  private backendUrl = env.socketUrl;
 
   connect() {
     const session = useAuthStore.getState().session;
@@ -13,6 +14,7 @@ class SocketService {
     if (this.socket?.connected) return;
 
     this.socket = io(this.backendUrl, {
+      transports: ["websocket"],
       extraHeaders: {
         Authorization: `Bearer ${session.access_token}`,
       },
@@ -27,7 +29,7 @@ class SocketService {
     });
 
     this.socket.on("connect_error", (error) => {
-      console.error("Socket.io connection error:", error);
+      console.warn("Socket.io connection error:", error.message);
     });
 
     // Global listener for department/admin

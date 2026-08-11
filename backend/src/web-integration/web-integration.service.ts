@@ -389,6 +389,7 @@ export class WebIntegrationService implements OnModuleInit {
               status: spec.status,
               latitude: spec.lat,
               longitude: spec.lng,
+              imageUrl: 'https://placeholder-url.com',
               reporterId: adminId,
               aiPrediction: {
                 create: {
@@ -650,7 +651,7 @@ export class WebIntegrationService implements OnModuleInit {
         status: ComplaintStatus.PENDING,
         latitude: body.lat ? Number(body.lat) : 12.9716,
         longitude: body.lng ? Number(body.lng) : 77.5946,
-        imageUrl: body.imageUrl,
+        imageUrl: body.imageUrl || 'https://placeholder-url.com',
         reporterId: userId,
       },
     });

@@ -135,12 +135,19 @@ export class AiService {
 
     try {
       const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : {};
+      this.logger.log('Calling FastAPI');
       const response = await firstValueFrom(
         this.httpService.post<FastApiPredictionResponse>(
           `${inferenceUrl}/detect/image`,
           { url: imageUrl },
           { headers },
         ),
+      );
+
+      this.logger.log('AI completed');
+      await this.aiRepository.updateComplaintWithAiResult(
+        complaintId,
+        response.data,
       );
 
       return this.aiRepository.createOrUpdatePrediction({
@@ -172,11 +179,22 @@ export class AiService {
       status: AI_PREDICTION_STATUS.PENDING,
     });
 
-    await this.aiQueueService.queueVideoPrediction(complaintId, videoUrl);
-    return {
-      status: AI_PREDICTION_STATUS.PENDING,
-      message: 'Video queued for analysis',
-    };
+    try {
+      await this.aiQueueService.queueVideoPrediction(complaintId, videoUrl);
+      return {
+        status: AI_PREDICTION_STATUS.PENDING,
+        message: 'Video queued for analysis',
+      };
+    } catch (e) {
+      this.logger.warn(`Redis offline, running video prediction directly in background for ${complaintId}`);
+      this.processVideoPrediction(complaintId, videoUrl).catch(err => 
+        this.logger.error(`Direct video prediction failed: ${err.message}`)
+      );
+      return {
+        status: AI_PREDICTION_STATUS.PENDING,
+        message: 'Video analysis started directly',
+      };
+    }
   }
 
   async processVideoPrediction(complaintId: string, videoUrl: string) {
@@ -198,6 +216,11 @@ export class AiService {
       ),
     );
 
+    await this.aiRepository.updateComplaintWithAiResult(
+      complaintId,
+      response.data,
+    );
+
     await this.aiRepository.createOrUpdatePrediction({
       complaintId,
       damageClass: response.data.damageClass,
@@ -217,11 +240,22 @@ export class AiService {
       metadata: { processingTimeMs: 0, device: 'unknown', type: 'image' },
       status: AI_PREDICTION_STATUS.PENDING,
     });
-    await this.aiQueueService.queueImagePrediction(complaintId, imageUrl);
-    return {
-      status: AI_PREDICTION_STATUS.PENDING,
-      message: 'Image queued for analysis',
-    };
+    try {
+      await this.aiQueueService.queueImagePrediction(complaintId, imageUrl);
+      return {
+        status: AI_PREDICTION_STATUS.PENDING,
+        message: 'Image queued for analysis',
+      };
+    } catch (e) {
+      this.logger.warn(`Redis offline, running image prediction directly in background for ${complaintId}`);
+      this.processImagePrediction(complaintId, imageUrl).catch(err => 
+        this.logger.error(`Direct image prediction failed: ${err.message}`)
+      );
+      return {
+        status: AI_PREDICTION_STATUS.PENDING,
+        message: 'Image analysis started directly',
+      };
+    }
   }
 
   async queueYoloPrediction(complaintId: string, imageUrl: string) {
@@ -233,11 +267,22 @@ export class AiService {
       metadata: { processingTimeMs: 0, device: 'unknown', type: 'yolo' },
       status: AI_PREDICTION_STATUS.PENDING,
     });
-    await this.aiQueueService.queueYoloPrediction(complaintId, imageUrl);
-    return {
-      status: AI_PREDICTION_STATUS.PENDING,
-      message: 'YOLO prediction queued',
-    };
+    try {
+      await this.aiQueueService.queueYoloPrediction(complaintId, imageUrl);
+      return {
+        status: AI_PREDICTION_STATUS.PENDING,
+        message: 'YOLO prediction queued',
+      };
+    } catch (e) {
+      this.logger.warn(`Redis offline, running YOLO prediction directly in background for ${complaintId}`);
+      this.processYoloPrediction(complaintId, imageUrl).catch(err => 
+        this.logger.error(`Direct YOLO prediction failed: ${err.message}`)
+      );
+      return {
+        status: AI_PREDICTION_STATUS.PENDING,
+        message: 'YOLO analysis started directly',
+      };
+    }
   }
 
   async processYoloPrediction(complaintId: string, imageUrl: string) {
@@ -251,10 +296,15 @@ export class AiService {
       const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : {};
       const response = await firstValueFrom(
         this.httpService.post<FastApiPredictionResponse>(
-          `${inferenceUrl}/detect/yolo`,
+          `${inferenceUrl}/detect/image`,
           { url: imageUrl },
           { headers },
         ),
+      );
+
+      await this.aiRepository.updateComplaintWithAiResult(
+        complaintId,
+        response.data,
       );
 
       await this.aiRepository.createOrUpdatePrediction({

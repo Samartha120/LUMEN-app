@@ -21,7 +21,8 @@ class SyncManager {
   constructor() {
     // Listen to network changes
     NetInfo.addEventListener((state) => {
-      const currentlyOnline = !!state.isConnected && !!state.isInternetReachable;
+      // Use isConnected as the primary indicator to avoid simulator issues with isInternetReachable
+      const currentlyOnline = !!state.isConnected;
       if (currentlyOnline && !this.isOnline) {
         this.isOnline = true;
         this.syncOfflineReports();

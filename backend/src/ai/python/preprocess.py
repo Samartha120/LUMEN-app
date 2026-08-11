@@ -63,7 +63,7 @@ async def download_image_async(url: str) -> np.ndarray:
             # 2. Size Validation during chunk download
             bytes_buffer = BytesIO()
             total_bytes = 0
-            async for chunk in response.iter_bytes(chunk_size=16384):
+            async for chunk in response.aiter_bytes(chunk_size=16384):
                 bytes_buffer.write(chunk)
                 total_bytes += len(chunk)
                 if total_bytes > settings.MAX_IMAGE_SIZE_BYTES:
@@ -71,6 +71,7 @@ async def download_image_async(url: str) -> np.ndarray:
             
             bytes_buffer.seek(0)
             image = Image.open(bytes_buffer).convert("RGB")
+            logger.info("Image downloaded")
             return np.array(image)
 
 async def download_video_frames_async(url: str, frames_per_second: int = 1) -> list[np.ndarray]:
@@ -96,7 +97,7 @@ async def download_video_frames_async(url: str, frames_per_second: int = 1) -> l
                 fd, temp_file_path = tempfile.mkstemp(suffix=".mp4")
                 total_bytes = 0
                 with os.fdopen(fd, "wb") as f:
-                    async for chunk in response.iter_bytes(chunk_size=65536):
+                    async for chunk in response.aiter_bytes(chunk_size=65536):
                         f.write(chunk)
                         total_bytes += len(chunk)
                         if total_bytes > settings.MAX_VIDEO_SIZE_BYTES:

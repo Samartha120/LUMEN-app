@@ -1,8 +1,7 @@
 // ============================================================
-// LUMEN — My Reports Screen
-// Phase 3: Citizen Experience
+// LUMEN — My Reports Screen  (Premium Redesign)
 // ============================================================
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -11,253 +10,447 @@ import {
   Pressable,
   StatusBar,
   RefreshControl,
+  TextInput,
+  Animated,
 } from "react-native";
 import { router } from "expo-router";
+import { useEffect, useRef } from "react";
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
-import { Badge } from "@/design-system/components/Badge";
-import { Chip } from "@/design-system/components/Badge";
-import { Card } from "@/design-system/components/Card";
-import { EmptyState } from "@/design-system/components/Extras";
-import { SearchBar } from "@/design-system/components/Extras";
-import { Avatar } from "@/design-system/components/Avatar";
-import { LinearProgress } from "@/design-system/components/Progress";
-import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
-import type { LumenIconName } from "@/design-system";
+import { Spacing, Radius, TextStyles } from "@/design-system/tokens";
+import { ReportCard } from "../components/ReportCard";
 
-type Status = "all" | "pending" | "in_progress" | "resolved";
+import { useQuery } from "@tanstack/react-query";
+import { CitizenService } from "@/services/citizen.service";
 
-const FILTERS: { id: Status; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "pending", label: "Pending" },
-  { id: "in_progress", label: "In Progress" },
-  { id: "resolved", label: "Resolved" },
+type Status = "all" | "PENDING" | "IN_PROGRESS" | "RESOLVED";
+
+const FILTERS: { id: Status; label: string; color: string; bg: string }[] = [
+  { id: "all",         label: "All",         color: "#208AEF", bg: "#EBF5FF" },
+  { id: "PENDING",     label: "Pending",     color: "#C2410C", bg: "#FFEDD5" },
+  { id: "IN_PROGRESS", label: "In Progress", color: "#0F766E", bg: "#CCFBF1" },
+  { id: "RESOLVED",    label: "Resolved",    color: "#15803D", bg: "#DCFCE7" },
 ];
 
-interface ReportItem {
-  id: string;
-  title: string;
-  category: LumenIconName;
-  status: Exclude<Status, "all">;
-  time: string;
-  priority: "high" | "medium" | "low";
-  progress: number;
-  engineer?: string;
-}
-
-const REPORTS: ReportItem[] = [
-  {
-    id: "R001",
-    title: "Large pothole on MG Road near City Bank",
-    category: "road",
-    status: "in_progress",
-    time: "2h ago",
-    priority: "high",
-    progress: 65,
-    engineer: "Rajesh K.",
-  },
-  {
-    id: "R002",
-    title: "Street light not working near Park Ave",
-    category: "streetlight",
-    status: "pending",
-    time: "5h ago",
-    priority: "medium",
-    progress: 0,
-  },
-  {
-    id: "R003",
-    title: "Water pipeline leakage on 5th Cross",
-    category: "water",
-    status: "resolved",
-    time: "Yesterday",
-    priority: "high",
-    progress: 100,
-    engineer: "Priya S.",
-  },
-  {
-    id: "R004",
-    title: "Garbage overflow at Gandhi Nagar",
-    category: "garbage",
-    status: "pending",
-    time: "3h ago",
-    priority: "low",
-    progress: 0,
-  },
-  {
-    id: "R005",
-    title: "Electrical sparks near residential area",
-    category: "electricity",
-    status: "in_progress",
-    time: "1 day ago",
-    priority: "high",
-    progress: 40,
-    engineer: "Suresh M.",
-  },
-];
-
-const STATUS_CONFIG: Record<
-  Exclude<Status, "all">,
-  { label: string; variant: any; progress: string }
-> = {
-  pending: { label: "Pending", variant: "warning", progress: "#F79009" },
-  in_progress: { label: "In Progress", variant: "info", progress: "#208AEF" },
-  resolved: { label: "Resolved", variant: "success", progress: "#12B76A" },
+const CATEGORY_META: Record<string, { icon: any; color: string }> = {
+  road:         { icon: "road",        color: "#F59E0B" },
+  streetlight:  { icon: "streetlight", color: "#8B5CF6" },
+  water:        { icon: "water",       color: "#0EA5E9" },
+  garbage:      { icon: "garbage",     color: "#10B981" },
+  electricity:  { icon: "electricity", color: "#F97316" },
 };
 
 const PRIORITY_COLOR: Record<string, string> = {
-  high: "#F04438",
-  medium: "#F79009",
-  low: "#12B76A",
+  HIGH: "#F04438", CRITICAL: "#F04438",
+  MEDIUM: "#F79009", LOW: "#12B76A",
 };
 
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; darkColor: string }> = {
+  PENDING:     { label: "Pending",     color: "#C2410C", bg: "#FFEDD5", darkColor: "#FB923C" },
+  ASSIGNED:    { label: "Assigned",    color: "#C2410C", bg: "#FFEDD5", darkColor: "#FB923C" },
+  IN_PROGRESS: { label: "In Progress", color: "#0F766E", bg: "#CCFBF1", darkColor: "#2DD4BF" },
+  RESOLVED:    { label: "Resolved",    color: "#15803D", bg: "#DCFCE7", darkColor: "#4ADE80" },
+  CLOSED:      { label: "Closed",      color: "#15803D", bg: "#DCFCE7", darkColor: "#4ADE80" },
+  REJECTED:    { label: "Rejected",    color: "#B91C1C", bg: "#FEE2E2", darkColor: "#F87171" },
+};
+
+function formatTime(dateStr: string) {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHrs = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHrs / 24);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHrs < 24) return `${diffHrs}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  return date.toLocaleDateString();
+}
+
+function getProgress(status: string): number {
+  const s = (status || "").toUpperCase();
+  if (s === "RESOLVED" || s === "CLOSED") return 100;
+  if (s === "IN_PROGRESS") return 65;
+  if (s === "ASSIGNED") return 25;
+  return 5;
+}
+
+// ── Stats Card ──────────────────────────────────────────────────
+import { MotiView } from 'moti';
+
+function StatCard({
+  count, label, color, bg, isDark, delay = 0
+}: { count: number; label: string; color: string; bg: string; isDark: boolean; delay?: number }) {
+  return (
+    <MotiView
+      from={{ opacity: 0, translateY: 20, scale: 0.9 }}
+      animate={{ opacity: 1, translateY: 0, scale: 1 }}
+      transition={{ type: 'spring', delay, damping: 14, stiffness: 100 }}
+      style={[
+        stat.card,
+        { 
+          backgroundColor: isDark ? color + "1A" : bg,
+          borderColor: isDark ? color + "33" : color + "1A",
+        }
+      ]}
+    >
+      <View style={stat.contentWrap}>
+        <Text style={[stat.count, { color }]} numberOfLines={1} adjustsFontSizeToFit>{count}</Text>
+        <Text style={[stat.label, { color: isDark ? color + "CC" : color }]} numberOfLines={1}>{label}</Text>
+      </View>
+    </MotiView>
+  );
+}
+
+const stat = StyleSheet.create({
+  card: { 
+    flex: 1, 
+    borderRadius: 16, 
+    paddingVertical: 16, 
+    paddingHorizontal: 8, 
+    alignItems: "center", 
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  contentWrap: { alignItems: "center", justifyContent: "center", gap: 2 },
+  count: { fontSize: 26, fontWeight: "900", textAlign: "center", letterSpacing: -0.5 },
+  label: { fontSize: 11, fontWeight: "700", textAlign: "center", width: "100%", letterSpacing: 0.2 },
+});
+
+// ── Category Pill ───────────────────────────────────────────────
+function CategoryPill({
+  category, count, isDark
+}: { category: string; count: number; isDark: boolean }) {
+  const meta = CATEGORY_META[category.toLowerCase()] || { icon: "reportList", color: "#208AEF" };
+  return (
+    <View style={[cp.pill, { backgroundColor: isDark ? meta.color + "18" : meta.color + "15" }]}>
+      <LumenIcon name={meta.icon} size="xs" color={meta.color} strokeWidth={2} />
+      <Text style={[cp.label, { color: meta.color }]}>
+        {category.charAt(0).toUpperCase() + category.slice(1).toLowerCase()}
+      </Text>
+      <View style={[cp.badge, { backgroundColor: meta.color }]}>
+        <Text style={cp.badgeText}>{count}</Text>
+      </View>
+    </View>
+  );
+}
+
+const cp = StyleSheet.create({
+  pill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
+  label: { fontSize: 12, fontWeight: "600" },
+  badge: { width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center" },
+  badgeText: { fontSize: 10, fontWeight: "800", color: "#FFFFFF" },
+});
+
+// ── Premium Report Card ─────────────────────────────────────────
+function PremiumReportCard({
+  report, colors, isDark
+}: { report: any; colors: any; isDark: boolean }) {
+  const [pressed, setPressed] = useState(false);
+  const normalizedStatus = (report.status || "PENDING").toUpperCase();
+  const sc = STATUS_CONFIG[normalizedStatus] || STATUS_CONFIG.PENDING;
+  const priorityColor = PRIORITY_COLOR[(report.priority || "MEDIUM").toUpperCase()] || "#F79009";
+  const catMeta = CATEGORY_META[(report.category || "").toLowerCase()] || { icon: "reportList", color: "#208AEF" };
+  const progress = getProgress(report.status);
+
+  return (
+    <Pressable
+      onPress={() => router.push(`/(citizen)/Report-details?id=${report.id}` as any)}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      style={[
+        prc.card,
+        {
+          backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#FFFFFF",
+          borderColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+          opacity: pressed ? 0.88 : 1,
+          transform: [{ scale: pressed ? 0.982 : 1 }],
+          shadowColor: isDark ? "#000" : "#1D2939",
+          shadowOpacity: isDark ? 0.4 : 0.07,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 3,
+        },
+      ]}
+    >
+      {/* Top row: icon + info + priority dot */}
+      <View style={prc.topRow}>
+        {/* Category icon */}
+        <View style={[prc.iconWrap, { backgroundColor: catMeta.color + "18" }]}>
+          <LumenIcon name={catMeta.icon} size="sm" color={catMeta.color} strokeWidth={2.5} />
+        </View>
+
+        {/* Info */}
+        <View style={prc.infoWrap}>
+          <Text style={[prc.title, { color: colors.textPrimary }]} numberOfLines={1}>
+            {report.title}
+          </Text>
+          <View style={prc.metaRow}>
+            <View style={[prc.statusBadge, { backgroundColor: isDark ? sc.color + "22" : sc.bg }]}>
+              <View style={[prc.statusDot, { backgroundColor: isDark ? sc.darkColor : sc.color }]} />
+              <Text style={[prc.statusText, { color: isDark ? sc.darkColor : sc.color }]}>
+                {sc.label}
+              </Text>
+            </View>
+            <Text style={[prc.timeText, { color: colors.textTertiary }]}>{report.time}</Text>
+          </View>
+        </View>
+
+        {/* Priority dot */}
+        <View style={prc.rightCol}>
+          <View style={[prc.priorityDot, { backgroundColor: priorityColor }]} />
+          <LumenIcon name="chevronRight" size="xs" color={colors.textTertiary} strokeWidth={2} />
+        </View>
+      </View>
+
+      {/* Progress bar */}
+      {progress > 0 && (
+        <View style={prc.progressWrap}>
+          <View style={[prc.progressBg, { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#F0F2F5" }]}>
+            <View
+              style={[
+                prc.progressFill,
+                {
+                  width: `${progress}%` as any,
+                  backgroundColor: normalizedStatus === "RESOLVED" ? "#12B76A" : colors.brand,
+                },
+              ]}
+            />
+          </View>
+          <Text style={[prc.progressText, { color: colors.textTertiary }]}>{progress}%</Text>
+        </View>
+      )}
+
+      {/* ID chip */}
+      <View style={prc.idRow}>
+        <LumenIcon name="clipboard" size="xs" color={colors.textTertiary} strokeWidth={1.5} />
+        <Text style={[prc.idText, { color: colors.textTertiary }]}>#{report.trackingId || report.id}</Text>
+        <View style={{ flex: 1 }} />
+        <Text style={[prc.catLabel, { color: catMeta.color }]}>
+          {(report.category || "").charAt(0).toUpperCase() + (report.category || "").slice(1).toLowerCase()}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+const prc = StyleSheet.create({
+  card: { borderRadius: 18, padding: 16, borderWidth: 1, marginBottom: 12 },
+  topRow: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 12 },
+  iconWrap: { width: 46, height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  infoWrap: { flex: 1, gap: 6 },
+  title: { fontSize: 15, fontWeight: "700", lineHeight: 20 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  statusBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusText: { fontSize: 11, fontWeight: "700" },
+  timeText: { fontSize: 12 },
+  rightCol: { alignItems: "center", gap: 6 },
+  priorityDot: { width: 10, height: 10, borderRadius: 5 },
+  progressWrap: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
+  progressBg: { flex: 1, height: 5, borderRadius: 4, overflow: "hidden" },
+  progressFill: { height: "100%", borderRadius: 4 },
+  progressText: { fontSize: 11, fontWeight: "700", width: 30, textAlign: "right" },
+  idRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  idText: { fontSize: 11 },
+  catLabel: { fontSize: 11, fontWeight: "600" },
+});
+
+// ── Screen ──────────────────────────────────────────────────────
 export default function MyReportScreen() {
-  const { colors, isDark, shadows } = useTheme();
+  const { colors, isDark } = useTheme();
   const [filter, setFilter] = useState<Status>("all");
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
 
-  const filtered = REPORTS.filter((r) => {
-    const matchFilter = filter === "all" || r.status === filter;
-    const matchSearch = r.title.toLowerCase().includes(search.toLowerCase());
-    return matchFilter && matchSearch;
+  const { data: complaints, refetch } = useQuery({
+    queryKey: ["citizen-complaints"],
+    queryFn: () => CitizenService.getComplaints(),
   });
 
+  const mappedReports = useMemo(() =>
+    (complaints || []).map((c: any) => ({
+      id: c.id,
+      trackingId: c.trackingId,
+      title: c.title || c.description || "Untitled Report",
+      category: (c.category || "road").toLowerCase(),
+      status: c.status || "PENDING",
+      time: formatTime(c.createdAt),
+      priority: c.priority || "MEDIUM",
+    })),
+    [complaints]
+  );
+
+  // Stats
+  const total = mappedReports.length;
+  const pending = mappedReports.filter((r: any) =>
+    ["PENDING", "ASSIGNED"].includes((r.status || "").toUpperCase())).length;
+  const inProgress = mappedReports.filter((r: any) =>
+    r.status.toUpperCase() === "IN_PROGRESS").length;
+  const resolved = mappedReports.filter((r: any) =>
+    ["RESOLVED", "CLOSED"].includes((r.status || "").toUpperCase())).length;
+
+  // Category breakdown
+  const categoryCount = useMemo(() => {
+    const counts: Record<string, number> = {};
+    mappedReports.forEach((r: any) => {
+      const cat = (r.category || "other").toLowerCase();
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return counts;
+  }, [mappedReports]);
+
+  const filtered = useMemo(() => {
+    let list = mappedReports;
+    if (filter !== "all") {
+      list = list.filter((r: any) => {
+        const s = (r.status || "").toUpperCase();
+        if (filter === "IN_PROGRESS") return ["IN_PROGRESS", "ASSIGNED"].includes(s);
+        if (filter === "RESOLVED") return ["RESOLVED", "CLOSED"].includes(s);
+        return s === filter;
+      });
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((r: any) => r.title.toLowerCase().includes(q));
+    }
+    return list;
+  }, [mappedReports, filter, search]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
+
   return (
-    <View style={[s.root, { backgroundColor: colors.bgBase }]}>
+    <View style={[s.root, { backgroundColor: isDark ? "#0F1624" : "#F7F8FC" }]}>
       <StatusBar
         barStyle={isDark ? "light-content" : "dark-content"}
-        backgroundColor={colors.bgBase}
+        backgroundColor={isDark ? "#0F1624" : "#F7F8FC"}
       />
 
-      {/* Header */}
-      <View style={[s.header, { borderBottomColor: colors.borderDefault }]}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
+      {/* ── Header ── */}
+      <View style={[s.header, { backgroundColor: isDark ? "#0F1624" : "#F7F8FC" }]}>
+        <Pressable onPress={() => router.back()} hitSlop={14} style={s.backBtn}>
           <LumenIcon name="back" size="md" color={colors.textPrimary} strokeWidth={2.5} />
         </Pressable>
-        <Text style={[TextStyles.title, { color: colors.textPrimary }]}>My Reports</Text>
-        <View style={[s.countBadge, { backgroundColor: colors.brandSoft }]}>
-          <Text style={[TextStyles.label, { color: colors.brand }]}>{REPORTS.length}</Text>
+        <View style={s.headerCenter}>
+          <Text style={[s.headerTitle, { color: colors.textPrimary }]}>My Reports</Text>
+          {total > 0 && (
+            <View style={[s.totalBadge, { backgroundColor: colors.brand }]}>
+              <Text style={s.totalBadgeText}>{total}</Text>
+            </View>
+          )}
         </View>
       </View>
 
-      {/* Search */}
-      <View style={{ paddingHorizontal: Spacing[5], paddingVertical: Spacing[3] }}>
-        <SearchBar value={search} onChangeText={setSearch} placeholder="Search your reports…" />
-      </View>
-
-      {/* Filter Chips */}
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.filters}
-      >
-        {FILTERS.map((f) => (
-          <Chip
-            key={f.id}
-            label={f.label}
-            selected={filter === f.id}
-            onPress={() => setFilter(f.id)}
-          />
-        ))}
-      </ScrollView>
-
-      {/* Report List */}
-      <ScrollView
-        contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={async () => {
-              setRefreshing(true);
-              await new Promise((r) => setTimeout(r, 1000));
-              setRefreshing(false);
-            }}
+            onRefresh={onRefresh}
             tintColor={colors.brand}
           />
         }
       >
-        {filtered.length === 0 ? (
-          <EmptyState
-            icon="reportList"
-            title="No reports found"
-            description="You haven't filed any reports in this category yet."
-            actionLabel="Report an Issue"
-            onAction={() => router.push("/(citizen)/Report-issue" as any)}
+        {/* ── Stats Row ── */}
+        <View style={[s.statsRow, { paddingTop: Spacing[4] }]}>
+          <StatCard delay={100} count={total}      label="Total"       color="#208AEF" bg="#EBF5FF" isDark={isDark} />
+          <StatCard delay={200} count={pending}    label="Pending"     color="#C2410C" bg="#FFEDD5" isDark={isDark} />
+          <StatCard delay={300} count={inProgress} label="In Progress" color="#0F766E" bg="#CCFBF1" isDark={isDark} />
+          <StatCard delay={400} count={resolved}   label="Resolved"    color="#15803D" bg="#DCFCE7" isDark={isDark} />
+        </View>
+
+        {/* ── Category breakdown ── */}
+        <View style={s.section}>
+          <Text style={[s.sectionTitle, { color: colors.textSecondary }]}>By Category</Text>
+          {Object.keys(categoryCount).length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 4 }}>
+              {Object.entries(categoryCount).map(([cat, count]) => (
+                <CategoryPill key={cat} category={cat} count={count} isDark={isDark} />
+              ))}
+            </ScrollView>
+          ) : (
+            <Text style={[TextStyles.body, { color: colors.textTertiary, paddingHorizontal: Spacing[1] }]}>
+              No categories yet.
+            </Text>
+          )}
+        </View>
+
+        {/* ── Search ── */}
+        <View style={[s.searchWrap, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)" }]}>
+          <LumenIcon name="search" size="sm" color={colors.textTertiary} strokeWidth={2} />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search reports…"
+            placeholderTextColor={colors.textTertiary}
+            style={[s.searchInput, { color: colors.textPrimary }]}
           />
-        ) : (
-          filtered.map((report) => {
-            const sc = STATUS_CONFIG[report.status];
+          {search.length > 0 && (
+            <Pressable onPress={() => setSearch("")} hitSlop={8}>
+              <LumenIcon name="close" size="xs" color={colors.textTertiary} strokeWidth={2} />
+            </Pressable>
+          )}
+        </View>
+
+        {/* ── Filter tabs ── */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow}>
+          {FILTERS.map((f) => {
+            const isActive = filter === f.id;
             return (
-              <Card
-                key={report.id}
-                variant="elevated"
-                padding={Spacing[4]}
-                onPress={() => router.push("/(citizen)/Report-details" as any)}
-                style={s.card}
+              <Pressable
+                key={f.id}
+                onPress={() => setFilter(f.id)}
+                style={[
+                  s.filterChip,
+                  {
+                    backgroundColor: isActive
+                      ? isDark ? f.color + "28" : f.bg
+                      : isDark ? "rgba(255,255,255,0.06)" : "#FFFFFF",
+                    borderColor: isActive ? f.color : isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
+                  },
+                ]}
               >
-                {/* Top row */}
-                <View style={s.cardTop}>
-                  <View
-                    style={[s.catIcon, { backgroundColor: PRIORITY_COLOR[report.priority] + "15" }]}
-                  >
-                    <LumenIcon
-                      name={report.category}
-                      size="md"
-                      color={PRIORITY_COLOR[report.priority]}
-                      strokeWidth={2}
-                    />
-                  </View>
-                  <View style={s.cardInfo}>
-                    <Text
-                      style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}
-                      numberOfLines={2}
-                    >
-                      {report.title}
-                    </Text>
-                    <View style={s.cardMeta}>
-                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
-                        #{report.id}
-                      </Text>
-                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>·</Text>
-                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
-                        {report.time}
-                      </Text>
-                    </View>
-                  </View>
-                  <Badge label={sc.label} variant={sc.variant} size="sm" />
-                </View>
-
-                {/* Progress */}
-                {report.progress > 0 && (
-                  <View style={s.progressSection}>
-                    <View style={s.progressHeader}>
-                      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
-                        Completion
-                      </Text>
-                      <Text style={[TextStyles.label, { color: sc.progress }]}>
-                        {report.progress}%
-                      </Text>
-                    </View>
-                    <LinearProgress progress={report.progress} color={sc.progress} height={5} />
-                  </View>
-                )}
-
-                {/* Engineer */}
-                {report.engineer && (
-                  <View style={s.engineerRow}>
-                    <Avatar name={report.engineer} size="xs" role="engineer" />
-                    <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
-                      Assigned to <Text style={{ fontWeight: "600" }}>{report.engineer}</Text>
-                    </Text>
-                  </View>
-                )}
-              </Card>
+                <Text style={[s.filterLabel, { color: isActive ? f.color : colors.textSecondary, fontWeight: isActive ? "700" : "500" }]}>
+                  {f.label}
+                </Text>
+              </Pressable>
             );
-          })
-        )}
-        <View style={{ height: Spacing[10] }} />
+          })}
+        </ScrollView>
+
+        {/* ── Report List ── */}
+        <View style={s.listContainer}>
+          {filtered.length === 0 ? (
+            <View style={s.emptyWrap}>
+              <View style={[s.emptyIcon, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#F2F4F7" }]}>
+                <LumenIcon name="reportList" size="xl" color={colors.textTertiary} strokeWidth={1.5} />
+              </View>
+              <Text style={[s.emptyTitle, { color: colors.textPrimary }]}>No reports found</Text>
+              <Text style={[s.emptyDesc, { color: colors.textSecondary }]}>
+                {filter === "all"
+                  ? "You haven't filed any reports yet."
+                  : `No ${FILTERS.find((f) => f.id === filter)?.label ?? ""} reports found.`}
+              </Text>
+            </View>
+          ) : (
+            filtered.map((report: any) => (
+              <PremiumReportCard
+                key={report.id}
+                report={report}
+                colors={colors}
+                isDark={isDark}
+              />
+            ))
+          )}
+        </View>
+
+        <View style={{ height: 80 }} />
       </ScrollView>
     </View>
   );
@@ -265,35 +458,66 @@ export default function MyReportScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
+
+  // Header
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing[5],
-    paddingTop: 52,
-    paddingBottom: Spacing[4],
-    borderBottomWidth: 1,
+    paddingHorizontal: 20,
+    paddingTop: 56,
+    paddingBottom: 16,
+    gap: 12,
   },
-  countBadge: { paddingHorizontal: Spacing[3], paddingVertical: 4, borderRadius: Radius.full },
-  filters: { paddingHorizontal: Spacing[5], paddingVertical: Spacing[2], gap: Spacing[2] },
-  scroll: { paddingHorizontal: Spacing[5], paddingTop: Spacing[3], gap: Spacing[3] },
-  card: { marginBottom: 0 },
-  cardTop: { flexDirection: "row", gap: Spacing[3], alignItems: "flex-start" },
-  catIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.lg,
-    alignItems: "center",
-    justifyContent: "center",
+  backBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: "center", justifyContent: "center",
   },
-  cardInfo: { flex: 1, gap: 4 },
-  cardMeta: { flexDirection: "row", alignItems: "center", gap: 4 },
-  progressSection: { gap: Spacing[1.5], marginTop: Spacing[2] },
-  progressHeader: { flexDirection: "row", justifyContent: "space-between" },
-  engineerRow: {
+  headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8 },
+  headerTitle: { fontSize: 22, fontWeight: "800", letterSpacing: -0.4 },
+  totalBadge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 20 },
+  totalBadgeText: { fontSize: 13, fontWeight: "800", color: "#FFFFFF" },
+  newBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+
+  // Stats
+  statsRow: { flexDirection: "row", gap: 8, paddingHorizontal: 20, marginBottom: 16 },
+
+  // Section
+  section: { paddingHorizontal: 20, marginBottom: 16, gap: 10 },
+  sectionTitle: { fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8 },
+
+  // Search
+  searchWrap: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing[2],
-    marginTop: Spacing[2],
+    marginHorizontal: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 10,
+    marginBottom: 12,
   },
+  searchInput: { flex: 1, fontSize: 15, fontWeight: "500" },
+
+  // Filters
+  filterRow: { paddingHorizontal: 20, gap: 8, marginBottom: 16, paddingRight: 24 },
+  filterChip: {
+    paddingHorizontal: 16, paddingVertical: 9, borderRadius: 24,
+    borderWidth: 1,
+  },
+  filterLabel: { fontSize: 13 },
+
+  // List
+  listContainer: { paddingHorizontal: 20 },
+
+  // Empty state
+  emptyWrap: { alignItems: "center", paddingTop: 40, paddingBottom: 20, gap: 12 },
+  emptyIcon: { width: 80, height: 80, borderRadius: 40, alignItems: "center", justifyContent: "center", marginBottom: 8 },
+  emptyTitle: { fontSize: 20, fontWeight: "700" },
+  emptyDesc: { fontSize: 14, textAlign: "center", lineHeight: 20, maxWidth: 260 },
+  emptyAction: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, marginTop: 8,
+  },
+  emptyActionText: { fontSize: 15, fontWeight: "700", color: "#FFFFFF" },
 });

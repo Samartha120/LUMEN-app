@@ -8,11 +8,12 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "@/store/AuthStore";
 import { env } from "@/config/env";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { syncManager } from "@/features/offline/services/SyncManager";
 import { ComplaintsService } from "@/services/complaints.service";
 import { Radius, Spacing, TextStyles } from "@/design-system/tokens";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import {
@@ -62,6 +63,7 @@ import * as Location from "expo-location";
 const STEPS = ["Category", "Location", "Details", "Submit"];
 
 export default function ReportIssueScreen() {
+  const queryClient = useQueryClient();
   const { colors, shadows, isDark } = useTheme();
   const [step, setStep] = useState(0);
   const [category, setCategory] = useState("");
@@ -72,6 +74,21 @@ export default function ReportIssueScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
+
+  // Reset form when the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      setStep(0);
+      setCategory("");
+      setDescription("");
+      setPriority("medium");
+      setIsAnonymous(false);
+      setSubmitted(false);
+      setImageUri(null);
+      setIsAnalyzing(false);
+      slideAnim.setValue(0);
+    }, [])
+  );
 
   const goNext = () => {
     Animated.sequence([
@@ -97,6 +114,11 @@ export default function ReportIssueScreen() {
 
   const submit = async () => {
     try {
+      if (!imageUri) {
+        Alert.alert("Required", "An image is required to submit a complaint.");
+        return;
+      }
+
       // 1. Check and request location permission
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
@@ -111,23 +133,52 @@ export default function ReportIssueScreen() {
       const { latitude, longitude } = location.coords;
 
       if (syncManager.isCurrentlyOnline) {
-        const formData = new FormData();
-        formData.append("title", `Report - ${category}`);
-        formData.append("description", description);
-        formData.append("category", category);
-        formData.append("priority", priority);
-        formData.append("latitude", latitude.toString());
-        formData.append("longitude", longitude.toString());
-        formData.append("isAnonymous", isAnonymous ? "true" : "false");
+        let finalImageUrl = null;
 
         if (imageUri) {
           const filename = imageUri.split("/").pop();
           const match = /\.(\w+)$/.exec(filename || "");
           const type = match ? `image/${match[1]}` : `image`;
+          
+          const formData = new FormData();
           formData.append("file", { uri: imageUri, name: filename, type } as any);
+          
+          try {
+            console.log("Upload started");
+            const uploadResponse = await ComplaintsService.uploadImage(formData);
+            console.log("Upload finished");
+            finalImageUrl = uploadResponse.imageUrl || uploadResponse.url;
+            console.log("imageUrl received");
+          } catch (uploadError: any) {
+            Alert.alert("Upload Failed", "Failed to upload the image. Please try again.");
+            return;
+          }
         }
 
-        await ComplaintsService.create(formData);
+        if (!finalImageUrl) {
+          Alert.alert("Upload Verification Failed", "Unable to retrieve the uploaded image URL.");
+          return;
+        }
+
+        const payload = {
+          title: `Report - ${category}`,
+          description,
+          category,
+          priority: priority.toUpperCase(),
+          latitude,
+          longitude,
+          isAnonymous,
+          imageUrl: finalImageUrl,
+        };
+
+        console.log("Complaint request sent");
+        const createResult = await ComplaintsService.create(payload);
+        console.log("Complaint created successfully:", createResult);
+        
+        // Invalidate query caches to refresh dashboard and recent reports list
+        queryClient.invalidateQueries({ queryKey: ["citizen-complaints"] });
+        queryClient.invalidateQueries({ queryKey: ["citizen-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["nearby-complaints"] });
       } else {
         await syncManager.enqueueReport({
           category,
@@ -147,8 +198,21 @@ export default function ReportIssueScreen() {
         Alert.alert("Success", "Your report has been successfully submitted!");
       }
       await new Promise((r) => setTimeout(r, 1200));
-      router.replace("/(citizen)/Dashboard" as any);
+      
+      // Reset state so the screen is completely fresh if reopened
+      setStep(0);
+      setCategory("");
+      setDescription("");
+      setPriority("medium");
+      setIsAnonymous(false);
+      setSubmitted(false);
+      setImageUri(null);
+      setIsAnalyzing(false);
+      slideAnim.setValue(0);
+
+      router.replace("/(citizen)/My-report" as any);
     } catch (e: any) {
+      console.error("Submission failed:", e);
       Alert.alert("Error", e.message || "Failed to submit report");
     }
   };
@@ -186,6 +250,7 @@ export default function ReportIssueScreen() {
       quality: 1,
     });
     if (!result.canceled) {
+      console.log("Image selected");
       setImageUri(result.assets[0].uri);
     }
   };
@@ -199,6 +264,7 @@ export default function ReportIssueScreen() {
       quality: 1,
     });
     if (!result.canceled) {
+      console.log("Image selected");
       setImageUri(result.assets[0].uri);
     }
   };

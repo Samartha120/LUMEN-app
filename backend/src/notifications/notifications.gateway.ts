@@ -35,9 +35,7 @@ export class NotificationsGateway
       }
 
       const token = authHeader.split(' ')[1];
-      const payload = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET || 'lumen-super-secret-jwt-key',
-      });
+      const payload = this.jwtService.verify(token);
 
       // Join a room specific to the user for direct notifications
       client.join(`user_${payload.sub}`);

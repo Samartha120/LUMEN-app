@@ -8,6 +8,9 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
+    if (createUserDto.email) {
+      createUserDto.email = createUserDto.email.trim().toLowerCase();
+    }
     return this.prisma.user.create({ data: createUserDto });
   }
 
@@ -22,7 +25,10 @@ export class UsersService {
   }
 
   async findByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email, isDeleted: false } });
+    const normalizedEmail = email.trim().toLowerCase();
+    return this.prisma.user.findUnique({
+      where: { email: normalizedEmail, isDeleted: false },
+    });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {

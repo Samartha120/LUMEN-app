@@ -2,8 +2,17 @@ const { getDefaultConfig } = require("expo/metro-config");
 
 const config = getDefaultConfig(__dirname);
 
-// Ignore the backend folder so Metro bundler doesn't crash when backend files change
-config.resolver.blockList = [...Array.from(config.resolver.blockList ?? []), /backend\/.*/];
+// Ignore the backend folder and python virtual environments so Metro bundler doesn't scan or watch them
+config.resolver.blockList = [
+  ...Array.from(config.resolver.blockList ?? []),
+  /backend\/.*/,
+  /\.venv\/.*/,
+  /\.git\/.*/,
+  /coverage\/.*/,
+];
+
+// Limit the number of workers to prevent memory exhaustion crashes on Windows
+config.maxWorkers = 2;
 
 // Enable inline requires to speed up bundling and startup times
 config.transformer.getTransformOptions = async () => ({

@@ -11,10 +11,24 @@ export class AiQueueService {
     @InjectQueue(AI_PROCESSING_QUEUE) private readonly aiQueue: Queue,
   ) {}
 
+  private async safeAdd(jobName: string, data: any, opts: any) {
+    try {
+      // 1 second timeout to prevent hanging if Redis is offline
+      await Promise.race([
+        this.aiQueue.add(jobName, data, opts),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Redis connection timeout')), 1000),
+        ),
+      ]);
+    } catch (e: any) {
+      this.logger.warn(`Failed to queue ${jobName}: ${e.message}`);
+      throw e;
+    }
+  }
+
   async queueVideoPrediction(complaintId: string, videoUrl: string) {
     this.logger.log(`Queueing video prediction for complaint: ${complaintId}`);
-
-    await this.aiQueue.add(
+    await this.safeAdd(
       AI_JOB_NAMES.PREDICT_VIDEO,
       { complaintId, videoUrl },
       {
@@ -28,8 +42,7 @@ export class AiQueueService {
 
   async queueImagePrediction(complaintId: string, imageUrl: string) {
     this.logger.log(`Queueing image prediction for complaint: ${complaintId}`);
-
-    await this.aiQueue.add(
+    await this.safeAdd(
       AI_JOB_NAMES.PREDICT_IMAGE,
       { complaintId, imageUrl },
       {
@@ -43,8 +56,7 @@ export class AiQueueService {
 
   async queueYoloPrediction(complaintId: string, imageUrl: string) {
     this.logger.log(`Queueing YOLO prediction for complaint: ${complaintId}`);
-
-    await this.aiQueue.add(
+    await this.safeAdd(
       AI_JOB_NAMES.PREDICT_YOLO,
       { complaintId, imageUrl },
       {

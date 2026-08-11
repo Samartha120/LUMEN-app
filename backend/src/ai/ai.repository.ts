@@ -57,4 +57,43 @@ export class AiRepository {
       },
     });
   }
+
+  async updateComplaintWithAiResult(complaintId: string, result: any) {
+    const complaint = await this.prisma.complaint.findUnique({
+      where: { id: complaintId },
+    });
+
+    if (!complaint) return;
+
+    let priority = complaint.priority;
+
+    if (complaint.latitude && complaint.longitude) {
+      const radiusMeters = 30;
+      const duplicates = await this.prisma.$queryRaw<any[]>`
+        SELECT id FROM complaints
+        WHERE id != ${complaint.id}
+        AND latitude IS NOT NULL AND longitude IS NOT NULL
+        AND (6371000 * acos(cos(radians(${complaint.latitude})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${complaint.longitude})) + sin(radians(${complaint.latitude})) * sin(radians(latitude)))) <= ${radiusMeters}
+        AND category = ${result.damageClass}
+      `;
+
+      if (duplicates.length > 2) priority = 'CRITICAL';
+      else if (duplicates.length > 0) priority = 'HIGH';
+    } else {
+      if (result.severity > 4) priority = 'CRITICAL';
+      else if (result.severity > 3) priority = 'HIGH';
+    }
+
+    await this.prisma.complaint.update({
+      where: { id: complaintId },
+      data: {
+        category: result.damageClass,
+        confidence: result.confidenceScore,
+        severity: result.severity,
+        priority,
+      },
+    });
+
+    this.logger.log('Database updated');
+  }
 }

@@ -96,9 +96,9 @@ apiClient.interceptors.response.use(
 
         processQueue(null, newAccessToken);
         return apiClient(originalRequest);
-      } catch (refreshError) {
+      } catch (refreshError: any) {
         processQueue(refreshError, null);
-        // If refresh fails, log out the user
+        console.error("Token refresh failed", refreshError.response?.data || refreshError.message);
         useAuthStore.getState().logout();
         return Promise.reject(refreshError);
       } finally {
@@ -106,6 +106,7 @@ apiClient.interceptors.response.use(
       }
     }
 
+    console.error("API Error Response:", error.response?.status, error.response?.data || error.message);
     return Promise.reject(error);
   }
 );

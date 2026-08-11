@@ -202,6 +202,7 @@ class YOLODetector:
         
         # Run inference in worker thread pool to avoid blocking the event loop
         try:
+            logger.info("YOLO started")
             results = await asyncio.to_thread(
                 self.model.predict,
                 source=images,
@@ -209,6 +210,7 @@ class YOLODetector:
                 device=self.device,
                 verbose=False
             )
+            logger.info("YOLO completed")
             
             for i, result in enumerate(results):
                 pred = format_single_prediction(result, self.model.names)

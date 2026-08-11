@@ -24,10 +24,11 @@ export class OtpService {
     phoneNumber?: string,
     passwordHash?: string,
   ) {
+    const normalizedEmail = email.trim().toLowerCase();
     // Delete any existing OTP for this email
     // @ts-ignore - IDE TS Server caching issue
     await this.prisma.otp.deleteMany({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     const otp = this.generateSecureOtp();
@@ -37,7 +38,7 @@ export class OtpService {
     // @ts-ignore - IDE TS Server caching issue
     await this.prisma.otp.create({
       data: {
-        email,
+        email: normalizedEmail,
         otpHash,
         expiresAt,
         fullName,
@@ -46,14 +47,15 @@ export class OtpService {
       },
     });
 
-    await this.mailService.sendOtpEmail(email, otp);
-    this.logger.log(`Generated and sent OTP to ${email}`);
+    await this.mailService.sendOtpEmail(normalizedEmail, otp);
+    this.logger.log(`Generated and sent OTP to ${normalizedEmail}`);
   }
 
   async resendOtp(email: string) {
+    const normalizedEmail = email.trim().toLowerCase();
     // @ts-ignore
     const existingOtp = await this.prisma.otp.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (!existingOtp) {
@@ -64,7 +66,7 @@ export class OtpService {
 
     // Reuse the existing data but generate a new OTP
     await this.generateAndSendOtp(
-      email,
+      normalizedEmail,
       existingOtp.fullName ?? undefined,
       existingOtp.phoneNumber ?? undefined,
       existingOtp.passwordHash ?? undefined,
@@ -72,9 +74,10 @@ export class OtpService {
   }
 
   async verifyOtp(email: string, otp: string) {
+    const normalizedEmail = email.trim().toLowerCase();
     // @ts-ignore - IDE TS Server caching issue
     const otpRecord = await this.prisma.otp.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (!otpRecord) {

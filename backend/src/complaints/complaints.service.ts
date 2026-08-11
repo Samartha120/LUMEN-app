@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CreateComplaintDto } from './dto/create-complaint.dto';
 import { UpdateComplaintDto } from './dto/update-complaint.dto';
@@ -9,6 +14,8 @@ import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class ComplaintsService {
+  private readonly logger = new Logger(ComplaintsService.name);
+
   constructor(
     private prisma: PrismaService,
     private notificationsGateway: NotificationsGateway,
@@ -16,6 +23,12 @@ export class ComplaintsService {
   ) {}
 
   async create(createComplaintDto: CreateComplaintDto, user: User | null) {
+    if (!createComplaintDto.imageUrl) {
+      throw new BadRequestException(
+        'Image URL is strictly required to file a complaint',
+      );
+    }
+
     const complaint = await this.prisma.complaint.create({
       data: {
         trackingId: `CMP-${Date.now()}`,
@@ -34,13 +47,9 @@ export class ComplaintsService {
       },
     });
 
-    if (createComplaintDto.latitude && createComplaintDto.longitude) {
-      await this.prisma.$executeRaw`
-        UPDATE complaints
-        SET location = ST_SetSRID(ST_MakePoint(${createComplaintDto.longitude}, ${createComplaintDto.latitude}), 4326)
-        WHERE id = ${complaint.id};
-      `;
-    }
+    this.logger.log(`Complaint created in PostgreSQL! ID: ${complaint.id}, TrackingID: ${complaint.trackingId}`);
+
+    // Removed PostGIS ST_SetSRID update
 
     // Phase 20: Queue background jobs for AI prediction
     // @ts-ignore
@@ -89,13 +98,7 @@ export class ComplaintsService {
           },
         });
 
-        if (dto.latitude && dto.longitude) {
-          await tx.$executeRaw`
-            UPDATE complaints
-            SET location = ST_SetSRID(ST_MakePoint(${dto.longitude}, ${dto.latitude}), 4326)
-            WHERE id = ${complaint.id};
-          `;
-        }
+        // Removed PostGIS ST_SetSRID update
         results.push(complaint);
       }
     });
@@ -129,9 +132,10 @@ export class ComplaintsService {
     const radiusMeters = radiusKm * 1000;
     const complaints = await this.prisma.$queryRaw<Complaint[]>`
       SELECT id, title, description, category, priority, status, latitude, longitude, "imageUrl", "videoUrl",
-      ST_Distance(location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)) AS distance
+      (6371000 * acos(cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(latitude)))) AS distance
       FROM complaints
-      WHERE ST_DWithin(location, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), ${radiusMeters})
+      WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+      AND (6371000 * acos(cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(latitude)))) <= ${radiusMeters}
       ORDER BY distance ASC;
     `;
     return complaints;
@@ -140,7 +144,11 @@ export class ComplaintsService {
   async findOne(id: string) {
     const complaint = await this.prisma.complaint.findUnique({
       where: { id },
-      include: { reporter: { select: { fullName: true } } },
+      include: {
+        reporter: { select: { fullName: true } },
+        aiPrediction: true,
+        timeline: true,
+      },
     });
     if (!complaint)
       throw new NotFoundException(`Complaint with ID ${id} not found`);

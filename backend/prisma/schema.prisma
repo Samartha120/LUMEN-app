@@ -122,8 +122,11 @@ model Complaint {
   
   latitude    Float?
   longitude   Float?
+  
+  confidence  Float?
+  severity    Float?
 
-  imageUrl    String?
+  imageUrl    String
   videoUrl    String?
   
   reporterId  String?

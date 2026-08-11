@@ -5,6 +5,7 @@ import {
   IsString,
   IsBoolean,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { Priority } from '@prisma/client';
 
 export class CreateComplaintDto {
@@ -19,6 +20,9 @@ export class CreateComplaintDto {
 
   @IsEnum(Priority)
   @IsOptional()
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.toUpperCase() : value,
+  )
   priority?: Priority;
 
   @IsNumber()
@@ -30,8 +34,7 @@ export class CreateComplaintDto {
   longitude?: number;
 
   @IsString()
-  @IsOptional()
-  imageUrl?: string;
+  imageUrl: string;
 
   @IsString()
   @IsOptional()

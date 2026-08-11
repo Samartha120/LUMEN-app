@@ -9,6 +9,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuidv4 } from 'uuid';
@@ -50,6 +51,7 @@ export class StorageService {
         accessKeyId,
         secretAccessKey,
       },
+      maxAttempts: 3,
     });
   }
 
@@ -82,6 +84,7 @@ export class StorageService {
     this.logger.log(`Upload started for key: ${key}`);
 
     try {
+      this.logger.log('Uploading to S3');
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
         Key: key,
@@ -90,6 +93,36 @@ export class StorageService {
       });
 
       await this.s3Client.send(command);
+      this.logger.log('Upload successful');
+
+      // Programmatically verify object exists in S3 (Step 3)
+      try {
+        const headCommand = new HeadObjectCommand({
+          Bucket: this.bucketName,
+          Key: key,
+        });
+        await this.s3Client.send(headCommand);
+        this.logger.log('Object verified');
+      } catch (verifyError) {
+        this.logger.error(
+          `S3 verification failed for key: ${key}: ${verifyError.message}`,
+        );
+        // Attempt to clean up
+        try {
+          const deleteCommand = new DeleteObjectCommand({
+            Bucket: this.bucketName,
+            Key: key,
+          });
+          await this.s3Client.send(deleteCommand);
+        } catch (cleanupError) {
+          this.logger.error(
+            `Cleanup failed for key: ${key}: ${cleanupError.message}`,
+          );
+        }
+        throw new InternalServerErrorException(
+          'Failed to verify uploaded object in S3',
+        );
+      }
 
       const url = `https://${this.bucketName}.s3.${await this.s3Client.config.region()}.amazonaws.com/${key}`;
 
@@ -97,6 +130,7 @@ export class StorageService {
 
       return {
         url,
+        imageUrl: url,
         key,
         bucket: this.bucketName,
         size: file.size,

@@ -32,6 +32,12 @@ export class CitizenController {
     return this.citizenService.getDashboard(user.id);
   }
 
+  @Get('analytics')
+  @ApiOperation({ summary: 'Get global analytics data for the citizen' })
+  async getAnalytics(@CurrentUser() user: User) {
+    return this.citizenService.getAnalytics(user.id);
+  }
+
   @Get('profile')
   @ApiOperation({ summary: 'Get citizen profile details' })
   async getProfile(@CurrentUser() user: User) {

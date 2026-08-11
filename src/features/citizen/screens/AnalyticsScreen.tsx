@@ -4,6 +4,8 @@ import { Spacing, TextStyles } from "@/design-system/tokens";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { CitizenService } from "@/services/citizen.service";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -19,48 +21,13 @@ import {
 
 const { width: W } = Dimensions.get("window");
 
-const GRAPH_DATA: Record<
-  string,
-  { labels: string[]; values: number[]; stats: { label: string; value: string; color: string }[] }
-> = {
-  Daily: {
-    labels: ["M", "T", "W", "T", "F", "S", "S"],
-    values: [40, 65, 45, 80, 60, 95, 70],
-    stats: [
-      { label: "Avg Response", value: "3.2 hrs", color: "#208AEF" },
-      { label: "Resolution Rate", value: "89%", color: "#12B76A" },
-      { label: "Satisfaction", value: "4.7★", color: "#F79009" },
-    ],
-  },
-  Monthly: {
-    labels: ["W1", "W2", "W3", "W4"],
-    values: [180, 240, 210, 290],
-    stats: [
-      { label: "Avg Response", value: "2.8 hrs", color: "#208AEF" },
-      { label: "Resolution Rate", value: "92%", color: "#12B76A" },
-      { label: "Satisfaction", value: "4.8★", color: "#F79009" },
-    ],
-  },
-  Yearly: {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    values: [850, 910, 800, 1050, 1200, 1150, 980, 1020, 1100, 950, 1080, 1300],
-    stats: [
-      { label: "Avg Response", value: "2.4 hrs", color: "#208AEF" },
-      { label: "Resolution Rate", value: "95%", color: "#12B76A" },
-      { label: "Satisfaction", value: "4.9★", color: "#F79009" },
-    ],
-  },
-};
-
-const CATEGORIES = [
-  { label: "Water & Sewage", value: 45, color: "#208AEF" },
-  { label: "Roads & Traffic", value: 30, color: "#7C3AED" },
-  { label: "Waste Management", value: 15, color: "#F79009" },
-  { label: "Electricity", value: 10, color: "#12B76A" },
-];
-
 export default function AnalyticsScreen() {
   const { colors, isDark } = useTheme();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["analytics"],
+    queryFn: () => CitizenService.getAnalytics(),
+  });
 
   // Enter animations
   const fadeHeader = useRef(new Animated.Value(0)).current;
@@ -119,13 +86,17 @@ export default function AnalyticsScreen() {
           style={{ opacity: fadeContent, transform: [{ translateY: slideContent }], gap: 24 }}
         >
           {/* Civic Score Card */}
-          <CivicScoreCard colors={colors} isDark={isDark} />
+          <CivicScoreCard colors={colors} isDark={isDark} score={data?.civicScore || 0} />
 
           {/* Performance Graph */}
-          <DynamicPerformanceGraph colors={colors} isDark={isDark} />
+          {data?.graphData && (
+            <DynamicPerformanceGraph colors={colors} isDark={isDark} graphData={data.graphData} />
+          )}
 
           {/* Breakdown by Category */}
-          <CategoryBreakdownCard colors={colors} isDark={isDark} />
+          {data?.categories && (
+            <CategoryBreakdownCard colors={colors} isDark={isDark} categories={data.categories} />
+          )}
         </Animated.View>
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -135,7 +106,7 @@ export default function AnalyticsScreen() {
 
 // ── Components ───────────────────────────────────────────────────
 
-function CivicScoreCard({ colors, isDark }: { colors: any; isDark: boolean }) {
+function CivicScoreCard({ colors, isDark, score }: { colors: any; isDark: boolean; score: number }) {
   const scale = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
@@ -167,14 +138,15 @@ function CivicScoreCard({ colors, isDark }: { colors: any; isDark: boolean }) {
         </View>
         <View style={[s.scoreBadge, { backgroundColor: "rgba(32, 138, 239, 0.15)" }]}>
           <LumenIcon name="spark" size="md" color="#208AEF" />
-          <Text style={s.scoreText}>98</Text>
+          <Text style={s.scoreText}>{score}</Text>
         </View>
       </View>
     </Animated.View>
   );
 }
 
-function CategoryBreakdownCard({ colors, isDark }: { colors: any; isDark: boolean }) {
+function CategoryBreakdownCard({ colors, isDark, categories }: { colors: any; isDark: boolean; categories: any[] }) {
+  if (!categories || categories.length === 0) return null;
   return (
     <View style={[s.card, { borderColor: colors.borderDefault }]}>
       <LinearGradient
@@ -189,13 +161,13 @@ function CategoryBreakdownCard({ colors, isDark }: { colors: any; isDark: boolea
         <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Issue Breakdown</Text>
 
         <View style={s.progressRow}>
-          {CATEGORIES.map((cat, i) => (
+          {categories.map((cat, i) => (
             <AnimatedCategoryBar key={cat.label} category={cat} index={i} />
           ))}
         </View>
 
         <View style={s.legendGrid}>
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <View key={cat.label} style={s.legendItem}>
               <View style={[s.legendDot, { backgroundColor: cat.color }]} />
               <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
@@ -235,10 +207,10 @@ function AnimatedCategoryBar({ category, index }: { category: any; index: number
   );
 }
 
-function DynamicPerformanceGraph({ colors, isDark }: { colors: any; isDark: boolean }) {
+function DynamicPerformanceGraph({ colors, isDark, graphData }: { colors: any; isDark: boolean; graphData: any }) {
   const [timeRange, setTimeRange] = useState<"Daily" | "Monthly" | "Yearly">("Daily");
-  const data = GRAPH_DATA[timeRange];
-  const maxVal = Math.max(...data.values);
+  const data = graphData[timeRange] || { labels: [], values: [], stats: [] };
+  const maxVal = Math.max(...data.values, 10);
 
   return (
     <View style={[s.card, { borderColor: colors.borderDefault }]}>
@@ -279,7 +251,7 @@ function DynamicPerformanceGraph({ colors, isDark }: { colors: any; isDark: bool
           contentContainerStyle={{ paddingBottom: 16 }}
         >
           <View style={s.chartScrollArea}>
-            {data.values.map((val, i) => (
+            {data.values.map((val: number, i: number) => (
               <AnimatedBar
                 key={`${timeRange}-${i}`}
                 value={val}
@@ -292,7 +264,7 @@ function DynamicPerformanceGraph({ colors, isDark }: { colors: any; isDark: bool
         </ScrollView>
 
         <View style={s.analyticsStats}>
-          {data.stats.map((stat, i) => (
+          {data.stats.map((stat: any, i: number) => (
             <AnimatedStat key={`${timeRange}-stat-${i}`} stat={stat} colors={colors} />
           ))}
         </View>

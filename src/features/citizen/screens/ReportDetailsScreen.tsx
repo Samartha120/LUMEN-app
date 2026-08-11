@@ -421,8 +421,10 @@ export default function ReportDetailsScreen() {
           <LinearGradient colors={["transparent", "rgba(0,0,0,0.72)"]} style={s.heroGradient}>
             <View style={s.heroOverlayContent}>
               <View style={s.liveChip}>
-                <Animated.View style={[s.liveDot, { transform: [{ scale: pulseAnim }] }]} />
-                <Text style={s.liveText}>ENGINEER ON SITE</Text>
+                {reportData.status === "IN_PROGRESS" && (
+                  <Animated.View style={[s.liveDot, { transform: [{ scale: pulseAnim }] }]} />
+                )}
+                <Text style={s.liveText}>{reportData.status.replace("_", " ")}</Text>
               </View>
               <Text style={s.heroReportId}>{reportData.trackingId}</Text>
             </View>
@@ -493,15 +495,37 @@ export default function ReportDetailsScreen() {
             <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>
               Assigned Engineer
             </Text>
-            <View style={s.engineerRow}>
-              <Avatar name="Unassigned" size="lg" role="engineer" />
-              <View style={s.engineerInfo}>
-                <Text style={[s.engineerName, { color: colors.textPrimary }]}>Engineer</Text>
-                <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
-                  Pending Assignment
-                </Text>
+            {reportData.assignedEngineer ? (
+              <View style={s.engineerRow}>
+                <Avatar name={reportData.assignedEngineer.name || "Engineer"} size="lg" role="engineer" />
+                <View style={s.engineerInfo}>
+                  <Text style={[s.engineerName, { color: colors.textPrimary }]}>
+                    {reportData.assignedEngineer.name || "Engineer"}
+                  </Text>
+                  <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
+                    {reportData.assignedEngineer.department || "Field Engineer"}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={handleCall}
+                  style={[s.callBtn, { backgroundColor: "#12B76A" }]}
+                >
+                  <LumenIcon name="phone" size="sm" color="#FFFFFF" strokeWidth={2.5} />
+                </Pressable>
               </View>
-            </View>
+            ) : (
+              <View style={s.engineerRow}>
+                <View style={[s.unassignedAvatar, { backgroundColor: colors.bgSubtle }]}>
+                  <LumenIcon name="profile" size="md" color={colors.textTertiary} strokeWidth={1.5} />
+                </View>
+                <View style={s.engineerInfo}>
+                  <Text style={[s.engineerName, { color: colors.textTertiary }]}>Unassigned</Text>
+                  <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                    Pending engineer assignment
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* ════════════════════════════════════════ */}
@@ -600,7 +624,38 @@ export default function ReportDetailsScreen() {
             </View>
           </View>
 
-          <View style={{ height: 48 }} />
+          {/* ════════════════════════════════════════ */}
+          {/* ACTIVITY LOG                            */}
+          {/* ════════════════════════════════════════ */}
+          {timelineMapped.length > 0 && (
+            <View style={[s.card, { backgroundColor: colors.bgSurface, ...shadows.lg }, s.mx]}>
+              <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>
+                Activity Log
+              </Text>
+              {[...timelineMapped].reverse().map((t, i) => (
+                <ActivityRow
+                  key={i}
+                  item={{
+                    action: t.desc || t.step,
+                    time: t.time,
+                    icon: t.step?.toLowerCase().includes("submit") ? "flag" :
+                          t.step?.toLowerCase().includes("review") ? "check" :
+                          t.step?.toLowerCase().includes("assign") ? "user" :
+                          t.step?.toLowerCase().includes("progress") ? "wrench" : "bell",
+                    color: t.step?.toLowerCase().includes("submit") ? "#F79009" :
+                           t.step?.toLowerCase().includes("review") ? "#12B76A" :
+                           t.step?.toLowerCase().includes("assign") ? "#8B5CF6" :
+                           t.step?.toLowerCase().includes("progress") ? "#208AEF" : "#64748B",
+                  }}
+                  colors={colors}
+                  delay={i * 80}
+                  isLast={i === timelineMapped.length - 1}
+                />
+              ))}
+            </View>
+          )}
+
+          <View style={{ height: 60 }} />
         </Animated.View>
       </ScrollView>
     </View>
@@ -821,6 +876,14 @@ const s = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  unassignedAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,

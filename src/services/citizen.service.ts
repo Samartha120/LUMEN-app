@@ -6,6 +6,11 @@ export const CitizenService = {
     return response.data;
   },
 
+  async getAnalytics() {
+    const response = await apiClient.get("/api/v1/citizen/analytics");
+    return response.data;
+  },
+
   async getPayments() {
     const response = await apiClient.get("/api/v1/citizen/payments");
     return response.data;

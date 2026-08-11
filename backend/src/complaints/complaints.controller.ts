@@ -8,6 +8,7 @@ import {
   UseGuards,
   Query,
   UseInterceptors,
+  Req,
 } from '@nestjs/common';
 import { ComplaintsService } from './complaints.service';
 import { CreateComplaintDto } from './dto/create-complaint.dto';
@@ -42,6 +43,15 @@ export class ComplaintsController {
     @CurrentUser() user: User | null,
   ) {
     return this.complaintsService.create(createComplaintDto, user);
+  }
+
+  @UseGuards(OptionalJwtAuthGuard)
+  @Get('test-auth')
+  testAuth(@CurrentUser() user: User | null, @Req() req: any) {
+    return {
+      user,
+      headers: req.headers,
+    };
   }
 
   @UseGuards(JwtAuthGuard)

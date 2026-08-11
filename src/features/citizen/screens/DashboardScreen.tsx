@@ -13,8 +13,9 @@ import { router } from "expo-router";
 import { useAuthStore } from "@/store/AuthStore";
 import { CitizenService } from "@/services/citizen.service";
 import { ComplaintsService } from "@/services/complaints.service";
+import { ReportCard } from "../components/ReportCard";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { LineChart } from "react-native-chart-kit";
+import { LineChart } from "react-native-gifted-charts";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
@@ -51,6 +52,20 @@ const getTimeString = () => {
 const getDateString = () => {
   const now = new Date();
   return now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+};
+
+const formatTime = (dateStr: string) => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHrs = Math.floor(diffMins / 60);
+  if (diffMins < 60) return `${Math.max(1, diffMins)}m ago`;
+  if (diffHrs < 24) return `${diffHrs}h ago`;
+  const diffDays = Math.floor(diffHrs / 24);
+  if (diffDays === 1) return "Yesterday";
+  return date.toLocaleDateString();
 };
 
 // Removing MOCK_REPORTS and AI_INSIGHTS. Real data will be fetched via React Query.
@@ -404,11 +419,12 @@ export default function CitizenDashboardScreen() {
           </BlurView>
 
           {/* Dynamic Graph Section */}
-          {dashboardData?.graphData && dashboardData.graphData.length > 0 && (
+          {dashboardData?.graphData?.Daily && (
             <View
               style={{
                 marginTop: 20,
                 padding: 16,
+                paddingBottom: 24,
                 backgroundColor: colors.bgSurface,
                 borderRadius: 16,
                 borderColor: colors.borderDefault,
@@ -416,32 +432,68 @@ export default function CitizenDashboardScreen() {
               }}
             >
               <Text
-                style={[TextStyles.bodyMedium, { color: colors.textPrimary, marginBottom: 12 }]}
+                style={[TextStyles.bodyMedium, { color: colors.textPrimary, marginBottom: 24 }]}
               >
                 Complaints Trend (Last 7 Days)
               </Text>
+              
               <LineChart
-                data={{
-                  labels: dashboardData.graphData.map((d: any) => d.date),
-                  datasets: [{ data: dashboardData.graphData.map((d: any) => d.count) }],
+                data={dashboardData.graphData.Daily.values.map((v: number, i: number) => ({
+                  value: v,
+                  label: dashboardData.graphData.Daily.labels[i],
+                }))}
+                width={Dimensions.get("window").width - 80}
+                height={160}
+                thickness={3}
+                color={colors.brand}
+                noOfSections={3}
+                yAxisTextStyle={{ color: colors.textSecondary, fontSize: 11 }}
+                xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 11 }}
+                yAxisColor="transparent"
+                xAxisColor="transparent"
+                rulesColor={colors.borderDefault}
+                hideRules
+                hideDataPoints={false}
+                dataPointsColor={colors.brand}
+                dataPointsRadius={4}
+                pointerConfig={{
+                  pointerStripHeight: 160,
+                  pointerStripColor: colors.brand + "40",
+                  pointerStripWidth: 2,
+                  pointerColor: colors.brand,
+                  radius: 6,
+                  pointerLabelWidth: 80,
+                  pointerLabelHeight: 30,
+                  activatePointersOnLongPress: false,
+                  autoAdjustPointerLabelPosition: true,
+                  pointerLabelComponent: (items: any) => {
+                    return (
+                      <View
+                        style={{
+                          backgroundColor: isDark ? "#333" : "#FFF",
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 6,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.1,
+                          shadowRadius: 4,
+                          elevation: 2,
+                          alignItems: "center"
+                        }}
+                      >
+                        <Text style={{ fontWeight: "700", color: isDark ? "#FFF" : "#000", fontSize: 12 }}>
+                          {items[0].value} Reports
+                        </Text>
+                      </View>
+                    );
+                  },
                 }}
-                width={Dimensions.get("window").width - 56}
-                height={220}
-                yAxisLabel=""
-                yAxisSuffix=""
-                yAxisInterval={1}
-                chartConfig={{
-                  backgroundColor: colors.bgSurface,
-                  backgroundGradientFrom: colors.bgSurface,
-                  backgroundGradientTo: colors.bgSurface,
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(32, 138, 239, ${opacity})`,
-                  labelColor: (opacity = 1) => colors.textSecondary,
-                  style: { borderRadius: 16 },
-                  propsForDots: { r: "5", strokeWidth: "2", stroke: colors.brand },
-                }}
-                bezier
-                style={{ marginVertical: 8, borderRadius: 16 }}
+                areaChart
+                startFillColor={colors.brand}
+                endFillColor={colors.brand}
+                startOpacity={0.2}
+                endOpacity={0.0}
               />
             </View>
           )}
@@ -630,7 +682,12 @@ export default function CitizenDashboardScreen() {
 
           <View style={s.reportsList}>
             {myReports?.slice(0, 3).map((report: any) => (
-              <ReportCard key={report.id} report={report} colors={colors} isDark={isDark} />
+              <ReportCard 
+                key={report.id} 
+                report={{...report, time: formatTime(report.createdAt)}} 
+                colors={colors} 
+                isDark={isDark} 
+              />
             ))}
             {(!myReports || myReports.length === 0) && (
               <Text style={{ textAlign: "center", color: colors.textSecondary, marginTop: 16 }}>
@@ -759,86 +816,7 @@ function ActionCard({
   );
 }
 
-// ── Report Card Component ─────────────────────────────────────
-function ReportCard({ report, colors, isDark }: { report: any; colors: any; isDark: boolean }) {
-  const statusConfig = {
-    PENDING: { label: "Pending", color: "#C2410C", bg: "#FFEDD5" },
-    IN_PROGRESS: { label: "In Progress", color: "#0F766E", bg: "#CCFBF1" },
-    RESOLVED: { label: "Resolved", color: "#15803D", bg: "#DCFCE7" },
-    CLOSED: { label: "Closed", color: "#15803D", bg: "#DCFCE7" },
-    REJECTED: { label: "Rejected", color: "#B91C1C", bg: "#FEE2E2" },
-  };
-
-  const status = statusConfig[report.status as keyof typeof statusConfig] || statusConfig.PENDING;
-
-  const PRIORITY_COLOR: Record<string, string> = {
-    HIGH: "#F04438",
-    CRITICAL: "#F04438",
-    MEDIUM: "#F79009",
-    LOW: "#12B76A",
-  };
-
-  const CATEGORY_ICON: Record<string, any> = {
-    road: "road",
-    streetlight: "streetlight",
-    water: "water",
-    garbage: "garbage",
-    electricity: "electricity",
-  };
-
-  const priorityColor = PRIORITY_COLOR[report.priority] || "#F79009";
-
-  return (
-    <Pressable
-      onPress={() => router.push(`/(citizen)/Report-details?id=${report.id}` as any)}
-      style={({ pressed }) => [
-        rc.card,
-        {
-          backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#FDFDFD",
-          opacity: pressed ? 0.85 : 1,
-          transform: [{ scale: pressed ? 0.985 : 1 }],
-        },
-      ]}
-    >
-      <View style={rc.cardInner}>
-        {/* Left Icon */}
-        <View
-          style={[rc.iconWrap, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#F2F4F7" }]}
-        >
-          <LumenIcon
-            name={CATEGORY_ICON[report.category] || "report"}
-            size="sm"
-            color={isDark ? "#FFFFFF" : "#1D2939"}
-            strokeWidth={2}
-          />
-        </View>
-
-        {/* Center Info */}
-        <View style={rc.infoWrap}>
-          <Text style={[rc.title, { color: colors.textPrimary }]} numberOfLines={1}>
-            {report.title}
-          </Text>
-          <View style={rc.metaRow}>
-            <View
-              style={[
-                rc.statusBadge,
-                { backgroundColor: isDark ? status.color + "20" : status.bg },
-              ]}
-            >
-              <Text style={[rc.statusText, { color: isDark ? "#FFFFFF" : status.color }]}>
-                {status.label}
-              </Text>
-            </View>
-            <Text style={[rc.timeText, { color: colors.textTertiary }]}>{report.time}</Text>
-          </View>
-        </View>
-
-        {/* Right Dot */}
-        <View style={[rc.priorityDot, { backgroundColor: priorityColor }]} />
-      </View>
-    </Pressable>
-  );
-}
+// ── Action Card Component ─────────────────────────────────────
 
 // ── Styles ────────────────────────────────────────────────────
 const s = StyleSheet.create({
@@ -1076,61 +1054,6 @@ const ac = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "flex-end",
-  },
-});
-
-// ── Report Card Styles ────────────────────────────────────────
-const rc = StyleSheet.create({
-  card: {
-    borderRadius: 24,
-    marginBottom: 12,
-  },
-  cardInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    gap: 16,
-  },
-  iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  infoWrap: {
-    flex: 1,
-    justifyContent: "center",
-    gap: 6,
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  timeText: {
-    fontSize: 12,
-    fontWeight: "400",
-  },
-  priorityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginLeft: 8,
   },
 });
 

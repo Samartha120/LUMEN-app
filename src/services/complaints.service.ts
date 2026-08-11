@@ -8,11 +8,19 @@ export const ComplaintsService = {
     return response.data;
   },
 
-  async create(data: FormData | any) {
-    // If we use multipart form data for uploading files directly
+  async create(data: any) {
     const response = await apiClient.post("/complaints", data, {
       headers: {
-        "Content-Type": data instanceof FormData ? "multipart/form-data" : "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  },
+
+  async uploadImage(formData: FormData) {
+    const response = await apiClient.post("/storage/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;

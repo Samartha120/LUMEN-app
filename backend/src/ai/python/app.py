@@ -100,6 +100,7 @@ async def detect_image(req: DetectRequest):
             "type": "image"
         }
         logger.info(f"Image inference completed in {int(elapsed * 1000)}ms.")
+        logger.info("Prediction returned")
         return result
     except ValueError as e:
         # Security violation (e.g., SSRF) or image download/validation error

@@ -256,7 +256,13 @@ interface ComplaintWithRelations {
   imageUrl: string | null;
   createdAt: Date;
   reporter?: { fullName: string | null } | null;
-  aiPrediction?: { confidenceScore: number } | null;
+  aiPrediction?: {
+    damageClass: string;
+    confidenceScore: number;
+    boundingBoxes: unknown;
+    metadata: unknown;
+    status: string;
+  } | null;
   dispatchRecords?: { department: string }[] | null;
   timeline?:
     | {
@@ -458,11 +464,11 @@ export class WebIntegrationService implements OnModuleInit {
     else if (severityScore >= 50) severityBand = 'SIGNIFICANT';
     else if (severityScore < 20) severityBand = 'MINOR';
 
-    // Mock dispatch record mapping to department
-    const deptName = c.dispatchRecords?.[0]?.department || 'ROADS';
+    // Use the actual dispatched department if available
+    const deptName = c.dispatchRecords?.[0]?.department || 'UNASSIGNED';
     const deptId = deptName;
 
-    // Timeline event mock / mapping
+    // Map timeline entries to event objects
     const events = (c.timeline || []).map((t) => {
       let type = 'STATUS_CHANGE';
       if (t.status === 'PENDING') type = 'CREATED';
@@ -532,18 +538,18 @@ export class WebIntegrationService implements OnModuleInit {
       lng: c.longitude || 77.5946,
       status: this.mapStatusToFrontend(c.status),
       priority: this.mapPriority(c.priority),
-      slaHours: 48,
+      slaHours: c.priority === 'CRITICAL' ? 4 : c.priority === 'HIGH' ? 12 : c.priority === 'LOW' ? 72 : 48,
       createdAt: c.createdAt,
-      aiModelMode: 'TRAINED',
-      aiConfidence: aiPred?.confidenceScore || 0.85,
-      detections: JSON.stringify([
-        {
-          label: c.category,
-          confidence: aiPred?.confidenceScore || 0.85,
-          box: [100, 150, 300, 400],
-          area_ratio: 0.12,
-        },
-      ]),
+      aiModelMode: aiPred ? 'TRAINED' : 'NONE',
+      aiConfidence: aiPred?.confidenceScore ?? null,
+      detections: aiPred
+        ? JSON.stringify(
+            Array.isArray(aiPred.boundingBoxes as unknown[]) &&
+            (aiPred.boundingBoxes as unknown[]).length > 0
+              ? aiPred.boundingBoxes
+              : [{ label: aiPred.damageClass, confidence: aiPred.confidenceScore, box: [], area_ratio: null }],
+          )
+        : null,
       severityScore,
       severityBand,
       duplicateOfId: null,
@@ -556,7 +562,6 @@ export class WebIntegrationService implements OnModuleInit {
       assignMethod: 'OPTIMISED',
       assignDistance: 2.4,
       department: { name: deptName },
-      // Mock assigned engineer from database (role = ENGINEER)
       engineer: null,
       images,
       events,

@@ -20,8 +20,16 @@ export class DispatchService {
       throw new NotFoundException('Complaint not found');
     }
 
+    // SLA hours based on complaint priority
+    const slaHoursMap: Record<string, number> = {
+      CRITICAL: 4,
+      HIGH: 12,
+      MEDIUM: 48,
+      LOW: 72,
+    };
+    const slaHours = slaHoursMap[complaint.priority] ?? 48;
     const estimatedResolutionAt = new Date();
-    estimatedResolutionAt.setHours(estimatedResolutionAt.getHours() + 48); // Mock 48h ETA
+    estimatedResolutionAt.setHours(estimatedResolutionAt.getHours() + slaHours);
 
     const result = await this.prisma.$transaction(async (tx) => {
       // Create dispatch record
@@ -46,8 +54,8 @@ export class DispatchService {
         data: {
           complaintId: dto.complaintId,
           status: 'ASSIGNED',
-          notes: `Assigned to ${dto.department} department.`,
-          performedById: user.id, // Usually a system user, but we'll use the caller for mock
+          notes: `Assigned to ${dto.department} department. SLA: ${slaHours}h.`,
+          performedById: user.id,
         },
       });
 

@@ -61,3 +61,7 @@ __pycache__/
 *.pyd
 .pytest_cache/
 .ipynb_checkpoints/
+
+# Large archive files (exceed GitHub 100MB limit)
+*.zip
+backend.zip

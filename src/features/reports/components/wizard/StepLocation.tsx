@@ -164,7 +164,7 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
               onPress={checkAndAcquireGPS}
               style={[
                 styles.locateButton,
-                { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault }
+                { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault },
               ]}
             >
               <LumenIcon name="locate" size="md" color={colors.brand} />
@@ -182,7 +182,14 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
         )}
       </View>
 
-      <View style={{ padding: Spacing[5], flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+      <View
+        style={{
+          padding: Spacing[5],
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <View style={{ flex: 1, marginRight: 10 }}>
           <Text
             style={[
@@ -202,7 +209,15 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
           </Text>
           {data.location && !errorMsg && (
             <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
-              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#12B76A", marginRight: 6 }} />
+              <View
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: "#12B76A",
+                  marginRight: 6,
+                }}
+              />
               <Text style={{ fontSize: 12, color: "#12B76A", fontWeight: "600" }}>
                 GPS Lock Active - Ready to submit
               </Text>

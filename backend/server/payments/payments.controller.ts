@@ -34,7 +34,10 @@ export class PaymentsController {
 
   @Post('pay')
   @ApiOperation({ summary: 'Process a municipal payment' })
-  async payBill(@Body() dto: PayBillDto, @CurrentUser() user: PrismaClient.User) {
+  async payBill(
+    @Body() dto: PayBillDto,
+    @CurrentUser() user: PrismaClient.User,
+  ) {
     return this.paymentsService.payBill(dto, user);
   }
 

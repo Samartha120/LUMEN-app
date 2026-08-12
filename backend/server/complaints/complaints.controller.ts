@@ -59,7 +59,10 @@ export class ComplaintsController {
   @ApiOperation({
     summary: 'Synchronize an array of complaints created while offline',
   })
-  sync(@Body() syncDto: SyncComplaintsDto, @CurrentUser() user: PrismaClient.User) {
+  sync(
+    @Body() syncDto: SyncComplaintsDto,
+    @CurrentUser() user: PrismaClient.User,
+  ) {
     return this.complaintsService.sync(syncDto, user);
   }
 

@@ -328,7 +328,12 @@ export default function RegisterScreen() {
             <MotiText
               from={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: "timing", duration: 800, delay: 150, easing: Easing.out(Easing.quad) }}
+              transition={{
+                type: "timing",
+                duration: 800,
+                delay: 150,
+                easing: Easing.out(Easing.quad),
+              }}
               style={styles.brand}
             >
               JOIN LUMEN
@@ -337,7 +342,12 @@ export default function RegisterScreen() {
             <MotiView
               from={{ opacity: 0, translateY: 10 }}
               animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: "timing", duration: 800, delay: 250, easing: Easing.out(Easing.quad) }}
+              transition={{
+                type: "timing",
+                duration: 800,
+                delay: 250,
+                easing: Easing.out(Easing.quad),
+              }}
             >
               <Text style={styles.title}>Create Your Account</Text>
               <Text style={styles.subtitle}>Report issues · Track progress · Build your city</Text>
@@ -347,7 +357,12 @@ export default function RegisterScreen() {
             <MotiView
               from={{ opacity: 0, translateY: 8 }}
               animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: "timing", duration: 800, delay: 350, easing: Easing.out(Easing.quad) }}
+              transition={{
+                type: "timing",
+                duration: 800,
+                delay: 350,
+                easing: Easing.out(Easing.quad),
+              }}
               style={styles.pillsRow}
             >
               <FeatureText label="Secure" />
@@ -360,7 +375,12 @@ export default function RegisterScreen() {
           <MotiView
             from={{ opacity: 0, translateY: 30, scale: 0.98 }}
             animate={{ opacity: 1, translateY: 0, scale: 1 }}
-            transition={{ type: "timing", duration: 800, delay: 200, easing: Easing.out(Easing.quad) }}
+            transition={{
+              type: "timing",
+              duration: 800,
+              delay: 200,
+              easing: Easing.out(Easing.quad),
+            }}
           >
             <BlurView intensity={28} tint="dark" style={styles.glassCard}>
               {/* Top accent line with purple theme */}

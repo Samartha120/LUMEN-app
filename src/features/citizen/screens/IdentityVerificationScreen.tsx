@@ -14,7 +14,9 @@ export default function IdentityVerificationScreen() {
   const { colors, isDark } = useTheme();
   const { user } = useAuthStore((s) => s);
   const [submitting, setSubmitting] = useState(false);
-  const [docType, setDocType] = useState<"PASSPORT" | "NATIONAL_ID" | "DRIVERS_LICENSE">("PASSPORT");
+  const [docType, setDocType] = useState<"PASSPORT" | "NATIONAL_ID" | "DRIVERS_LICENSE">(
+    "PASSPORT"
+  );
   const [idImage, setIdImage] = useState<string | null>(null);
   const [selfieImage, setSelfieImage] = useState<string | null>(null);
   const [status, setStatus] = useState<"UNVERIFIED" | "PENDING" | "VERIFIED">(
@@ -93,7 +95,10 @@ export default function IdentityVerificationScreen() {
       setStatus("VERIFIED");
       Alert.alert("Success", "Identity verified successfully! You now have full access.");
     } catch (e: any) {
-      Alert.alert("Verification Failed", e.response?.data?.message || e.message || "Failed to verify identity");
+      Alert.alert(
+        "Verification Failed",
+        e.response?.data?.message || e.message || "Failed to verify identity"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -213,11 +218,7 @@ export default function IdentityVerificationScreen() {
 
       {status === "VERIFIED" ? (
         <View style={s.card}>
-          <LumenIcon
-            name="success"
-            color={colors.successText}
-            size="2xl"
-          />
+          <LumenIcon name="success" color={colors.successText} size="2xl" />
           <Text style={s.statusText}>Status: VERIFIED</Text>
           <Text style={[s.subtitle, { marginTop: Spacing[4] }]}>
             Your identity is verified. You now have full access to LUMEN civic features.
@@ -260,18 +261,23 @@ export default function IdentityVerificationScreen() {
               <View style={s.uploadBox}>
                 {idImage ? (
                   <View style={{ width: "100%", height: 110, position: "relative" }}>
-                    <Image source={{ uri: idImage }} style={{ width: "100%", height: "100%", borderRadius: Radius.md }} />
-                    <Pressable
-                      onPress={() => setIdImage(null)}
-                      style={s.clearBtn}
-                    >
+                    <Image
+                      source={{ uri: idImage }}
+                      style={{ width: "100%", height: "100%", borderRadius: Radius.md }}
+                    />
+                    <Pressable onPress={() => setIdImage(null)} style={s.clearBtn}>
                       <LumenIcon name="close" size="xs" color="#FFF" />
                     </Pressable>
                   </View>
                 ) : (
                   <Pressable onPress={() => handleSelectImage("id")} style={s.uploadPlaceholder}>
                     <LumenIcon name="camera" size="xl" color={colors.textSecondary} />
-                    <Text style={[TextStyles.bodySmall, { color: colors.textSecondary, marginTop: Spacing[2], textAlign: "center" }]}>
+                    <Text
+                      style={[
+                        TextStyles.bodySmall,
+                        { color: colors.textSecondary, marginTop: Spacing[2], textAlign: "center" },
+                      ]}
+                    >
                       Upload ID
                     </Text>
                   </Pressable>
@@ -284,18 +290,26 @@ export default function IdentityVerificationScreen() {
               <View style={s.uploadBox}>
                 {selfieImage ? (
                   <View style={{ width: "100%", height: 110, position: "relative" }}>
-                    <Image source={{ uri: selfieImage }} style={{ width: "100%", height: "100%", borderRadius: Radius.md }} />
-                    <Pressable
-                      onPress={() => setSelfieImage(null)}
-                      style={s.clearBtn}
-                    >
+                    <Image
+                      source={{ uri: selfieImage }}
+                      style={{ width: "100%", height: "100%", borderRadius: Radius.md }}
+                    />
+                    <Pressable onPress={() => setSelfieImage(null)} style={s.clearBtn}>
                       <LumenIcon name="close" size="xs" color="#FFF" />
                     </Pressable>
                   </View>
                 ) : (
-                  <Pressable onPress={() => handleSelectImage("selfie")} style={s.uploadPlaceholder}>
+                  <Pressable
+                    onPress={() => handleSelectImage("selfie")}
+                    style={s.uploadPlaceholder}
+                  >
                     <LumenIcon name="profile" size="xl" color={colors.textSecondary} />
-                    <Text style={[TextStyles.bodySmall, { color: colors.textSecondary, marginTop: Spacing[2], textAlign: "center" }]}>
+                    <Text
+                      style={[
+                        TextStyles.bodySmall,
+                        { color: colors.textSecondary, marginTop: Spacing[2], textAlign: "center" },
+                      ]}
+                    >
                       Upload Selfie
                     </Text>
                   </Pressable>

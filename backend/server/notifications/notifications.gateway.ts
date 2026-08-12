@@ -46,11 +46,12 @@ export class NotificationsGateway
       }
 
       this.logger.log(`Client connected: ${client.id} (User: ${payload.sub})`);
-    } catch (error) {
-      if (error.message.includes('jwt expired')) {
-        this.logger.debug(`Connection rejected: ${error.message}`);
+    } catch (error: any) {
+      const errMsg: string = error?.message || String(error);
+      if (errMsg.includes('jwt expired')) {
+        this.logger.debug(`Connection rejected: ${errMsg}`);
       } else {
-        this.logger.warn(`Connection rejected: ${error.message}`);
+        this.logger.warn(`Connection rejected: ${errMsg}`);
       }
       client.disconnect();
     }

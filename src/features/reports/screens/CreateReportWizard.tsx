@@ -33,7 +33,13 @@ import {
 export type WizardData = {
   issueType: string;
   aiSuggestedCategory: string;
-  location: { latitude: number; longitude: number; address: string; accuracy?: number; capturedAt?: string } | null;
+  location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+    accuracy?: number;
+    capturedAt?: string;
+  } | null;
   media: { uri: string; type: "image" | "video" }[];
   description: { written: string; voiceUrl?: string };
   priority: "low" | "medium" | "high" | "critical";
@@ -150,11 +156,8 @@ export default function CreateReportWizard() {
         },
       }));
       setPermissionState("granted");
-      
-      Alert.alert(
-        "GPS Enabled",
-        "GPS location is already enabled! Now you can submit the report."
-      );
+
+      Alert.alert("GPS Enabled", "GPS location is already enabled! Now you can submit the report.");
     } catch (e) {
       setPermissionState("denied");
     }
@@ -214,28 +217,24 @@ export default function CreateReportWizard() {
     } catch (e: any) {
       console.error("[REPORT] Submission failed:", e);
       const errorMessage = e.response?.data?.message || e.message || "Failed to submit report";
-      
+
       // If the error is an AI validation error, offer a "Retake Photo" button
       if (
-        errorMessage.includes("blurry") || 
-        errorMessage.includes("identified clearly") || 
+        errorMessage.includes("blurry") ||
+        errorMessage.includes("identified clearly") ||
         errorMessage.includes("match the selected issue")
       ) {
-        Alert.alert(
-          "Image Validation Failed",
-          errorMessage,
-          [
-            {
-              text: "Cancel",
-              style: "cancel",
-            },
-            {
-              text: "Retake Photo",
-              onPress: () => setCurrentStep(4), // StepMedia is step 4
-              style: "default",
-            }
-          ]
-        );
+        Alert.alert("Image Validation Failed", errorMessage, [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Retake Photo",
+            onPress: () => setCurrentStep(4), // StepMedia is step 4
+            style: "default",
+          },
+        ]);
       } else {
         Alert.alert("Submission Failed", errorMessage);
       }
@@ -263,9 +262,20 @@ export default function CreateReportWizard() {
           <View style={{ flex: 1 }}>
             <StepReview data={data} onSubmit={handleSubmit} />
             {isSubmitting && (
-              <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }]}>
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  {
+                    backgroundColor: "rgba(0,0,0,0.5)",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  },
+                ]}
+              >
                 <ActivityIndicator size="large" color="#FFF" />
-                <Text style={{ color: '#FFF', marginTop: 10, fontWeight: 'bold' }}>Submitting...</Text>
+                <Text style={{ color: "#FFF", marginTop: 10, fontWeight: "bold" }}>
+                  Submitting...
+                </Text>
               </View>
             )}
           </View>
@@ -277,7 +287,9 @@ export default function CreateReportWizard() {
 
   if (submitted) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bgBase, padding: Spacing[5] }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.bgBase, padding: Spacing[5] }]}
+      >
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <View
             style={{
@@ -292,11 +304,24 @@ export default function CreateReportWizard() {
           >
             <LumenIcon name="check" size="xl" color="#15803D" />
           </View>
-          <Text style={{ fontSize: 28, fontWeight: "800", color: colors.textPrimary, marginBottom: 10 }}>
+          <Text
+            style={{ fontSize: 28, fontWeight: "800", color: colors.textPrimary, marginBottom: 10 }}
+          >
             Report Submitted!
           </Text>
-          <Text style={{ fontSize: 16, color: colors.textSecondary, textAlign: "center", marginBottom: 30 }}>
-            Your tracking ID is <Text style={{ fontWeight: "bold", color: colors.textPrimary }}>{createdReport?.trackingId}</Text>. We will notify you of any updates.
+          <Text
+            style={{
+              fontSize: 16,
+              color: colors.textSecondary,
+              textAlign: "center",
+              marginBottom: 30,
+            }}
+          >
+            Your tracking ID is{" "}
+            <Text style={{ fontWeight: "bold", color: colors.textPrimary }}>
+              {createdReport?.trackingId}
+            </Text>
+            . We will notify you of any updates.
           </Text>
           <TouchableOpacity
             style={{
@@ -308,13 +333,28 @@ export default function CreateReportWizard() {
               width: "100%",
             }}
             onPress={() =>
-              router.replace({ pathname: "/(citizen)/Report-details", params: { id: createdReport?.id } } as any)
+              router.replace({
+                pathname: "/(citizen)/Report-details",
+                params: { id: createdReport?.id },
+              } as any)
             }
           >
-            <Text style={{ color: "white", fontWeight: "bold", textAlign: "center", fontSize: 16 }}>View Report</Text>
+            <Text style={{ color: "white", fontWeight: "bold", textAlign: "center", fontSize: 16 }}>
+              View Report
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={{ padding: 15 }} onPress={() => router.replace("/(citizen)/My-report")}>
-            <Text style={{ color: colors.textSecondary, fontWeight: "600", textAlign: "center", fontSize: 16 }}>
+          <TouchableOpacity
+            style={{ padding: 15 }}
+            onPress={() => router.replace("/(citizen)/My-report")}
+          >
+            <Text
+              style={{
+                color: colors.textSecondary,
+                fontWeight: "600",
+                textAlign: "center",
+                fontSize: 16,
+              }}
+            >
               Back to My Reports
             </Text>
           </TouchableOpacity>
@@ -328,22 +368,44 @@ export default function CreateReportWizard() {
       <SafeAreaView
         style={[
           styles.container,
-          { backgroundColor: colors.bgBase, alignItems: "center", justifyContent: "center", padding: 20 },
+          {
+            backgroundColor: colors.bgBase,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          },
         ]}
       >
         <LumenIcon name="mapPin" size="xl" color={colors.brand} />
-        <Text style={{ fontSize: 24, fontWeight: "700", marginVertical: 20, color: colors.textPrimary, textAlign: "center" }}>
+        <Text
+          style={{
+            fontSize: 24,
+            fontWeight: "700",
+            marginVertical: 20,
+            color: colors.textPrimary,
+            textAlign: "center",
+          }}
+        >
           Location Required
         </Text>
-        <Text style={{ fontSize: 16, color: colors.textSecondary, textAlign: "center", marginBottom: 30 }}>
+        <Text
+          style={{
+            fontSize: 16,
+            color: colors.textSecondary,
+            textAlign: "center",
+            marginBottom: 30,
+          }}
+        >
           {permissionState === "disabled"
             ? "Device GPS services are disabled. Please enable them to continue."
             : permissionState === "blocked"
-            ? "Location permission was denied permanently. Please open settings."
-            : "We need your precise location to register this complaint correctly with the city."}
+              ? "Location permission was denied permanently. Please open settings."
+              : "We need your precise location to register this complaint correctly with the city."}
         </Text>
-        {permissionState === "checking" && <ActivityIndicator size="large" color={colors.brand} style={{ marginBottom: 20 }} />}
-        
+        {permissionState === "checking" && (
+          <ActivityIndicator size="large" color={colors.brand} style={{ marginBottom: 20 }} />
+        )}
+
         {["denied", "undetermined"].includes(permissionState) && (
           <TouchableOpacity
             style={{
@@ -356,7 +418,9 @@ export default function CreateReportWizard() {
             }}
             onPress={requestPermission}
           >
-            <Text style={{ color: "white", fontWeight: "bold", textAlign: "center", fontSize: 16 }}>Grant Permission</Text>
+            <Text style={{ color: "white", fontWeight: "bold", textAlign: "center", fontSize: 16 }}>
+              Grant Permission
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -372,7 +436,9 @@ export default function CreateReportWizard() {
             }}
             onPress={() => Linking.openSettings()}
           >
-            <Text style={{ color: "white", fontWeight: "bold", textAlign: "center", fontSize: 16 }}>Open Settings</Text>
+            <Text style={{ color: "white", fontWeight: "bold", textAlign: "center", fontSize: 16 }}>
+              Open Settings
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -390,11 +456,25 @@ export default function CreateReportWizard() {
             }}
             onPress={checkLocationPermissions}
           >
-            <Text style={{ color: colors.textPrimary, fontWeight: "bold", textAlign: "center", fontSize: 16 }}>Re-check GPS Status</Text>
+            <Text
+              style={{
+                color: colors.textPrimary,
+                fontWeight: "bold",
+                textAlign: "center",
+                fontSize: 16,
+              }}
+            >
+              Re-check GPS Status
+            </Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={{ padding: 15 }} onPress={() => router.replace("/(citizen)/Dashboard")}>
-          <Text style={{ color: colors.textSecondary, fontWeight: "600", fontSize: 16 }}>Cancel</Text>
+        <TouchableOpacity
+          style={{ padding: 15 }}
+          onPress={() => router.replace("/(citizen)/Dashboard")}
+        >
+          <Text style={{ color: colors.textSecondary, fontWeight: "600", fontSize: 16 }}>
+            Cancel
+          </Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -403,7 +483,10 @@ export default function CreateReportWizard() {
   const progress = currentStep / TOTAL_STEPS;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bgBase }]} edges={["top", "bottom"]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.bgBase }]}
+      edges={["top", "bottom"]}
+    >
       {/* Header */}
       <View style={[styles.header, { paddingHorizontal: Spacing[5], paddingVertical: Spacing[4] }]}>
         <TouchableOpacity
@@ -413,13 +496,24 @@ export default function CreateReportWizard() {
           <LumenIcon name="chevronLeft" size="md" color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={[TextStyles.title, { color: colors.textPrimary }]}>
-          {currentStep === TOTAL_STEPS ? "Review & Submit" : `Step ${currentStep} of ${TOTAL_STEPS}`}
+          {currentStep === TOTAL_STEPS
+            ? "Review & Submit"
+            : `Step ${currentStep} of ${TOTAL_STEPS}`}
         </Text>
         <View style={{ width: 40 }} />
       </View>
 
       {/* Progress Bar */}
-      <View style={[styles.progressContainer, { backgroundColor: colors.bgSurface, marginHorizontal: Spacing[5], marginBottom: Spacing[5] }]}>
+      <View
+        style={[
+          styles.progressContainer,
+          {
+            backgroundColor: colors.bgSurface,
+            marginHorizontal: Spacing[5],
+            marginBottom: Spacing[5],
+          },
+        ]}
+      >
         <MotiView
           style={[styles.progressBar, { backgroundColor: colors.brand }]}
           animate={{ width: `${progress * 100}%` }}
@@ -428,7 +522,10 @@ export default function CreateReportWizard() {
       </View>
 
       {/* Form Content */}
-      <KeyboardAvoidingView style={styles.content} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView
+        style={styles.content}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         <AnimatePresence exitBeforeEnter>
           <MotiView
             key={`step-${currentStep}`}

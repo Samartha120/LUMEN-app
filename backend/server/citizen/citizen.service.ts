@@ -21,10 +21,14 @@ export class CitizenService {
       _count: { _all: true },
     });
 
-    const total = complaints.reduce((acc: number, curr: any) => acc + curr._count._all, 0);
+    const total = complaints.reduce(
+      (acc: number, curr: any) => acc + curr._count._all,
+      0,
+    );
     const resolved =
-      complaints.find((c: any) => c.status === 'RESOLVED' || c.status === 'CLOSED')
-        ?._count._all || 0;
+      complaints.find(
+        (c: any) => c.status === 'RESOLVED' || c.status === 'CLOSED',
+      )?._count._all || 0;
     const pending = total - resolved;
 
     // Generate mock graph data for the last 7 days since real grouping by date requires raw SQL which might not be portable
@@ -56,7 +60,7 @@ export class CitizenService {
 
     const categoryMap: Record<string, number> = {};
     const totalComplaints = allComplaints.length || 1;
-    allComplaints.forEach((c: any) => {
+    allComplaints.forEach((c) => {
       const cat = c.category || 'Other';
       categoryMap[cat] = (categoryMap[cat] || 0) + 1;
     });
@@ -90,7 +94,7 @@ export class CitizenService {
     });
     const yearlyValues = Array(12).fill(0);
 
-    allComplaints.forEach((c: any) => {
+    allComplaints.forEach((c) => {
       const diffTime = Math.abs(now.getTime() - c.createdAt.getTime());
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
@@ -205,35 +209,47 @@ export class CitizenService {
     return complaint.timeline;
   }
 
-  private async analyzeDocumentAuthenticity(docs: Record<string, any>): Promise<{ success: boolean; reason?: string }> {
+  private async analyzeDocumentAuthenticity(
+    docs: Record<string, any>,
+  ): Promise<{ success: boolean; reason?: string }> {
     // Permanent internal heuristic AI simulation (no external API keys needed)
     this.logger.log('Starting internal AI document authenticity scan...');
     await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate processing delay
-    
+
     if (!docs || !docs.idDocumentUrl || !docs.selfieUrl) {
-      return { success: false, reason: 'Missing mandatory documents (ID and Selfie required).' };
+      return {
+        success: false,
+        reason: 'Missing mandatory documents (ID and Selfie required).',
+      };
     }
-    
+
     // Deterministic simulation based on file URL
-    const combineStr = docs.idDocumentUrl + docs.selfieUrl;
+    const combineStr =
+      (docs.idDocumentUrl as string) + (docs.selfieUrl as string);
     let score = 0;
     for (let i = 0; i < combineStr.length; i++) {
       score += combineStr.charCodeAt(i);
     }
-    
+
     // ~7% chance to simulate a fake document detection for testing purposes
     if (score % 13 === 0) {
-      this.logger.warn('AI Triage detected potential photocopy or manipulated document.');
-      return { success: false, reason: 'AI Verification Failed: The document appears to be a photocopy or digitally manipulated.' };
+      this.logger.warn(
+        'AI Triage detected potential photocopy or manipulated document.',
+      );
+      return {
+        success: false,
+        reason:
+          'AI Verification Failed: The document appears to be a photocopy or digitally manipulated.',
+      };
     }
-    
+
     this.logger.log('AI Triage confirmed documents are authentic.');
     return { success: true };
   }
 
   async verifyIdentity(userId: string, data: VerifyIdentityDto) {
     const aiResult = await this.analyzeDocumentAuthenticity(data.documents);
-    
+
     if (!aiResult.success) {
       throw new ForbiddenException(aiResult.reason);
     }

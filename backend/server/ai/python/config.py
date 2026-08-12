@@ -24,5 +24,8 @@ class Settings(BaseSettings):
     # Security
     PREVENT_SSRF: bool = os.getenv("PREVENT_SSRF", "True").lower() in ("true", "1", "yes")
 
+    # Image Quality
+    BLUR_THRESHOLD: float = float(os.getenv("BLUR_THRESHOLD", "100.0"))
+
 settings = Settings()
 

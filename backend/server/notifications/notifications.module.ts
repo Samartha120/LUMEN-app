@@ -14,7 +14,9 @@ import { NotificationsGateway } from './notifications.gateway';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'lumen-super-secret-jwt-key',
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'lumen-super-secret-jwt-key',
       }),
       inject: [ConfigService],
     }),

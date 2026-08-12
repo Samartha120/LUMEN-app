@@ -14,6 +14,17 @@ from config import settings
 
 logger = logging.getLogger("uvicorn.error")
 
+def calculate_blur_score(image: np.ndarray) -> float:
+    """
+    Calculates the variance of the Laplacian to determine the blurriness of an image.
+    Lower score means more blurry.
+    """
+    if len(image.shape) == 3:
+        gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    else:
+        gray = image
+    score = cv2.Laplacian(gray, cv2.CV_64F).var()
+    return float(score)
 def is_safe_url(url: str) -> bool:
     """
     SSRF validation logic: Parse hostname from URL and resolve to IP.

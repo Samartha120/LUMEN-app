@@ -139,10 +139,10 @@ export default function ReportIssueScreen() {
           const filename = imageUri.split("/").pop();
           const match = /\.(\w+)$/.exec(filename || "");
           const type = match ? `image/${match[1]}` : `image`;
-          
+
           const formData = new FormData();
           formData.append("file", { uri: imageUri, name: filename, type } as any);
-          
+
           try {
             console.log("Upload started");
             const uploadResponse = await ComplaintsService.uploadImage(formData);
@@ -174,7 +174,7 @@ export default function ReportIssueScreen() {
         console.log("Complaint request sent");
         const createResult = await ComplaintsService.create(payload);
         console.log("Complaint created successfully:", createResult);
-        
+
         // Invalidate query caches to refresh dashboard and recent reports list
         queryClient.invalidateQueries({ queryKey: ["citizen-complaints"] });
         queryClient.invalidateQueries({ queryKey: ["citizen-dashboard"] });
@@ -198,7 +198,7 @@ export default function ReportIssueScreen() {
         Alert.alert("Success", "Your report has been successfully submitted!");
       }
       await new Promise((r) => setTimeout(r, 1200));
-      
+
       // Reset state so the screen is completely fresh if reopened
       setStep(0);
       setCategory("");

@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import * as path from 'path';
 
 @Injectable()
 export class MailService {
-  private transporter: nodemailer.Transporter;
+  private transporter!: nodemailer.Transporter;
   private readonly logger = new Logger(MailService.name);
 
   constructor() {
@@ -59,7 +60,7 @@ export class MailService {
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 24px;">
                 <tr>
                   <td align="center">
-                    <img src="https://raw.githubusercontent.com/Samartha120/LUMEN-app/main/backend/src/mail/lumen_logo.png" alt="LUMEN Logo" width="80" height="80" style="display: block; border-radius: 50%; border: 2px solid #e2e8f0;" />
+                    <img src="cid:lumen_logo" alt="LUMEN Logo" width="80" height="80" style="display: block; border-radius: 50%; border: 2px solid #e2e8f0;" />
                   </td>
                 </tr>
               </table>
@@ -106,6 +107,13 @@ export class MailService {
         to,
         subject: 'LUMEN - Verify your account (OTP)',
         html: htmlTemplate,
+        attachments: [
+          {
+            filename: 'lumen_logo.png',
+            path: path.join(__dirname, 'lumen_logo.png'),
+            cid: 'lumen_logo',
+          },
+        ],
       });
 
       this.logger.log(`OTP Email sent to ${to}.`);

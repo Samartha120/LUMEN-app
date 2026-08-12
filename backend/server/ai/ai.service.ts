@@ -113,6 +113,78 @@ export class AiService {
     };
   }
 
+  async validateComplaintImageSync(imageUrl: string, category: string): Promise<FastApiPredictionResponse> {
+    this.logger.log(`Synchronously validating image for category: ${category}`);
+
+    const inferenceUrl = this.configService.get<string>('FASTAPI_INFERENCE_URL');
+    const apiKey = this.configService.get<string>('FASTAPI_API_KEY');
+    
+    if (!inferenceUrl) {
+      this.logger.warn('FASTAPI_INFERENCE_URL not set. Skipping synchronous validation.');
+      // Return a dummy successful response if AI is disabled
+      return {
+        damageClass: 'UNKNOWN',
+        confidenceScore: 1.0,
+        is_blurry: false,
+        blur_score: 100,
+        boundingBoxes: [],
+        metadata: { processingTimeMs: 0, device: 'none', type: 'image' },
+      };
+    }
+
+    try {
+      const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : {};
+      const response = await firstValueFrom(
+        this.httpService.post<FastApiPredictionResponse>(
+          `${inferenceUrl}/detect/image`,
+          { url: imageUrl },
+          { headers, timeout: 30000 },
+        ),
+      );
+
+      const data = response.data;
+
+      // 1. Blur Validation
+      if (data.is_blurry) {
+        throw new Error('Photo is too blurry. Please capture a clearer photo.');
+      }
+
+      // 2. Confidence Validation
+      const THRESHOLD = 0.60;
+      // UNKNOWN means YOLO found nothing at all. Or if confidence is too low.
+      if (data.damageClass === 'UNKNOWN' || data.confidenceScore < THRESHOLD) {
+        throw new Error('The issue could not be identified clearly. Please submit a clearer photo.');
+      }
+
+      // 3. Category Relevance Validation
+      // Map frontend categories to expected YOLO classes roughly
+      const normalizedCategory = category.toUpperCase();
+      const detected = data.damageClass.toLowerCase();
+      
+      let isRelevant = false;
+      if (normalizedCategory.includes('ROAD') || normalizedCategory.includes('INFRASTRUCTURE')) {
+        if (['d00', 'd10', 'd20', 'd40', 'pothole', 'crack'].some(c => detected.includes(c))) isRelevant = true;
+      } else if (normalizedCategory.includes('WATER') || normalizedCategory.includes('LEAK')) {
+        if (['water', 'leak', 'flood', 'hazard'].some(c => detected.includes(c))) isRelevant = true;
+      } else if (normalizedCategory.includes('WASTE') || normalizedCategory.includes('TRASH')) {
+        if (['trash', 'garbage', 'litter', 'waste'].some(c => detected.includes(c))) isRelevant = true;
+      } else {
+        // If it's a category we don't have a specific model for, we might accept it if confidence is high
+        isRelevant = true; 
+      }
+
+      if (!isRelevant) {
+        throw new Error('This photo does not appear to match the selected issue.');
+      }
+
+      return data;
+    } catch (error) {
+      this.logger.error(`Synchronous validation failed: ${error.message}`);
+      // Re-throw so ComplaintsService can catch and throw BadRequestException
+      throw error;
+    }
+  }
+
   async processImagePrediction(complaintId: string, imageUrl: string) {
     this.logger.log(
       `Processing image prediction for complaint: ${complaintId}`,
@@ -186,9 +258,11 @@ export class AiService {
         message: 'Video queued for analysis',
       };
     } catch (e) {
-      this.logger.warn(`Redis offline, running video prediction directly in background for ${complaintId}`);
-      this.processVideoPrediction(complaintId, videoUrl).catch(err => 
-        this.logger.error(`Direct video prediction failed: ${err.message}`)
+      this.logger.warn(
+        `Redis offline, running video prediction directly in background for ${complaintId}`,
+      );
+      this.processVideoPrediction(complaintId, videoUrl).catch((err) =>
+        this.logger.error(`Direct video prediction failed: ${err.message}`),
       );
       return {
         status: AI_PREDICTION_STATUS.PENDING,
@@ -247,9 +321,11 @@ export class AiService {
         message: 'Image queued for analysis',
       };
     } catch (e) {
-      this.logger.warn(`Redis offline, running image prediction directly in background for ${complaintId}`);
-      this.processImagePrediction(complaintId, imageUrl).catch(err => 
-        this.logger.error(`Direct image prediction failed: ${err.message}`)
+      this.logger.warn(
+        `Redis offline, running image prediction directly in background for ${complaintId}`,
+      );
+      this.processImagePrediction(complaintId, imageUrl).catch((err) =>
+        this.logger.error(`Direct image prediction failed: ${err.message}`),
       );
       return {
         status: AI_PREDICTION_STATUS.PENDING,
@@ -274,9 +350,11 @@ export class AiService {
         message: 'YOLO prediction queued',
       };
     } catch (e) {
-      this.logger.warn(`Redis offline, running YOLO prediction directly in background for ${complaintId}`);
-      this.processYoloPrediction(complaintId, imageUrl).catch(err => 
-        this.logger.error(`Direct YOLO prediction failed: ${err.message}`)
+      this.logger.warn(
+        `Redis offline, running YOLO prediction directly in background for ${complaintId}`,
+      );
+      this.processYoloPrediction(complaintId, imageUrl).catch((err) =>
+        this.logger.error(`Direct YOLO prediction failed: ${err.message}`),
       );
       return {
         status: AI_PREDICTION_STATUS.PENDING,

@@ -106,7 +106,11 @@ apiClient.interceptors.response.use(
       }
     }
 
-    console.error("API Error Response:", error.response?.status, error.response?.data || error.message);
+    console.error(
+      "API Error Response:",
+      error.response?.status,
+      error.response?.data || error.message
+    );
     return Promise.reject(error);
   }
 );

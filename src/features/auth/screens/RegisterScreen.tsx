@@ -188,7 +188,7 @@ function RegisterLogo() {
   const scale = useSharedValue(0);
 
   useEffect(() => {
-    scale.value = withSpring(1, { damping: 14, stiffness: 120 });
+    scale.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.quad) });
     rotate.value = withRepeat(
       withSequence(
         withTiming(8, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
@@ -320,7 +320,7 @@ export default function RegisterScreen() {
           <MotiView
             from={{ opacity: 0, translateY: -20 }}
             animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "spring", delay: 100, damping: 18 }}
+            transition={{ type: "timing", duration: 800, easing: Easing.out(Easing.quad) }}
             style={styles.headerSection}
           >
             <RegisterLogo />
@@ -328,7 +328,7 @@ export default function RegisterScreen() {
             <MotiText
               from={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: "spring", delay: 250, damping: 14 }}
+              transition={{ type: "timing", duration: 800, delay: 150, easing: Easing.out(Easing.quad) }}
               style={styles.brand}
             >
               JOIN LUMEN
@@ -337,7 +337,7 @@ export default function RegisterScreen() {
             <MotiView
               from={{ opacity: 0, translateY: 10 }}
               animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: "timing", delay: 380, duration: 400 }}
+              transition={{ type: "timing", duration: 800, delay: 250, easing: Easing.out(Easing.quad) }}
             >
               <Text style={styles.title}>Create Your Account</Text>
               <Text style={styles.subtitle}>Report issues · Track progress · Build your city</Text>
@@ -347,7 +347,7 @@ export default function RegisterScreen() {
             <MotiView
               from={{ opacity: 0, translateY: 8 }}
               animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: "timing", delay: 500, duration: 400 }}
+              transition={{ type: "timing", duration: 800, delay: 350, easing: Easing.out(Easing.quad) }}
               style={styles.pillsRow}
             >
               <FeatureText label="Secure" />
@@ -358,9 +358,9 @@ export default function RegisterScreen() {
 
           {/* Form Card */}
           <MotiView
-            from={{ opacity: 0, translateY: 40, scale: 0.96 }}
+            from={{ opacity: 0, translateY: 30, scale: 0.98 }}
             animate={{ opacity: 1, translateY: 0, scale: 1 }}
-            transition={{ type: "spring", delay: 300, damping: 18, stiffness: 110 }}
+            transition={{ type: "timing", duration: 800, delay: 200, easing: Easing.out(Easing.quad) }}
           >
             <BlurView intensity={28} tint="dark" style={styles.glassCard}>
               {/* Top accent line with purple theme */}

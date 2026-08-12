@@ -28,7 +28,7 @@ export class MapsService {
 
     return {
       type: 'FeatureCollection',
-      features: complaints.map((complaint) => ({
+      features: complaints.map((complaint: any) => ({
         type: 'Feature',
         geometry: {
           type: 'Point',

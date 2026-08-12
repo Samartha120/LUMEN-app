@@ -105,8 +105,17 @@ class YOLODetector:
             logger.warning("Inference queue is full. Rejecting request.")
             raise asyncio.QueueFull("Inference queue capacity exceeded. Please retry later.")
             
+        # Calculate blur score synchronously while YOLO is running in background queue
+        from preprocess import calculate_blur_score
+        blur_score = calculate_blur_score(image)
+        is_blurry = blur_score < settings.BLUR_THRESHOLD
+        
         # Await the future until resolved by the background batching worker
         pred = await future
+        
+        pred["blur_score"] = blur_score
+        pred["is_blurry"] = is_blurry
+        
         return pred
         
     async def predict_video(self, url: str) -> dict:

@@ -122,6 +122,8 @@ model Complaint {
   
   latitude    Float?
   longitude   Float?
+  accuracy    Float?
+  capturedAt  DateTime?
   
   confidence  Float?
   severity    Float?

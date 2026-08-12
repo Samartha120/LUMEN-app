@@ -22,13 +22,44 @@ export class ComplaintsService {
     private aiService: AiService,
   ) {}
 
-  async create(createComplaintDto: CreateComplaintDto, user: User | null) {
+  async create(createComplaintDto: CreateComplaintDto, user: User) {
     if (!createComplaintDto.imageUrl) {
       throw new BadRequestException(
         'Image URL is strictly required to file a complaint',
       );
     }
 
+    if (createComplaintDto.latitude === undefined || createComplaintDto.longitude === undefined) {
+      throw new BadRequestException('GPS coordinates (latitude and longitude) are strictly required');
+    }
+    
+    if (createComplaintDto.latitude < -90 || createComplaintDto.latitude > 90) {
+      throw new BadRequestException('Latitude must be between -90 and 90 degrees');
+    }
+    
+    if (createComplaintDto.longitude < -180 || createComplaintDto.longitude > 180) {
+      throw new BadRequestException('Longitude must be between -180 and 180 degrees');
+    }
+
+    // Phase 1: Synchronous AI Image Validation (Strict Enforcement)
+    let aiValidationResult: any = null;
+    try {
+      // @ts-ignore
+      aiValidationResult = await this.aiService.validateComplaintImageSync(createComplaintDto.imageUrl, createComplaintDto.category);
+    } catch (e: any) {
+      // Catch validation errors (blur, confidence, category mismatch) and block submission
+      throw new BadRequestException(e.message || 'Image validation failed');
+    }
+
+    // Phase 2: Geographic Duplicate Detection (PostGIS logic equivalent)
+    // 20 meters = 0.02 km
+    const nearby = await this.findNearby(createComplaintDto.latitude, createComplaintDto.longitude, 0.02);
+    const hasDuplicate = nearby.some((c: any) => c.category === createComplaintDto.category);
+    if (hasDuplicate) {
+      throw new BadRequestException('A similar issue has already been reported at this exact location.');
+    }
+
+    // Phase 3: Create Complaint in PostgreSQL
     const complaint = await this.prisma.complaint.create({
       data: {
         trackingId: `CMP-${Date.now()}`,
@@ -39,40 +70,40 @@ export class ComplaintsService {
         latitude: createComplaintDto.latitude,
         longitude: createComplaintDto.longitude,
         // @ts-ignore: IDE cache may not have picked up the new Prisma schema fields yet
+        accuracy: createComplaintDto.accuracy,
+        // @ts-ignore
+        capturedAt: createComplaintDto.capturedAt ? new Date(createComplaintDto.capturedAt) : undefined,
+        // @ts-ignore
         imageUrl: createComplaintDto.imageUrl,
         // @ts-ignore
         videoUrl: createComplaintDto.videoUrl,
         isAnonymous: createComplaintDto.isAnonymous || false,
-        reporterId: user ? user.id : undefined,
+        reporterId: user.id,
       },
     });
 
-    this.logger.log(`Complaint created in PostgreSQL! ID: ${complaint.id}, TrackingID: ${complaint.trackingId}`);
+    this.logger.log(
+      `Complaint created in PostgreSQL! ID: ${complaint.id}, TrackingID: ${complaint.trackingId}`,
+    );
 
-    // Removed PostGIS ST_SetSRID update
-
-    // Phase 20: Queue background jobs for AI prediction
-    // @ts-ignore
-    if (createComplaintDto.imageUrl) {
-      // @ts-ignore
-      await this.aiService.queueImagePrediction(
-        complaint.id,
-        createComplaintDto.imageUrl,
-      );
-      // @ts-ignore
-      await this.aiService.queueYoloPrediction(
-        complaint.id,
-        createComplaintDto.imageUrl,
-      );
-    } else if (createComplaintDto.videoUrl) {
-      // @ts-ignore
-      await this.aiService.queueVideoPrediction(
-        complaint.id,
-        createComplaintDto.videoUrl,
-      );
+    // Phase 4: Save AI Metadata synchronously (instead of queueing for YOLO again)
+    if (aiValidationResult) {
+       await this.prisma.aiPrediction.create({
+         data: {
+           complaintId: complaint.id,
+           damageClass: aiValidationResult.damageClass,
+           confidenceScore: aiValidationResult.confidenceScore,
+           boundingBoxes: aiValidationResult.boundingBoxes,
+           metadata: aiValidationResult.metadata,
+           status: 'COMPLETED'
+         }
+       });
     }
 
-    return this.prisma.complaint.findUnique({ where: { id: complaint.id } });
+    return this.prisma.complaint.findUnique({ 
+      where: { id: complaint.id },
+      include: { aiPrediction: true }
+    });
   }
 
   async sync(syncDto: SyncComplaintsDto, user: User | null) {

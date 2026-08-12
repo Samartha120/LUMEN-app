@@ -45,8 +45,9 @@ const PRIORITY_COLOR: Record<string, string> = {
 
 export function ReportCard({ report, colors, isDark }: ReportCardProps) {
   const normalizedStatus = (report.status || "PENDING").toUpperCase();
-  const status = STATUS_CONFIG[normalizedStatus as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.PENDING;
-  
+  const status =
+    STATUS_CONFIG[normalizedStatus as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.PENDING;
+
   const priorityColor = PRIORITY_COLOR[(report.priority || "MEDIUM").toUpperCase()] || "#F79009";
 
   return (

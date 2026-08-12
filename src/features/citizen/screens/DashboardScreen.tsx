@@ -18,6 +18,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { LineChart } from "react-native-gifted-charts";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import * as Location from "expo-location";
 import {
   Animated,
   Dimensions,
@@ -132,6 +133,7 @@ export default function CitizenDashboardScreen() {
   const { user } = useAuthStore((s) => s);
   const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(getTimeString());
+  const [currentLocation, setCurrentLocation] = useState("Bangalore, KA");
 
   const {
     data: dashboardData,
@@ -164,6 +166,34 @@ export default function CitizenDashboardScreen() {
   useEffect(() => {
     const t = setInterval(() => setCurrentTime(getTimeString()), 60000);
     return () => clearInterval(t);
+  }, []);
+
+  // Fetch dynamic location city name
+  useEffect(() => {
+    async function getUserLocation() {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === "granted") {
+          const loc = await Location.getCurrentPositionAsync({
+            accuracy: Location.LocationAccuracy.Balanced,
+          });
+          const [address] = await Location.reverseGeocodeAsync({
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+          });
+          if (address) {
+            const city = address.city || address.subregion || address.district;
+            const region = address.region || address.country;
+            if (city) {
+              setCurrentLocation(`${city}${region ? `, ${region}` : ""}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.warn("Failed to get dashboard location:", error);
+      }
+    }
+    getUserLocation();
   }, []);
 
   // Pulse animation for AI badge
@@ -295,7 +325,7 @@ export default function CitizenDashboardScreen() {
             <View style={s.locationRow}>
               <LumenIcon name="mapPin" size="xs" color={colors.textTertiary} />
               <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
-                Bangalore, KA · {getDateString()}
+                {currentLocation} · {getDateString()}
               </Text>
             </View>
           </View>
@@ -323,7 +353,7 @@ export default function CitizenDashboardScreen() {
               </View>
             </Pressable>
             <Pressable onPress={() => router.push("/(citizen)/Profile" as any)}>
-              <Avatar name="Samuel K." size="md" role="citizen" online />
+              <Avatar name={user?.fullName || "Guest"} size="md" role="citizen" online />
             </Pressable>
           </View>
         </Animated.View>
@@ -436,7 +466,7 @@ export default function CitizenDashboardScreen() {
               >
                 Complaints Trend (Last 7 Days)
               </Text>
-              
+
               <LineChart
                 data={dashboardData.graphData.Daily.values.map((v: number, i: number) => ({
                   value: v,
@@ -479,10 +509,16 @@ export default function CitizenDashboardScreen() {
                           shadowOpacity: 0.1,
                           shadowRadius: 4,
                           elevation: 2,
-                          alignItems: "center"
+                          alignItems: "center",
                         }}
                       >
-                        <Text style={{ fontWeight: "700", color: isDark ? "#FFF" : "#000", fontSize: 12 }}>
+                        <Text
+                          style={{
+                            fontWeight: "700",
+                            color: isDark ? "#FFF" : "#000",
+                            fontSize: 12,
+                          }}
+                        >
                           {items[0].value} Reports
                         </Text>
                       </View>
@@ -682,11 +718,11 @@ export default function CitizenDashboardScreen() {
 
           <View style={s.reportsList}>
             {myReports?.slice(0, 3).map((report: any) => (
-              <ReportCard 
-                key={report.id} 
-                report={{...report, time: formatTime(report.createdAt)}} 
-                colors={colors} 
-                isDark={isDark} 
+              <ReportCard
+                key={report.id}
+                report={{ ...report, time: formatTime(report.createdAt) }}
+                colors={colors}
+                isDark={isDark}
               />
             ))}
             {(!myReports || myReports.length === 0) && (

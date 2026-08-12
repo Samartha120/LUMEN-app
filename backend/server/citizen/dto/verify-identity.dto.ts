@@ -8,13 +8,14 @@ export class VerifyIdentityDto {
   })
   @IsString()
   @IsNotEmpty()
-  documentType: string;
+  documentType!: string;
 
   @ApiProperty({
     description:
-      'The JSON data/metadata containing the document URLs or references',
+      'The JSON data/metadata containing the document URLs. Requires idDocumentUrl and selfieUrl.',
+    example: { idDocumentUrl: 'https://...', selfieUrl: 'https://...' },
   })
   @IsObject()
   @IsNotEmpty()
-  documents: Record<string, any>;
+  documents!: Record<string, any>;
 }

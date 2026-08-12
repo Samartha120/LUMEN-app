@@ -106,7 +106,15 @@ export default function AnalyticsScreen() {
 
 // ── Components ───────────────────────────────────────────────────
 
-function CivicScoreCard({ colors, isDark, score }: { colors: any; isDark: boolean; score: number }) {
+function CivicScoreCard({
+  colors,
+  isDark,
+  score,
+}: {
+  colors: any;
+  isDark: boolean;
+  score: number;
+}) {
   const scale = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
@@ -145,7 +153,15 @@ function CivicScoreCard({ colors, isDark, score }: { colors: any; isDark: boolea
   );
 }
 
-function CategoryBreakdownCard({ colors, isDark, categories }: { colors: any; isDark: boolean; categories: any[] }) {
+function CategoryBreakdownCard({
+  colors,
+  isDark,
+  categories,
+}: {
+  colors: any;
+  isDark: boolean;
+  categories: any[];
+}) {
   if (!categories || categories.length === 0) return null;
   return (
     <View style={[s.card, { borderColor: colors.borderDefault }]}>
@@ -207,7 +223,15 @@ function AnimatedCategoryBar({ category, index }: { category: any; index: number
   );
 }
 
-function DynamicPerformanceGraph({ colors, isDark, graphData }: { colors: any; isDark: boolean; graphData: any }) {
+function DynamicPerformanceGraph({
+  colors,
+  isDark,
+  graphData,
+}: {
+  colors: any;
+  isDark: boolean;
+  graphData: any;
+}) {
   const [timeRange, setTimeRange] = useState<"Daily" | "Monthly" | "Yearly">("Daily");
   const data = graphData[timeRange] || { labels: [], values: [], stats: [] };
   const maxVal = Math.max(...data.values, 10);

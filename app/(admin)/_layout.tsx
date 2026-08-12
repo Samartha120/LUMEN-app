@@ -31,7 +31,13 @@ export default function AdminLayout() {
     };
 
     const backHandler = BackHandler.addEventListener("hardwareBackPress", onBackPress);
-    return () => backHandler.remove();
+    return () => {
+      if (backHandler && typeof backHandler.remove === "function") {
+        backHandler.remove();
+      } else {
+        (BackHandler as any).removeEventListener("hardwareBackPress", onBackPress);
+      }
+    };
   }, [currentPath]);
 
   return (

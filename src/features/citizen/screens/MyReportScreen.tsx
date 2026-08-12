@@ -26,32 +26,37 @@ import { CitizenService } from "@/services/citizen.service";
 type Status = "all" | "PENDING" | "IN_PROGRESS" | "RESOLVED";
 
 const FILTERS: { id: Status; label: string; color: string; bg: string }[] = [
-  { id: "all",         label: "All",         color: "#208AEF", bg: "#EBF5FF" },
-  { id: "PENDING",     label: "Pending",     color: "#C2410C", bg: "#FFEDD5" },
+  { id: "all", label: "All", color: "#208AEF", bg: "#EBF5FF" },
+  { id: "PENDING", label: "Pending", color: "#C2410C", bg: "#FFEDD5" },
   { id: "IN_PROGRESS", label: "In Progress", color: "#0F766E", bg: "#CCFBF1" },
-  { id: "RESOLVED",    label: "Resolved",    color: "#15803D", bg: "#DCFCE7" },
+  { id: "RESOLVED", label: "Resolved", color: "#15803D", bg: "#DCFCE7" },
 ];
 
 const CATEGORY_META: Record<string, { icon: any; color: string }> = {
-  road:         { icon: "road",        color: "#F59E0B" },
-  streetlight:  { icon: "streetlight", color: "#8B5CF6" },
-  water:        { icon: "water",       color: "#0EA5E9" },
-  garbage:      { icon: "garbage",     color: "#10B981" },
-  electricity:  { icon: "electricity", color: "#F97316" },
+  road: { icon: "road", color: "#F59E0B" },
+  streetlight: { icon: "streetlight", color: "#8B5CF6" },
+  water: { icon: "water", color: "#0EA5E9" },
+  garbage: { icon: "garbage", color: "#10B981" },
+  electricity: { icon: "electricity", color: "#F97316" },
 };
 
 const PRIORITY_COLOR: Record<string, string> = {
-  HIGH: "#F04438", CRITICAL: "#F04438",
-  MEDIUM: "#F79009", LOW: "#12B76A",
+  HIGH: "#F04438",
+  CRITICAL: "#F04438",
+  MEDIUM: "#F79009",
+  LOW: "#12B76A",
 };
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; darkColor: string }> = {
-  PENDING:     { label: "Pending",     color: "#C2410C", bg: "#FFEDD5", darkColor: "#FB923C" },
-  ASSIGNED:    { label: "Assigned",    color: "#C2410C", bg: "#FFEDD5", darkColor: "#FB923C" },
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; color: string; bg: string; darkColor: string }
+> = {
+  PENDING: { label: "Pending", color: "#C2410C", bg: "#FFEDD5", darkColor: "#FB923C" },
+  ASSIGNED: { label: "Assigned", color: "#C2410C", bg: "#FFEDD5", darkColor: "#FB923C" },
   IN_PROGRESS: { label: "In Progress", color: "#0F766E", bg: "#CCFBF1", darkColor: "#2DD4BF" },
-  RESOLVED:    { label: "Resolved",    color: "#15803D", bg: "#DCFCE7", darkColor: "#4ADE80" },
-  CLOSED:      { label: "Closed",      color: "#15803D", bg: "#DCFCE7", darkColor: "#4ADE80" },
-  REJECTED:    { label: "Rejected",    color: "#B91C1C", bg: "#FEE2E2", darkColor: "#F87171" },
+  RESOLVED: { label: "Resolved", color: "#15803D", bg: "#DCFCE7", darkColor: "#4ADE80" },
+  CLOSED: { label: "Closed", color: "#15803D", bg: "#DCFCE7", darkColor: "#4ADE80" },
+  REJECTED: { label: "Rejected", color: "#B91C1C", bg: "#FEE2E2", darkColor: "#F87171" },
 };
 
 function formatTime(dateStr: string) {
@@ -78,51 +83,79 @@ function getProgress(status: string): number {
 }
 
 // ── Stats Card ──────────────────────────────────────────────────
-import { MotiView } from 'moti';
+import { MotiView } from "moti";
 
 function StatCard({
-  count, label, color, bg, isDark, delay = 0
-}: { count: number; label: string; color: string; bg: string; isDark: boolean; delay?: number }) {
+  count,
+  label,
+  color,
+  bg,
+  isDark,
+  delay = 0,
+}: {
+  count: number;
+  label: string;
+  color: string;
+  bg: string;
+  isDark: boolean;
+  delay?: number;
+}) {
   return (
     <MotiView
       from={{ opacity: 0, translateY: 20, scale: 0.9 }}
       animate={{ opacity: 1, translateY: 0, scale: 1 }}
-      transition={{ type: 'spring', delay, damping: 14, stiffness: 100 }}
+      transition={{ type: "spring", delay, damping: 14, stiffness: 100 }}
       style={[
         stat.card,
-        { 
+        {
           backgroundColor: isDark ? color + "1A" : bg,
           borderColor: isDark ? color + "33" : color + "1A",
-        }
+        },
       ]}
     >
       <View style={stat.contentWrap}>
-        <Text style={[stat.count, { color }]} numberOfLines={1} adjustsFontSizeToFit>{count}</Text>
-        <Text style={[stat.label, { color: isDark ? color + "CC" : color }]} numberOfLines={1}>{label}</Text>
+        <Text style={[stat.count, { color }]} numberOfLines={1} adjustsFontSizeToFit>
+          {count}
+        </Text>
+        <Text style={[stat.label, { color: isDark ? color + "CC" : color }]} numberOfLines={1}>
+          {label}
+        </Text>
       </View>
     </MotiView>
   );
 }
 
 const stat = StyleSheet.create({
-  card: { 
-    flex: 1, 
-    borderRadius: 16, 
-    paddingVertical: 16, 
-    paddingHorizontal: 8, 
-    alignItems: "center", 
+  card: {
+    flex: 1,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
   },
   contentWrap: { alignItems: "center", justifyContent: "center", gap: 2 },
   count: { fontSize: 26, fontWeight: "900", textAlign: "center", letterSpacing: -0.5 },
-  label: { fontSize: 11, fontWeight: "700", textAlign: "center", width: "100%", letterSpacing: 0.2 },
+  label: {
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
+    width: "100%",
+    letterSpacing: 0.2,
+  },
 });
 
 // ── Category Pill ───────────────────────────────────────────────
 function CategoryPill({
-  category, count, isDark
-}: { category: string; count: number; isDark: boolean }) {
+  category,
+  count,
+  isDark,
+}: {
+  category: string;
+  count: number;
+  isDark: boolean;
+}) {
   const meta = CATEGORY_META[category.toLowerCase()] || { icon: "reportList", color: "#208AEF" };
   return (
     <View style={[cp.pill, { backgroundColor: isDark ? meta.color + "18" : meta.color + "15" }]}>
@@ -138,7 +171,14 @@ function CategoryPill({
 }
 
 const cp = StyleSheet.create({
-  pill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
   label: { fontSize: 12, fontWeight: "600" },
   badge: { width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   badgeText: { fontSize: 10, fontWeight: "800", color: "#FFFFFF" },
@@ -146,13 +186,22 @@ const cp = StyleSheet.create({
 
 // ── Premium Report Card ─────────────────────────────────────────
 function PremiumReportCard({
-  report, colors, isDark
-}: { report: any; colors: any; isDark: boolean }) {
+  report,
+  colors,
+  isDark,
+}: {
+  report: any;
+  colors: any;
+  isDark: boolean;
+}) {
   const [pressed, setPressed] = useState(false);
   const normalizedStatus = (report.status || "PENDING").toUpperCase();
   const sc = STATUS_CONFIG[normalizedStatus] || STATUS_CONFIG.PENDING;
   const priorityColor = PRIORITY_COLOR[(report.priority || "MEDIUM").toUpperCase()] || "#F79009";
-  const catMeta = CATEGORY_META[(report.category || "").toLowerCase()] || { icon: "reportList", color: "#208AEF" };
+  const catMeta = CATEGORY_META[(report.category || "").toLowerCase()] || {
+    icon: "reportList",
+    color: "#208AEF",
+  };
   const progress = getProgress(report.status);
 
   return (
@@ -189,7 +238,9 @@ function PremiumReportCard({
           </Text>
           <View style={prc.metaRow}>
             <View style={[prc.statusBadge, { backgroundColor: isDark ? sc.color + "22" : sc.bg }]}>
-              <View style={[prc.statusDot, { backgroundColor: isDark ? sc.darkColor : sc.color }]} />
+              <View
+                style={[prc.statusDot, { backgroundColor: isDark ? sc.darkColor : sc.color }]}
+              />
               <Text style={[prc.statusText, { color: isDark ? sc.darkColor : sc.color }]}>
                 {sc.label}
               </Text>
@@ -208,7 +259,12 @@ function PremiumReportCard({
       {/* Progress bar */}
       {progress > 0 && (
         <View style={prc.progressWrap}>
-          <View style={[prc.progressBg, { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#F0F2F5" }]}>
+          <View
+            style={[
+              prc.progressBg,
+              { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#F0F2F5" },
+            ]}
+          >
             <View
               style={[
                 prc.progressFill,
@@ -226,10 +282,13 @@ function PremiumReportCard({
       {/* ID chip */}
       <View style={prc.idRow}>
         <LumenIcon name="clipboard" size="xs" color={colors.textTertiary} strokeWidth={1.5} />
-        <Text style={[prc.idText, { color: colors.textTertiary }]}>#{report.trackingId || report.id}</Text>
+        <Text style={[prc.idText, { color: colors.textTertiary }]}>
+          #{report.trackingId || report.id}
+        </Text>
         <View style={{ flex: 1 }} />
         <Text style={[prc.catLabel, { color: catMeta.color }]}>
-          {(report.category || "").charAt(0).toUpperCase() + (report.category || "").slice(1).toLowerCase()}
+          {(report.category || "").charAt(0).toUpperCase() +
+            (report.category || "").slice(1).toLowerCase()}
         </Text>
       </View>
     </Pressable>
@@ -239,11 +298,24 @@ function PremiumReportCard({
 const prc = StyleSheet.create({
   card: { borderRadius: 18, padding: 16, borderWidth: 1, marginBottom: 12 },
   topRow: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 12 },
-  iconWrap: { width: 46, height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  iconWrap: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   infoWrap: { flex: 1, gap: 6 },
   title: { fontSize: 15, fontWeight: "700", lineHeight: 20 },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  statusBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
   statusText: { fontSize: 11, fontWeight: "700" },
   timeText: { fontSize: 12 },
@@ -270,27 +342,31 @@ export default function MyReportScreen() {
     queryFn: () => CitizenService.getComplaints(),
   });
 
-  const mappedReports = useMemo(() =>
-    (complaints || []).map((c: any) => ({
-      id: c.id,
-      trackingId: c.trackingId,
-      title: c.title || c.description || "Untitled Report",
-      category: (c.category || "road").toLowerCase(),
-      status: c.status || "PENDING",
-      time: formatTime(c.createdAt),
-      priority: c.priority || "MEDIUM",
-    })),
+  const mappedReports = useMemo(
+    () =>
+      (complaints || []).map((c: any) => ({
+        id: c.id,
+        trackingId: c.trackingId,
+        title: c.title || c.description || "Untitled Report",
+        category: (c.category || "road").toLowerCase(),
+        status: c.status || "PENDING",
+        time: formatTime(c.createdAt),
+        priority: c.priority || "MEDIUM",
+      })),
     [complaints]
   );
 
   // Stats
   const total = mappedReports.length;
   const pending = mappedReports.filter((r: any) =>
-    ["PENDING", "ASSIGNED"].includes((r.status || "").toUpperCase())).length;
-  const inProgress = mappedReports.filter((r: any) =>
-    r.status.toUpperCase() === "IN_PROGRESS").length;
+    ["PENDING", "ASSIGNED"].includes((r.status || "").toUpperCase())
+  ).length;
+  const inProgress = mappedReports.filter(
+    (r: any) => r.status.toUpperCase() === "IN_PROGRESS"
+  ).length;
   const resolved = mappedReports.filter((r: any) =>
-    ["RESOLVED", "CLOSED"].includes((r.status || "").toUpperCase())).length;
+    ["RESOLVED", "CLOSED"].includes((r.status || "").toUpperCase())
+  ).length;
 
   // Category breakdown
   const categoryCount = useMemo(() => {
@@ -350,39 +426,80 @@ export default function MyReportScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.brand}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
         }
       >
         {/* ── Stats Row ── */}
         <View style={[s.statsRow, { paddingTop: Spacing[4] }]}>
-          <StatCard delay={100} count={total}      label="Total"       color="#208AEF" bg="#EBF5FF" isDark={isDark} />
-          <StatCard delay={200} count={pending}    label="Pending"     color="#C2410C" bg="#FFEDD5" isDark={isDark} />
-          <StatCard delay={300} count={inProgress} label="In Progress" color="#0F766E" bg="#CCFBF1" isDark={isDark} />
-          <StatCard delay={400} count={resolved}   label="Resolved"    color="#15803D" bg="#DCFCE7" isDark={isDark} />
+          <StatCard
+            delay={100}
+            count={total}
+            label="Total"
+            color="#208AEF"
+            bg="#EBF5FF"
+            isDark={isDark}
+          />
+          <StatCard
+            delay={200}
+            count={pending}
+            label="Pending"
+            color="#C2410C"
+            bg="#FFEDD5"
+            isDark={isDark}
+          />
+          <StatCard
+            delay={300}
+            count={inProgress}
+            label="In Progress"
+            color="#0F766E"
+            bg="#CCFBF1"
+            isDark={isDark}
+          />
+          <StatCard
+            delay={400}
+            count={resolved}
+            label="Resolved"
+            color="#15803D"
+            bg="#DCFCE7"
+            isDark={isDark}
+          />
         </View>
 
         {/* ── Category breakdown ── */}
         <View style={s.section}>
           <Text style={[s.sectionTitle, { color: colors.textSecondary }]}>By Category</Text>
           {Object.keys(categoryCount).length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 4 }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+            >
               {Object.entries(categoryCount).map(([cat, count]) => (
                 <CategoryPill key={cat} category={cat} count={count} isDark={isDark} />
               ))}
             </ScrollView>
           ) : (
-            <Text style={[TextStyles.body, { color: colors.textTertiary, paddingHorizontal: Spacing[1] }]}>
+            <Text
+              style={[
+                TextStyles.body,
+                { color: colors.textTertiary, paddingHorizontal: Spacing[1] },
+              ]}
+            >
               No categories yet.
             </Text>
           )}
         </View>
 
         {/* ── Search ── */}
-        <View style={[s.searchWrap, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)" }]}>
+        <View
+          style={[
+            s.searchWrap,
+            {
+              backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#FFFFFF",
+              borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
+            },
+          ]}
+        >
           <LumenIcon name="search" size="sm" color={colors.textTertiary} strokeWidth={2} />
           <TextInput
             value={search}
@@ -399,7 +516,11 @@ export default function MyReportScreen() {
         </View>
 
         {/* ── Filter tabs ── */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={s.filterRow}
+        >
           {FILTERS.map((f) => {
             const isActive = filter === f.id;
             return (
@@ -410,13 +531,29 @@ export default function MyReportScreen() {
                   s.filterChip,
                   {
                     backgroundColor: isActive
-                      ? isDark ? f.color + "28" : f.bg
-                      : isDark ? "rgba(255,255,255,0.06)" : "#FFFFFF",
-                    borderColor: isActive ? f.color : isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
+                      ? isDark
+                        ? f.color + "28"
+                        : f.bg
+                      : isDark
+                        ? "rgba(255,255,255,0.06)"
+                        : "#FFFFFF",
+                    borderColor: isActive
+                      ? f.color
+                      : isDark
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.08)",
                   },
                 ]}
               >
-                <Text style={[s.filterLabel, { color: isActive ? f.color : colors.textSecondary, fontWeight: isActive ? "700" : "500" }]}>
+                <Text
+                  style={[
+                    s.filterLabel,
+                    {
+                      color: isActive ? f.color : colors.textSecondary,
+                      fontWeight: isActive ? "700" : "500",
+                    },
+                  ]}
+                >
                   {f.label}
                 </Text>
               </Pressable>
@@ -428,8 +565,18 @@ export default function MyReportScreen() {
         <View style={s.listContainer}>
           {filtered.length === 0 ? (
             <View style={s.emptyWrap}>
-              <View style={[s.emptyIcon, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#F2F4F7" }]}>
-                <LumenIcon name="reportList" size="xl" color={colors.textTertiary} strokeWidth={1.5} />
+              <View
+                style={[
+                  s.emptyIcon,
+                  { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#F2F4F7" },
+                ]}
+              >
+                <LumenIcon
+                  name="reportList"
+                  size="xl"
+                  color={colors.textTertiary}
+                  strokeWidth={1.5}
+                />
               </View>
               <Text style={[s.emptyTitle, { color: colors.textPrimary }]}>No reports found</Text>
               <Text style={[s.emptyDesc, { color: colors.textSecondary }]}>
@@ -440,12 +587,7 @@ export default function MyReportScreen() {
             </View>
           ) : (
             filtered.map((report: any) => (
-              <PremiumReportCard
-                key={report.id}
-                report={report}
-                colors={colors}
-                isDark={isDark}
-              />
+              <PremiumReportCard key={report.id} report={report} colors={colors} isDark={isDark} />
             ))
           )}
         </View>
@@ -469,14 +611,23 @@ const s = StyleSheet.create({
     gap: 12,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    alignItems: "center", justifyContent: "center",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8 },
   headerTitle: { fontSize: 22, fontWeight: "800", letterSpacing: -0.4 },
   totalBadge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 20 },
   totalBadgeText: { fontSize: 13, fontWeight: "800", color: "#FFFFFF" },
-  newBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  newBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   // Stats
   statsRow: { flexDirection: "row", gap: 8, paddingHorizontal: 20, marginBottom: 16 },
@@ -502,7 +653,9 @@ const s = StyleSheet.create({
   // Filters
   filterRow: { paddingHorizontal: 20, gap: 8, marginBottom: 16, paddingRight: 24 },
   filterChip: {
-    paddingHorizontal: 16, paddingVertical: 9, borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 24,
     borderWidth: 1,
   },
   filterLabel: { fontSize: 13 },
@@ -512,12 +665,24 @@ const s = StyleSheet.create({
 
   // Empty state
   emptyWrap: { alignItems: "center", paddingTop: 40, paddingBottom: 20, gap: 12 },
-  emptyIcon: { width: 80, height: 80, borderRadius: 40, alignItems: "center", justifyContent: "center", marginBottom: 8 },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
   emptyTitle: { fontSize: 20, fontWeight: "700" },
   emptyDesc: { fontSize: 14, textAlign: "center", lineHeight: 20, maxWidth: 260 },
   emptyAction: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 30,
+    marginTop: 8,
   },
   emptyActionText: { fontSize: 15, fontWeight: "700", color: "#FFFFFF" },
 });

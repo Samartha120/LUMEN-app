@@ -4,6 +4,8 @@ import {
   IsOptional,
   IsString,
   IsBoolean,
+  Min,
+  Max,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Priority } from '@prisma/client';
@@ -26,12 +28,22 @@ export class CreateComplaintDto {
   priority?: Priority;
 
   @IsNumber()
-  @IsOptional()
+  @Min(-90)
+  @Max(90)
   latitude?: number;
 
   @IsNumber()
-  @IsOptional()
+  @Min(-180)
+  @Max(180)
   longitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  accuracy?: number;
+
+  @IsString()
+  @IsOptional()
+  capturedAt?: string;
 
   @IsString()
   imageUrl: string;

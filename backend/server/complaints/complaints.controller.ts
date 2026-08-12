@@ -17,7 +17,7 @@ import { SyncComplaintsDto } from './dto/sync-complaints.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import type { User } from '@prisma/client';
+import * as PrismaClient from '@prisma/client';
 import {
   ApiBearerAuth,
   ApiTags,
@@ -33,21 +33,21 @@ import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 export class ComplaintsController {
   constructor(private readonly complaintsService: ComplaintsService) {}
 
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({
     summary: 'Report a new complaint using pre-uploaded media URLs',
   })
   create(
     @Body() createComplaintDto: CreateComplaintDto,
-    @CurrentUser() user: User | null,
+    @CurrentUser() user: PrismaClient.User,
   ) {
     return this.complaintsService.create(createComplaintDto, user);
   }
 
   @UseGuards(OptionalJwtAuthGuard)
   @Get('test-auth')
-  testAuth(@CurrentUser() user: User | null, @Req() req: any) {
+  testAuth(@CurrentUser() user: PrismaClient.User | null, @Req() req: any) {
     return {
       user,
       headers: req.headers,
@@ -59,7 +59,7 @@ export class ComplaintsController {
   @ApiOperation({
     summary: 'Synchronize an array of complaints created while offline',
   })
-  sync(@Body() syncDto: SyncComplaintsDto, @CurrentUser() user: User) {
+  sync(@Body() syncDto: SyncComplaintsDto, @CurrentUser() user: PrismaClient.User) {
     return this.complaintsService.sync(syncDto, user);
   }
 

@@ -43,4 +43,9 @@ export const ComplaintsService = {
     });
     return response.data;
   },
+
+  async delete(id: string) {
+    const response = await apiClient.delete(`/complaints/${id}`);
+    return response.data;
+  },
 };

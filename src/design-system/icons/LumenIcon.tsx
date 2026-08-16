@@ -221,6 +221,7 @@ const LUMEN_ICONS = {
   moon: Moon,
   offline: WifiOff,
   battery: Battery,
+  trash: Trash2,
 
   // Alerts
   alert: AlertTriangle,

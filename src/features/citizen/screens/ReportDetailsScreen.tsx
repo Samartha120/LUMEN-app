@@ -20,6 +20,7 @@ import {
   ToastAndroid,
   View,
   Platform,
+  Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,10 +32,11 @@ import { Badge } from "@/design-system/components/Badge";
 import { Avatar } from "@/design-system/components/Avatar";
 import { LinearProgress } from "@/design-system/components/Progress";
 import { TextStyles, Spacing, Radius } from "@/design-system/tokens";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ComplaintsService } from "@/services/complaints.service";
 import { CitizenService } from "@/services/citizen.service";
 import { socketService } from "@/services/socket.service";
+import { useAuthStore } from "@/store/AuthStore";
 
 const { width: W } = Dimensions.get("window");
 
@@ -193,8 +195,11 @@ const tl = StyleSheet.create({
 export default function ReportDetailsScreen() {
   const { colors, isDark, shadows } = useTheme();
   const [copied, setCopied] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { id } = useLocalSearchParams<{ id: string }>();
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore((s) => s);
 
   const { data: reportData, isLoading: loadingReport } = useQuery({
     queryKey: ["complaint", id],
@@ -207,6 +212,51 @@ export default function ReportDetailsScreen() {
     queryFn: () => CitizenService.getComplaintTracking(id as string),
     enabled: !!id,
   });
+
+  const isOwner =
+    reportData &&
+    user &&
+    (reportData.reporterId === user.id ||
+      user.role === "ADMIN" ||
+      user.role === "SUPER_ADMIN");
+
+  const handleDeleteReport = () => {
+    Alert.alert(
+      "Delete Report",
+      "Are you sure you want to delete this report? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setIsDeleting(true);
+              await ComplaintsService.delete(id as string);
+              
+              if (Platform.OS === "android") {
+                ToastAndroid.show("Report deleted successfully", ToastAndroid.SHORT);
+              } else {
+                Alert.alert("Success", "Report deleted successfully");
+              }
+
+              // Invalidate cache to refresh list views
+              queryClient.invalidateQueries({ queryKey: ["citizen-complaints"] });
+              queryClient.invalidateQueries({ queryKey: ["citizen-dashboard"] });
+              queryClient.invalidateQueries({ queryKey: ["nearby-complaints"] });
+
+              router.back();
+            } catch (err: any) {
+              console.error("Delete failed:", err);
+              Alert.alert("Error", err.message || "Failed to delete report");
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   useEffect(() => {
     if (id) {
@@ -658,6 +708,29 @@ export default function ReportDetailsScreen() {
             </View>
           )}
 
+          {/* Delete Button */}
+          {isOwner && (
+            <View style={[s.mx, { marginTop: Spacing[4], marginBottom: Spacing[2] }]}>
+              <Pressable
+                onPress={handleDeleteReport}
+                disabled={isDeleting}
+                style={({ pressed }) => [
+                  s.deleteBtn,
+                  {
+                    backgroundColor: isDark ? "rgba(240,68,56,0.08)" : "#FEF3F2",
+                    borderColor: isDark ? "#D92D20" : "#FDA29B",
+                    opacity: pressed || isDeleting ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <LumenIcon name="trash" size="sm" color="#F04438" strokeWidth={2} />
+                <Text style={s.deleteBtnText}>
+                  {isDeleting ? "Deleting..." : "Delete Report"}
+                </Text>
+              </Pressable>
+            </View>
+          )}
+
           <View style={{ height: 60 }} />
         </Animated.View>
       </ScrollView>
@@ -933,4 +1006,18 @@ const s = StyleSheet.create({
     borderRadius: 12,
   },
   openMapsBtnText: { fontSize: 13, fontWeight: "700" },
+  deleteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+  },
+  deleteBtnText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#F04438",
+  },
 });

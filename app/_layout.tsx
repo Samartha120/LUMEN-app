@@ -21,6 +21,11 @@ export default function RootLayout() {
   const segmentsJoined = segments.join("/");
 
   useEffect(() => {
+    // Reset session lock status to false on fresh app launch
+    useAuthStore.getState().setUnlocked(false);
+  }, []);
+
+  useEffect(() => {
     if (user) {
       socketService.connect();
     } else {

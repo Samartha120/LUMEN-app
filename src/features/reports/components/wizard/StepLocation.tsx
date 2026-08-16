@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, ActivityIndicator, Alert, TouchableOpacity, Linking } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { useTheme, Button, Spacing, Radius, TextStyles, LumenIcon } from "@/design-system";
 import { WizardData } from "../../screens/CreateReportWizard";
@@ -32,18 +32,40 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
         latitudeDelta: 0.005,
         longitudeDelta: 0.005,
       });
+      setLoading(false);
+    } else {
+      checkAndAcquireGPS();
     }
-    setLoading(false);
   }, []);
 
   const handleRegionChangeComplete = async (newRegion: Region) => {
     setRegion(newRegion);
-    updateData({
-      location: {
-        ...(data.location || { accuracy: 0, capturedAt: new Date().toISOString() }),
+    let resolvedAddress = `${newRegion.latitude.toFixed(5)}, ${newRegion.longitude.toFixed(5)}`;
+    try {
+      const [rev] = await Location.reverseGeocodeAsync({
         latitude: newRegion.latitude,
         longitude: newRegion.longitude,
-        address: `${newRegion.latitude.toFixed(5)}, ${newRegion.longitude.toFixed(5)}`,
+      });
+      if (rev) {
+        const parts = [
+          rev.streetNumber ? `${rev.streetNumber} ${rev.street || ""}`.trim() : (rev.street || rev.name || ""),
+          rev.district || rev.subregion || "",
+          rev.city || rev.region || "",
+        ].filter(Boolean);
+        if (parts.length > 0) {
+          resolvedAddress = parts.join(", ");
+        }
+      }
+    } catch {
+      // Fallback to coordinates
+    }
+
+    updateData({
+      location: {
+        ...(data.location || { accuracy: 5, capturedAt: new Date().toISOString() }),
+        latitude: newRegion.latitude,
+        longitude: newRegion.longitude,
+        address: resolvedAddress,
       },
     });
   };
@@ -55,14 +77,16 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
       const isEnabled = await Location.hasServicesEnabledAsync();
       if (!isEnabled) {
         setErrorMsg("GPS is disabled");
-        Alert.alert("GPS Disabled", "Please enable GPS/Location services in your settings.");
+        Alert.alert("GPS Disabled", "Please enable GPS/Location services in your device settings.");
+        setLoading(false);
         return;
       }
 
       const perm = await Location.requestForegroundPermissionsAsync();
       if (perm.status !== "granted") {
         setErrorMsg("Permission denied");
-        Alert.alert("Permission Denied", "LUMEN needs location permission to acquire GPS.");
+        Alert.alert("Permission Denied", "LUMEN needs location permission to acquire your GPS.");
+        setLoading(false);
         return;
       }
 
@@ -70,14 +94,26 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
         accuracy: Location.LocationAccuracy.High,
       });
 
-      const [rev] = await Location.reverseGeocodeAsync({
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-      });
+      let address = `${loc.coords.latitude.toFixed(5)}, ${loc.coords.longitude.toFixed(5)}`;
+      try {
+        const [rev] = await Location.reverseGeocodeAsync({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        });
 
-      const address = rev
-        ? `${rev.name || ""}, ${rev.city || ""}, ${rev.region || ""}`.trim().replace(/^,\s*/, "")
-        : `${loc.coords.latitude.toFixed(5)}, ${loc.coords.longitude.toFixed(5)}`;
+        if (rev) {
+          const parts = [
+            rev.streetNumber ? `${rev.streetNumber} ${rev.street || ""}`.trim() : (rev.street || rev.name || ""),
+            rev.district || rev.subregion || "",
+            rev.city || rev.region || "",
+          ].filter(Boolean);
+          if (parts.length > 0) {
+            address = parts.join(", ");
+          }
+        }
+      } catch {
+        // Fallback to coordinates
+      }
 
       updateData({
         location: {
@@ -95,14 +131,9 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
         latitudeDelta: 0.002,
         longitudeDelta: 0.002,
       });
-
-      Alert.alert(
-        "GPS Enabled & Acquired",
-        "GPS location is already enabled and locked! Now you can submit the report."
-      );
     } catch (e) {
       setErrorMsg("Failed to acquire GPS");
-      Alert.alert("GPS Error", "Could not lock GPS location. Try dragging the map instead.");
+      Alert.alert("GPS Error", "Could not lock GPS location automatically. You can pin the location by moving the map.");
     } finally {
       setLoading(false);
     }
@@ -152,7 +183,6 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
         ) : (
           <>
             <MapView
-              provider={PROVIDER_GOOGLE}
               style={styles.map}
               region={region}
               onRegionChangeComplete={handleRegionChangeComplete}
@@ -208,20 +238,44 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
             {data.location?.address || (errorMsg ? errorMsg : "Locating...")}
           </Text>
           {data.location && !errorMsg && (
-            <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
-              <View
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor: "#12B76A",
-                  marginRight: 6,
+            <>
+              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: "#12B76A",
+                    marginRight: 6,
+                  }}
+                />
+                <Text style={{ fontSize: 12, color: "#12B76A", fontWeight: "600" }}>
+                  GPS Lock Active - Ready to submit
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  const lat = data.location?.latitude;
+                  const lng = data.location?.longitude;
+                  if (lat && lng) {
+                    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+                    Linking.openURL(url).catch((err) => console.error("Couldn't load page", err));
+                  }
                 }}
-              />
-              <Text style={{ fontSize: 12, color: "#12B76A", fontWeight: "600" }}>
-                GPS Lock Active - Ready to submit
-              </Text>
-            </View>
+                style={{ marginTop: Spacing[2], flexDirection: "row", alignItems: "center" }}
+              >
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: colors.brand,
+                    fontWeight: "600",
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  Verify / Open in Google Maps
+                </Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
       </View>

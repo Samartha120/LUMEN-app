@@ -34,10 +34,10 @@ export class AnalyticsService {
       }),
       this.prisma.complaint.count({ where: { status: 'RESOLVED' } }),
       this.prisma.$queryRaw<{ avg_ms: bigint }[]>`
-        SELECT AVG(EXTRACT(EPOCH FROM (ct_resolved.created_at - c.created_at)) * 1000)::bigint AS avg_ms
+        SELECT AVG(EXTRACT(EPOCH FROM (ct_resolved."createdAt" - c."createdAt")) * 1000)::bigint AS avg_ms
         FROM complaints c
         JOIN complaint_timelines ct_resolved
-          ON ct_resolved.complaint_id = c.id
+          ON ct_resolved."complaintId" = c.id
           AND ct_resolved.status = 'RESOLVED'
         WHERE c.status IN ('RESOLVED', 'CLOSED')
       `,
@@ -83,10 +83,10 @@ export class AnalyticsService {
       { day: Date; count: bigint }[]
     >`
       SELECT
-        date_trunc('day', created_at) AS day,
+        date_trunc('day', "createdAt") AS day,
         COUNT(*)::bigint AS count
       FROM complaints
-      WHERE created_at >= NOW() - INTERVAL '${days} days'
+      WHERE "createdAt" >= NOW() - INTERVAL '${days} days'
       GROUP BY day
       ORDER BY day ASC
     `;

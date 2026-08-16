@@ -60,7 +60,7 @@ class YOLODetector:
         self.model = None
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-        elif hasattr(torch, "mps") and hasattr(torch.mps, "empty_cache"):
+        elif hasattr(torch, "backends") and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             torch.mps.empty_cache()
         gc.collect()
         logger.info("YOLO model unloaded successfully and memory released.")

@@ -16,9 +16,6 @@ import {
   ActionSheetIOS,
   Platform,
   TextInput,
-  Modal,
-  Image,
-  ScrollView,
 } from "react-native";
 import { useTheme } from "@/design-system/ThemeContext";
 import { LumenIcon } from "@/design-system/icons/LumenIcon";
@@ -27,7 +24,6 @@ import { Card } from "@/design-system/components/Card";
 import { Badge } from "@/design-system/components/Badge";
 import { useAuthStore } from "@/store/AuthStore";
 import { env } from "@/config/env";
-import { apiClient } from "@/services/api.client";
 
 // ── Types ──────────────────────────────────────────────────
 type ComplaintStatus = "PENDING" | "ASSIGNED" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "REJECTED";
@@ -123,13 +119,6 @@ export default function ComplaintManagementScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // New states for AI Modal and Engineer Assignment
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
-  const [assignmentModalVisible, setAssignmentModalVisible] = useState(false);
-  const [assignmentData, setAssignmentData] = useState<any>(null);
-  const [verifying, setVerifying] = useState(false);
-  const [assigning, setAssigning] = useState(false);
-
   const authHeader = {
     Authorization: `Bearer ${session?.access_token}`,
     "Content-Type": "application/json",
@@ -140,15 +129,21 @@ export default function ComplaintManagementScreen() {
       const params = new URLSearchParams();
       if (filterStatus !== "ALL") params.set("status", filterStatus);
       if (searchQuery.trim()) params.set("q", searchQuery.trim());
-      
-      const res = await apiClient.get(`/api/complaints?${params.toString()}`);
-      setComplaints(Array.isArray(res.data) ? res.data : (res.data?.complaints ?? []));
+      const url = `${env.apiUrl}/complaints?${params.toString()}`;
+      const res = await fetch(url, { headers: authHeader });
+      if (res.ok) {
+        const data = await res.json();
+        // /complaints returns an array directly
+        setComplaints(Array.isArray(data) ? data : (data.complaints ?? []));
+      } else {
+        console.warn("[ComplaintMgmt] Non-OK response:", res.status);
+      }
     } catch (e) {
       console.warn("[ComplaintMgmt] Fetch error", e);
     } finally {
       setLoading(false);
     }
-  }, [filterStatus, searchQuery]);
+  }, [session?.access_token, filterStatus, searchQuery]);
 
   useEffect(() => {
     fetchComplaints();
@@ -160,55 +155,6 @@ export default function ComplaintManagementScreen() {
     setRefreshing(false);
   };
 
-  const handleVerify = async () => {
-    if (!selectedComplaint) return;
-    setVerifying(true);
-    try {
-      const formData = new FormData();
-      formData.append("photo", {
-        uri: selectedComplaint.imageUrl || "",
-        name: "verify.jpg",
-        type: "image/jpeg",
-      } as any);
-
-      await apiClient.post(`/api/complaints/${selectedComplaint.trackingId}/verify`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      Alert.alert("Success", "Repair verified successfully!");
-      setSelectedComplaint(null);
-      fetchComplaints();
-    } catch (e: any) {
-      Alert.alert("Error", e.response?.data?.message || "Could not verify repair.");
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  const openAssignments = async () => {
-    try {
-      setAssignmentModalVisible(true);
-      const res = await apiClient.get("/api/assignment");
-      setAssignmentData(res.data);
-    } catch (e) {
-      Alert.alert("Error", "Could not fetch assignment proposals");
-      setAssignmentModalVisible(false);
-    }
-  };
-
-  const confirmDispatch = async () => {
-    setAssigning(true);
-    try {
-      await apiClient.post("/api/assignment/apply");
-      Alert.alert("Success", "Engineers dispatched successfully!");
-      setAssignmentModalVisible(false);
-      fetchComplaints();
-    } catch (e) {
-      Alert.alert("Error", "Could not dispatch engineers.");
-    } finally {
-      setAssigning(false);
-    }
-  };
-
   const updateStatus = async (complaint: Complaint) => {
     const currentIndex = ALL_STATUSES.indexOf(complaint.status);
     const options = ALL_STATUSES.filter((s) => s !== complaint.status);
@@ -216,14 +162,19 @@ export default function ComplaintManagementScreen() {
     const doUpdate = async (newStatus: ComplaintStatus) => {
       setUpdatingId(complaint.id);
       try {
-        const res = await apiClient.patch(`/api/v1/admin/complaints/${complaint.id}/status`, { status: newStatus });
-        if (res.status >= 200 && res.status < 300) {
+        const res = await fetch(`${env.apiUrl}/complaints/${complaint.id}`, {
+          method: "PATCH",
+          headers: authHeader,
+          body: JSON.stringify({ status: newStatus }),
+        });
+        if (res.ok) {
           await fetchComplaints();
         } else {
-          Alert.alert("Error", "Could not update status");
+          const err = await res.json().catch(() => ({}));
+          Alert.alert("Error", err.message || "Could not update status");
         }
-      } catch (e: any) {
-        Alert.alert("Error", e.response?.data?.message || "Network error updating status");
+      } catch (e) {
+        Alert.alert("Error", "Network error updating status");
       } finally {
         setUpdatingId(null);
       }
@@ -314,11 +265,10 @@ export default function ComplaintManagementScreen() {
     const aiConf = item.aiPrediction?.confidenceScore;
 
     return (
-      <Pressable onPress={() => setSelectedComplaint(item)}>
-        <Card
-          variant="elevated"
-          style={[s.card, { borderLeftWidth: 3, borderLeftColor: STATUS_COLORS[item.status] }]}
-        >
+      <Card
+        variant="elevated"
+        style={[s.card, { borderLeftWidth: 3, borderLeftColor: STATUS_COLORS[item.status] }]}
+      >
         {/* Header: title + status badge */}
         <View style={s.cardHeader}>
           <View style={s.titleRow}>
@@ -420,101 +370,18 @@ export default function ComplaintManagementScreen() {
           </View>
         </View>
       </Card>
-      </Pressable>
     );
   };
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      {/* Modals */}
-      <Modal visible={!!selectedComplaint} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setSelectedComplaint(null)}>
-        <View style={[s.modalRoot, { backgroundColor: colors.bgBase }]}>
-          <View style={[s.header, { borderBottomColor: colors.borderDefault }]}>
-            <Text style={[TextStyles.title, { color: colors.textPrimary }]}>{selectedComplaint?.trackingId}</Text>
-            <Pressable onPress={() => setSelectedComplaint(null)}>
-              <LumenIcon name="close" size="md" color={colors.textPrimary} />
-            </Pressable>
-          </View>
-          <ScrollView contentContainerStyle={{ padding: Spacing[5], paddingBottom: 100 }}>
-            {selectedComplaint?.imageUrl && (
-              <Image source={{ uri: selectedComplaint.imageUrl }} style={{ width: "100%", height: 300, borderRadius: Radius.lg, marginBottom: Spacing[4] }} />
-            )}
-            
-            <Text style={[TextStyles.heading1, { color: colors.textPrimary, marginBottom: Spacing[2] }]}>{selectedComplaint?.title}</Text>
-            <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>{selectedComplaint?.description}</Text>
-
-            {selectedComplaint?.aiPrediction && (
-              <Card variant="elevated" style={{ padding: Spacing[4], marginBottom: Spacing[4], backgroundColor: colors.brand + "10" }}>
-                <Text style={[TextStyles.subtitle, { color: colors.brand, marginBottom: Spacing[2] }]}>AI Analysis</Text>
-                <Text style={[TextStyles.body, { color: colors.textPrimary }]}>Damage Class: {selectedComplaint.aiPrediction.damageClass}</Text>
-                <Text style={[TextStyles.body, { color: colors.textPrimary }]}>Confidence: {(selectedComplaint.aiPrediction.confidenceScore * 100).toFixed(1)}%</Text>
-              </Card>
-            )}
-
-            <Pressable
-              style={[s.verifyBtn, { backgroundColor: verifying ? colors.bgSubtle : "#12B76A" }]}
-              onPress={handleVerify}
-              disabled={verifying}
-            >
-              <Text style={[TextStyles.button, { color: "#fff" }]}>{verifying ? "Verifying..." : "Verify & Accept"}</Text>
-            </Pressable>
-          </ScrollView>
-        </View>
-      </Modal>
-
-      <Modal visible={assignmentModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAssignmentModalVisible(false)}>
-        <View style={[s.modalRoot, { backgroundColor: colors.bgBase }]}>
-          <View style={[s.header, { borderBottomColor: colors.borderDefault }]}>
-            <Text style={[TextStyles.title, { color: colors.textPrimary }]}>Dispatch Engineers</Text>
-            <Pressable onPress={() => setAssignmentModalVisible(false)}>
-              <LumenIcon name="close" size="md" color={colors.textPrimary} />
-            </Pressable>
-          </View>
-          <ScrollView contentContainerStyle={{ padding: Spacing[5], paddingBottom: 100 }}>
-            {!assignmentData ? (
-              <ActivityIndicator color={colors.brand} />
-            ) : (
-              <View>
-                <Card variant="elevated" style={{ padding: Spacing[4], marginBottom: Spacing[4] }}>
-                  <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[2] }]}>Optimization Summary</Text>
-                  <Text style={[TextStyles.body, { color: colors.textSecondary }]}>Total Distance: {assignmentData.totalDistanceKm} km</Text>
-                  <Text style={[TextStyles.body, { color: colors.textSecondary }]}>Cost Improvement: {assignmentData.costImprovementPct}%</Text>
-                </Card>
-
-                <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[3] }]}>Proposed Assignments</Text>
-                {assignmentData.assignments?.map((a: any, i: number) => (
-                  <Card key={i} variant="elevated" style={{ padding: Spacing[3], marginBottom: Spacing[3] }}>
-                    <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: "bold" }]}>{a.complaint.title}</Text>
-                    <Text style={[TextStyles.body, { color: colors.textSecondary }]}>Assigned to: {a.engineer.name}</Text>
-                    <Text style={[TextStyles.caption, { color: a.skillMatch ? "#12B76A" : "#F79009" }]}>Distance: {a.distanceKm} km · {a.skillMatch ? "Skill Match" : "No Skill Match"}</Text>
-                  </Card>
-                ))}
-
-                <Pressable
-                  style={[s.verifyBtn, { backgroundColor: assigning ? colors.bgSubtle : colors.brand, marginTop: Spacing[4] }]}
-                  onPress={confirmDispatch}
-                  disabled={assigning}
-                >
-                  <Text style={[TextStyles.button, { color: "#fff" }]}>{assigning ? "Dispatching..." : "Confirm Dispatch"}</Text>
-                </Pressable>
-              </View>
-            )}
-          </ScrollView>
-        </View>
-      </Modal>
-
       {/* Header */}
       <View style={[s.header, { borderBottomColor: colors.borderDefault }]}>
         <Text style={[TextStyles.title, { color: colors.textPrimary }]}>Complaint Logs</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing[3] }}>
-          <Pressable onPress={openAssignments} style={{ paddingHorizontal: Spacing[3], paddingVertical: Spacing[2], backgroundColor: colors.brand, borderRadius: Radius.full }}>
-            <Text style={[TextStyles.label, { color: "#fff" }]}>Dispatch</Text>
-          </Pressable>
-          <View style={s.headerStats}>
-            <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
-              {complaints.length} record{complaints.length !== 1 ? "s" : ""}
-            </Text>
-          </View>
+        <View style={s.headerStats}>
+          <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
+            {complaints.length} record{complaints.length !== 1 ? "s" : ""}
+          </Text>
         </View>
       </View>
 
@@ -703,12 +570,5 @@ const s = StyleSheet.create({
     justifyContent: "center",
     paddingTop: Spacing[10],
     gap: Spacing[2],
-  },
-  modalRoot: { flex: 1 },
-  verifyBtn: {
-    padding: Spacing[4],
-    borderRadius: Radius.lg,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });

@@ -11,6 +11,9 @@ import { SyncComplaintsDto } from './dto/sync-complaints.dto';
 import type { User, Complaint } from '@prisma/client';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { AiService } from '../ai/ai.service';
+import { StorageService } from '../common/storage/storage.service';
+
+import { SyncService } from '../sync/sync.service';
 
 @Injectable()
 export class ComplaintsService {
@@ -20,7 +23,46 @@ export class ComplaintsService {
     private prisma: PrismaService,
     private notificationsGateway: NotificationsGateway,
     private aiService: AiService,
+    private storageService: StorageService,
+    private syncService: SyncService,
   ) {}
+
+  private async getNextTrackingId(tx?: any): Promise<string> {
+    const prisma = tx || this.prisma;
+    const lastComplaint = await prisma.complaint.findFirst({
+      where: {
+        trackingId: {
+          startsWith: 'CMP-',
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    let nextNumber = 10245;
+    if (lastComplaint) {
+      const parts = lastComplaint.trackingId.split('-');
+      const num = parseInt(parts[1], 10);
+      if (!isNaN(num) && num < 100000000) {
+        nextNumber = num + 1;
+      } else {
+        const allComplaints = await prisma.complaint.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 100,
+        });
+        for (const c of allComplaints) {
+          const p = c.trackingId.split('-');
+          const n = parseInt(p[1], 10);
+          if (!isNaN(n) && n < 100000000) {
+            nextNumber = n + 1;
+            break;
+          }
+        }
+      }
+    }
+    return `CMP-${nextNumber}`;
+  }
 
   async create(createComplaintDto: CreateComplaintDto, user: User) {
     if (!createComplaintDto.imageUrl) {
@@ -56,9 +98,20 @@ export class ComplaintsService {
     // Phase 1: Synchronous AI Image Validation (Strict Enforcement)
     let aiValidationResult: any = null;
     try {
+      let imageUrlForAi = createComplaintDto.imageUrl;
+      if (imageUrlForAi.includes('.amazonaws.com/')) {
+        // Parse out the S3 object key (everything after .amazonaws.com/)
+        const key = imageUrlForAi.split('.amazonaws.com/')[1];
+        try {
+          imageUrlForAi = await this.storageService.getSignedUrl(key);
+        } catch (err) {
+          this.logger.warn(`Failed to sign image URL for AI validation: ${err.message}`);
+        }
+      }
+
       // @ts-ignore
       aiValidationResult = await this.aiService.validateComplaintImageSync(
-        createComplaintDto.imageUrl,
+        imageUrlForAi,
         createComplaintDto.category,
       );
     } catch (e: any) {
@@ -85,7 +138,7 @@ export class ComplaintsService {
     // Phase 3: Create Complaint in PostgreSQL
     const complaint = await this.prisma.complaint.create({
       data: {
-        trackingId: `CMP-${Date.now()}`,
+        trackingId: await this.getNextTrackingId(),
         title: createComplaintDto.title,
         description: createComplaintDto.description,
         category: createComplaintDto.category,
@@ -125,20 +178,30 @@ export class ComplaintsService {
       });
     }
 
-    return this.prisma.complaint.findUnique({
+    const finalComplaint = await this.prisma.complaint.findUnique({
       where: { id: complaint.id },
       include: { aiPrediction: true },
     });
+
+    if (finalComplaint) {
+      this.syncService.syncComplaintToWebDashboard(finalComplaint);
+    }
+
+    return finalComplaint;
   }
 
   async sync(syncDto: SyncComplaintsDto, user: User | null) {
     const results: Complaint[] = [];
     // Using a transaction to ensure atomic batch sync
     await this.prisma.$transaction(async (tx) => {
+      const startingRef = await this.getNextTrackingId(tx);
+      let nextNumber = parseInt(startingRef.split('-')[1], 10);
+
       for (const dto of syncDto.complaints) {
+        const trackingId = `CMP-${nextNumber++}`;
         const complaint = await tx.complaint.create({
           data: {
-            trackingId: `CMP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            trackingId,
             title: dto.title,
             description: dto.description,
             category: dto.category,
@@ -188,10 +251,20 @@ export class ComplaintsService {
     const radiusMeters = radiusKm * 1000;
     const complaints = await this.prisma.$queryRaw<Complaint[]>`
       SELECT id, title, description, category, priority, status, latitude, longitude, "imageUrl", "videoUrl",
-      (6371000 * acos(cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(latitude)))) AS distance
+      (6371000 * acos(
+        least(1.0, greatest(-1.0, 
+          cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + 
+          sin(radians(${lat})) * sin(radians(latitude))
+        ))
+      )) AS distance
       FROM complaints
       WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-      AND (6371000 * acos(cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(latitude)))) <= ${radiusMeters}
+      AND (6371000 * acos(
+        least(1.0, greatest(-1.0, 
+          cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + 
+          sin(radians(${lat})) * sin(radians(latitude))
+        ))
+      )) <= ${radiusMeters}
       ORDER BY distance ASC;
     `;
     return complaints;

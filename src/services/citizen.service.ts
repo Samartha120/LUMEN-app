@@ -6,8 +6,8 @@ export const CitizenService = {
     return response.data;
   },
 
-  async getAnalytics() {
-    const response = await apiClient.get("/api/v1/citizen/analytics");
+  async getAnalytics(range: 'Daily' | 'Monthly' | 'Yearly' = 'Daily') {
+    const response = await apiClient.get(`/api/v1/citizen/analytics?range=${range.toLowerCase()}`);
     return response.data;
   },
 

@@ -305,7 +305,7 @@ export default function ReportDetailsScreen() {
       step: "Report Submitted",
       time: new Date(reportData.createdAt).toLocaleString(),
       done: true,
-      desc: "Logged automatically",
+      desc: "Report created by citizen",
     },
     ...(timelineData || []).map((t: any) => ({
       step: t.status,
@@ -388,7 +388,6 @@ export default function ReportDetailsScreen() {
         {/* ════════════════════════════════════════ */}
         <Animated.View style={[s.heroContainer, { transform: [{ scale: heroScaleAnim }] }]}>
           <MapView
-            provider={PROVIDER_GOOGLE}
             style={StyleSheet.absoluteFill}
             initialRegion={{
               latitude: reportData.latitude,
@@ -445,9 +444,7 @@ export default function ReportDetailsScreen() {
             </View>
           </View>
 
-          {/* ════════════════════════════════════════ */}
-          {/* RESOLUTION PROGRESS                     */}
-          {/* ════════════════════════════════════════ */}
+        
           <View style={[s.card, { backgroundColor: colors.bgSurface, ...shadows.lg }, s.mx]}>
             <View style={s.progressHeaderRow}>
               <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Resolution Progress</Text>
@@ -465,9 +462,6 @@ export default function ReportDetailsScreen() {
             </Text>
           </View>
 
-          {/* ════════════════════════════════════════ */}
-          {/* STATUS TIMELINE                         */}
-          {/* ════════════════════════════════════════ */}
           <View style={[s.card, { backgroundColor: colors.bgSurface, ...shadows.lg }, s.mx]}>
             <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>
               Status Timeline
@@ -488,9 +482,7 @@ export default function ReportDetailsScreen() {
             })}
           </View>
 
-          {/* ════════════════════════════════════════ */}
-          {/* ASSIGNED ENGINEER                       */}
-          {/* ════════════════════════════════════════ */}
+        
           <View style={[s.card, { backgroundColor: colors.bgSurface, ...shadows.lg }, s.mx]}>
             <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: Spacing[4] }]}>
               Assigned Engineer
@@ -534,9 +526,7 @@ export default function ReportDetailsScreen() {
             )}
           </View>
 
-          {/* ════════════════════════════════════════ */}
-          {/* DETAILS GRID                            */}
-          {/* ════════════════════════════════════════ */}
+        
           <View style={[s.card, { backgroundColor: colors.bgSurface, ...shadows.lg }, s.mx]}>
             <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: 4 }]}>
               Details
@@ -570,9 +560,7 @@ export default function ReportDetailsScreen() {
             ))}
           </View>
 
-          {/* ════════════════════════════════════════ */}
-          {/* MAP LOCATION — WORKING MAP              */}
-          {/* ════════════════════════════════════════ */}
+          
           <View
             style={[
               s.card,
@@ -581,10 +569,9 @@ export default function ReportDetailsScreen() {
               { padding: 0, overflow: "hidden" },
             ]}
           >
-            {/* Embedded working map */}
+            
             <View style={s.inlineMapWrap}>
               <MapView
-                provider={PROVIDER_GOOGLE}
                 style={StyleSheet.absoluteFill}
                 initialRegion={{
                   latitude: reportData.latitude,

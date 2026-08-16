@@ -12,6 +12,9 @@ const { width: W, height: H } = Dimensions.get("window");
 
 export default function SplashScreen() {
   useEffect(() => {
+    // Force lock the session on fresh startup
+    useAuthStore.getState().setUnlocked(false);
+
     // Navigate to welcome screen or dashboard after 2 seconds
     const timer = setTimeout(() => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

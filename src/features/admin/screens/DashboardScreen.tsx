@@ -147,7 +147,8 @@ export default function AdminDashboardScreen() {
 
   const authHeader = { Authorization: `Bearer ${session?.access_token}` };
 
-  const trendDays = timeFilter === "week" ? 7 : timeFilter === "month" ? 30 : timeFilter === "year" ? 365 : 90;
+  const trendDays =
+    timeFilter === "week" ? 7 : timeFilter === "month" ? 30 : timeFilter === "year" ? 365 : 90;
 
   const fetchAll = useCallback(async () => {
     try {
@@ -184,13 +185,28 @@ export default function AdminDashboardScreen() {
       ]).start();
 
       setTimeout(() => {
-        Animated.spring(kpiAnim, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 8 }).start();
+        Animated.spring(kpiAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          speed: 14,
+          bounciness: 8,
+        }).start();
       }, 200);
       setTimeout(() => {
-        Animated.spring(chartAnim, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 8 }).start();
+        Animated.spring(chartAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          speed: 14,
+          bounciness: 8,
+        }).start();
       }, 400);
       setTimeout(() => {
-        Animated.spring(listAnim, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 8 }).start();
+        Animated.spring(listAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          speed: 14,
+          bounciness: 8,
+        }).start();
       }, 600);
     });
   }, [timeFilter]);
@@ -218,7 +234,7 @@ export default function AdminDashboardScreen() {
 
   const priorityLabels = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
   const priorityValues = priorityLabels.map(
-    (p) => stats?.complaintsByPriority.find((x) => x.priority === p)?.count ?? 0,
+    (p) => stats?.complaintsByPriority.find((x) => x.priority === p)?.count ?? 0
   );
 
   if (loading) {
@@ -234,7 +250,10 @@ export default function AdminDashboardScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bgBase }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.bgBase} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.bgBase}
+      />
       <LinearGradient
         colors={["#D9770615", "#D9770605", "transparent"]}
         start={{ x: 0, y: 0 }}
@@ -253,8 +272,12 @@ export default function AdminDashboardScreen() {
         <Animated.View style={[s.header, { opacity: headerFade }]}>
           <View style={s.headerContent}>
             <View style={s.greetingWrap}>
-              <Text style={[TextStyles.label, { color: "#D97706", letterSpacing: 1 }]}>{GREET()}</Text>
-              <Text style={[TextStyles.heading2, { color: colors.textPrimary, letterSpacing: -0.5 }]}>
+              <Text style={[TextStyles.label, { color: "#D97706", letterSpacing: 1 }]}>
+                {GREET()}
+              </Text>
+              <Text
+                style={[TextStyles.heading2, { color: colors.textPrimary, letterSpacing: -0.5 }]}
+              >
                 Admin Console
               </Text>
               <View style={s.statusRow}>
@@ -267,7 +290,12 @@ export default function AdminDashboardScreen() {
           </View>
           <View style={s.headerRight}>
             {sla && sla.slaBreached > 0 && (
-              <View style={[s.alertPill, { backgroundColor: "#F04438" + "20", borderColor: "#F04438" + "40" }]}>
+              <View
+                style={[
+                  s.alertPill,
+                  { backgroundColor: "#F04438" + "20", borderColor: "#F04438" + "40" },
+                ]}
+              >
                 <LumenIcon name="alert" size="xs" color="#F04438" />
                 <Text style={[TextStyles.label, { color: "#F04438" }]}>{sla.slaBreached} SLA</Text>
               </View>
@@ -299,12 +327,18 @@ export default function AdminDashboardScreen() {
 
           {/* ── KPI Cards Row ── */}
           <Animated.View style={[s.section, { opacity: kpiAnim }]}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.kpiRow}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.kpiRow}
+            >
               <Animated.View style={{ transform: [{ scale: kpiAnim }] }}>
                 <KPICard
                   title="Total Reports"
                   value={stats?.totalComplaints ?? 0}
-                  icon={<LumenIcon name="reportList" size="lg" color={colors.brand} strokeWidth={2} />}
+                  icon={
+                    <LumenIcon name="reportList" size="lg" color={colors.brand} strokeWidth={2} />
+                  }
                   style={{ width: 200 }}
                   gradient={colors.gradientBrand}
                 />
@@ -313,7 +347,14 @@ export default function AdminDashboardScreen() {
                 <KPICard
                   title="Resolved"
                   value={stats?.resolvedComplaints ?? 0}
-                  icon={<LumenIcon name="success" size="lg" color={colors.successText} strokeWidth={2} />}
+                  icon={
+                    <LumenIcon
+                      name="success"
+                      size="lg"
+                      color={colors.successText}
+                      strokeWidth={2}
+                    />
+                  }
                   style={{ width: 200 }}
                   gradient={colors.gradientBrand}
                 />
@@ -332,7 +373,9 @@ export default function AdminDashboardScreen() {
                   title="Avg Resolution"
                   value={stats?.avgResolutionHours ?? 0}
                   suffix="h"
-                  icon={<LumenIcon name="timer" size="lg" color={colors.warningText} strokeWidth={2} />}
+                  icon={
+                    <LumenIcon name="timer" size="lg" color={colors.warningText} strokeWidth={2} />
+                  }
                   style={{ width: 200 }}
                   gradient={colors.gradientBrand}
                 />
@@ -362,7 +405,12 @@ export default function AdminDashboardScreen() {
               />
               <View style={s.chartCard}>
                 <View style={s.chartHeader}>
-                  <Text style={[TextStyles.subtitle, { color: colors.textPrimary, letterSpacing: -0.3 }]}>
+                  <Text
+                    style={[
+                      TextStyles.subtitle,
+                      { color: colors.textPrimary, letterSpacing: -0.3 },
+                    ]}
+                  >
                     Reports Trend
                   </Text>
                   <Badge label={`Last ${trendDays}d`} variant="brand" size="sm" />
@@ -402,7 +450,11 @@ export default function AdminDashboardScreen() {
           {/* ── Category & Priority Charts ── */}
           <Animated.View style={[s.chartRow, { opacity: chartAnim }]}>
             {/* Category Pie */}
-            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={[s.glassCard, { flex: 1 }]}>
+            <BlurView
+              intensity={20}
+              tint={isDark ? "dark" : "light"}
+              style={[s.glassCard, { flex: 1 }]}
+            >
               <LinearGradient
                 colors={[isDark ? "#1a1a2e20" : "#ffffff40", isDark ? "#1a1a2e10" : "#ffffff20"]}
                 start={{ x: 0, y: 0 }}
@@ -410,12 +462,19 @@ export default function AdminDashboardScreen() {
                 style={StyleSheet.absoluteFill}
               />
               <View style={s.chartCard}>
-                <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4], letterSpacing: -0.3 }]}>
+                <Text
+                  style={[
+                    TextStyles.subtitle,
+                    { color: colors.textPrimary, marginBottom: Spacing[4], letterSpacing: -0.3 },
+                  ]}
+                >
                   By Category
                 </Text>
                 {categoryData.length === 0 ? (
                   <View style={s.emptyChart}>
-                    <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>No data</Text>
+                    <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                      No data
+                    </Text>
                   </View>
                 ) : (
                   <PieChart
@@ -439,7 +498,11 @@ export default function AdminDashboardScreen() {
             </BlurView>
 
             {/* Priority Bar */}
-            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={[s.glassCard, { flex: 1 }]}>
+            <BlurView
+              intensity={20}
+              tint={isDark ? "dark" : "light"}
+              style={[s.glassCard, { flex: 1 }]}
+            >
               <LinearGradient
                 colors={[isDark ? "#1a1a2e20" : "#ffffff40", isDark ? "#1a1a2e10" : "#ffffff20"]}
                 start={{ x: 0, y: 0 }}
@@ -447,17 +510,27 @@ export default function AdminDashboardScreen() {
                 style={StyleSheet.absoluteFill}
               />
               <View style={s.chartCard}>
-                <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4], letterSpacing: -0.3 }]}>
+                <Text
+                  style={[
+                    TextStyles.subtitle,
+                    { color: colors.textPrimary, marginBottom: Spacing[4], letterSpacing: -0.3 },
+                  ]}
+                >
                   By Priority
                 </Text>
                 {priorityValues.every((v) => v === 0) ? (
                   <View style={s.emptyChart}>
-                    <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>No data</Text>
+                    <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                      No data
+                    </Text>
                   </View>
                 ) : (
                   <>
                     <BarChart
-                      data={{ labels: ["CRIT", "HIGH", "MED", "LOW"], datasets: [{ data: priorityValues }] }}
+                      data={{
+                        labels: ["CRIT", "HIGH", "MED", "LOW"],
+                        datasets: [{ data: priorityValues }],
+                      }}
                       width={150}
                       height={140}
                       yAxisLabel=""
@@ -503,7 +576,12 @@ export default function AdminDashboardScreen() {
                   style={StyleSheet.absoluteFill}
                 />
                 <View style={s.chartCard}>
-                  <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[4], letterSpacing: -0.3 }]}>
+                  <Text
+                    style={[
+                      TextStyles.subtitle,
+                      { color: colors.textPrimary, marginBottom: Spacing[4], letterSpacing: -0.3 },
+                    ]}
+                  >
                     Department Performance
                   </Text>
                   {departments.map((dept) => {
@@ -512,7 +590,14 @@ export default function AdminDashboardScreen() {
                       <Animated.View
                         key={dept.department}
                         style={{
-                          transform: [{ translateX: listAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+                          transform: [
+                            {
+                              translateX: listAnim.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [20, 0],
+                              }),
+                            },
+                          ],
                           opacity: listAnim,
                         }}
                       >
@@ -532,14 +617,22 @@ export default function AdminDashboardScreen() {
                                   s.deptBarFill,
                                   {
                                     width: listAnim
-                                      .interpolate({ inputRange: [0, 1], outputRange: [0, dept.completionRate] })
-                                      .interpolate({ inputRange: [0, 100], outputRange: ["0%", `${dept.completionRate}%`] }),
+                                      .interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0, dept.completionRate],
+                                      })
+                                      .interpolate({
+                                        inputRange: [0, 100],
+                                        outputRange: ["0%", `${dept.completionRate}%`],
+                                      }),
                                     backgroundColor: color,
                                   },
                                 ]}
                               />
                             </View>
-                            <Text style={[TextStyles.label, { color }]}>{dept.completionRate}%</Text>
+                            <Text style={[TextStyles.label, { color }]}>
+                              {dept.completionRate}%
+                            </Text>
                           </View>
                         </View>
                       </Animated.View>
@@ -553,32 +646,56 @@ export default function AdminDashboardScreen() {
           {/* ── Recent Activity (real from audit logs + complaint timeline) ── */}
           <Animated.View style={[s.section, { opacity: listAnim }]}>
             <View style={s.sectionHeader}>
-              <Text style={[TextStyles.subtitle, { color: colors.textPrimary, letterSpacing: -0.3 }]}>
+              <Text
+                style={[TextStyles.subtitle, { color: colors.textPrimary, letterSpacing: -0.3 }]}
+              >
                 Recent Activity
               </Text>
             </View>
             <View style={s.activityList}>
               {activity.length === 0 && (
-                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>No recent activity</Text>
+                <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>
+                  No recent activity
+                </Text>
               )}
               {activity.map((item, idx) => {
-                const meta = ACTIVITY_ICON_MAP[item.type] || { icon: "info", color: colors.textSecondary };
+                const meta = ACTIVITY_ICON_MAP[item.type] || {
+                  icon: "info",
+                  color: colors.textSecondary,
+                };
                 return (
                   <Animated.View
                     key={item.id}
                     style={{
-                      transform: [{ translateX: listAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+                      transform: [
+                        {
+                          translateX: listAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [20, 0],
+                          }),
+                        },
+                      ],
                       opacity: listAnim,
                     }}
                   >
-                    <Pressable style={({ pressed }) => [s.activityItem, { opacity: pressed ? 0.8 : 1 }]}>
+                    <Pressable
+                      style={({ pressed }) => [s.activityItem, { opacity: pressed ? 0.8 : 1 }]}
+                    >
                       <View style={[s.activityGlow, { backgroundColor: meta.color + "08" }]} />
                       <View style={s.activityRow}>
                         <View style={[s.activityIcon, { backgroundColor: meta.color + "15" }]}>
-                          <LumenIcon name={meta.icon as any} size="sm" color={meta.color} strokeWidth={2} />
+                          <LumenIcon
+                            name={meta.icon as any}
+                            size="sm"
+                            color={meta.color}
+                            strokeWidth={2}
+                          />
                         </View>
                         <View style={s.activityInfo}>
-                          <Text style={[TextStyles.bodyMedium, { color: colors.textPrimary }]} numberOfLines={1}>
+                          <Text
+                            style={[TextStyles.bodyMedium, { color: colors.textPrimary }]}
+                            numberOfLines={1}
+                          >
                             {item.complaintTitle || item.action}
                           </Text>
                           <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>

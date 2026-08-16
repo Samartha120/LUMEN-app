@@ -116,7 +116,7 @@ export default function LandingScreen() {
   const orbTranslateY = orbAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -30] });
 
   const handleGetStarted = () => {
-    router.push("/Login" as any);
+    router.push("/(auth)/Login" as any);
   };
 
   return (
@@ -187,7 +187,7 @@ export default function LandingScreen() {
               onPress={handleGetStarted}
               iconRight="forward"
             />
-            <Pressable onPress={() => router.push("/Login" as any)} style={s.signInLink}>
+            <Pressable onPress={() => router.push("/(auth)/Login" as any)} style={s.signInLink}>
               <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
                 Already have an account?{" "}
                 <Text style={{ color: colors.brand, fontWeight: "600" }}>Sign In</Text>
@@ -306,7 +306,7 @@ export default function LandingScreen() {
                 variant="primary"
                 size="lg"
                 fullWidth
-                onPress={() => router.push("/Register" as any)}
+                onPress={() => router.push("/(auth)/Register" as any)}
                 style={{ marginTop: Spacing[4] }}
               />
             </View>

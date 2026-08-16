@@ -267,3 +267,4 @@ model PaymentTransaction {
   @@map("payment_transactions")
 }
 
+                                              

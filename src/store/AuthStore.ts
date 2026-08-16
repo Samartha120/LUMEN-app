@@ -42,6 +42,7 @@ interface AuthState {
   setAvatarUri: (userId: string, uri: string | null) => void;
   loginAsGuest: () => void;
   logout: () => void;
+  refreshTokens: (access_token: string, refresh_token: string, user: User) => void;
 }
 
 const memoryStorage: Record<string, string> = {};
@@ -116,6 +117,12 @@ export const useAuthStore = create<AuthState>()(
           guestMode: true,
           isUnlocked: true,
         }),
+      refreshTokens: (access_token, refresh_token, user) =>
+        set((state) => ({
+          session: { access_token, refresh_token, user },
+          user: user,
+          // Do NOT change isUnlocked here, to preserve lock screen security on background token refresh
+        })),
       logout: () =>
         set({
           session: null,
@@ -134,6 +141,11 @@ export const useAuthStore = create<AuthState>()(
         role: state.role,
         isOnboardingComplete: state.isOnboardingComplete,
         preferences: state.preferences,
+      }),
+      merge: (persistedState: any, currentState) => ({
+        ...currentState,
+        ...persistedState,
+        isUnlocked: false, // Force lock on app startup
       }),
     }
   )

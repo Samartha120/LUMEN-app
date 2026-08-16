@@ -79,6 +79,20 @@ export default function AdminLayout() {
           tabBarIcon: ({ color }) => <LumenIcon name="report" size="md" color={color as string} />,
         }}
       />
+      <Tabs.Screen
+        name="Map"
+        options={{
+          title: "GIS Map",
+          tabBarIcon: ({ color }) => <LumenIcon name="map" size="md" color={color as string} />,
+        }}
+      />
+      <Tabs.Screen
+        name="AiCenter"
+        options={{
+          title: "AI Center",
+          tabBarIcon: ({ color }) => <LumenIcon name="alert" size="md" color={color as string} />,
+        }}
+      />
     </Tabs>
   );
 }

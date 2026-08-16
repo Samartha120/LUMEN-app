@@ -84,12 +84,12 @@ apiClient.interceptors.response.use(
         const newAccessToken = data.access_token;
         const newRefreshToken = data.refresh_token;
 
-        // Update the AuthStore
-        useAuthStore.getState().setSession({
-          access_token: newAccessToken,
-          refresh_token: newRefreshToken,
-          user: data.user,
-        });
+        // Update the AuthStore using refreshTokens to avoid unintentionally unlocking the device
+        useAuthStore.getState().refreshTokens(
+          newAccessToken,
+          newRefreshToken,
+          data.user
+        );
 
         apiClient.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;

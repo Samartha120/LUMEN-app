@@ -31,113 +31,196 @@ export class CitizenService {
       )?._count._all || 0;
     const pending = total - resolved;
 
-    // Generate mock graph data for the last 7 days since real grouping by date requires raw SQL which might not be portable
-    const graphData = Array.from({ length: 7 }).map((_, i) => {
+    const rawGraphData = await this.prisma.$queryRaw<{ day: Date; count: bigint }[]>`
+      SELECT date_trunc('day', "createdAt") AS day, COUNT(*)::bigint AS count
+      FROM complaints
+      WHERE "reporterId" = ${userId} AND "createdAt" >= NOW() - INTERVAL '7 days'
+      GROUP BY day
+      ORDER BY day ASC
+    `;
+
+    // Initialize 7 days with 0 counts
+    const graphMap = new Map<string, number>();
+    for (let i = 6; i >= 0; i--) {
       const d = new Date();
-      d.setDate(d.getDate() - (6 - i));
-      return {
-        date: d.toLocaleDateString('en-US', { weekday: 'short' }),
-        count: Math.floor(Math.random() * 5) + 1, // Simulated dynamic data for the graph
-      };
-    });
+      d.setDate(d.getDate() - i);
+      graphMap.set(d.toLocaleDateString('en-US', { weekday: 'short' }), 0);
+    }
+
+    // Populate with real data
+    for (const row of rawGraphData) {
+      const dayStr = row.day.toLocaleDateString('en-US', { weekday: 'short' });
+      if (graphMap.has(dayStr)) {
+        graphMap.set(dayStr, Number(row.count));
+      }
+    }
+
+    const graphData = Array.from(graphMap.entries()).map(([date, count]) => ({ date, count }));
 
     return { total, resolved, pending, statusBreakdown: complaints, graphData };
   }
 
-  async getAnalytics(userId: string) {
+  async getAnalytics(userId: string, range: string = 'daily') {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { civicScore: true },
     });
 
     const allComplaints = await this.prisma.complaint.findMany({
-      select: {
-        category: true,
-        createdAt: true,
-        status: true,
+      where: { reporterId: userId },
+      include: {
+        aiPrediction: true,
       },
     });
 
+    const totalReports = allComplaints.length;
+    let resolvedReports = 0;
+    let pendingReports = 0;
+    let rejectedReports = 0;
+    let totalAiProcessed = 0;
+    let totalConfidence = 0;
+
+    const statusMap: Record<string, number> = {};
     const categoryMap: Record<string, number> = {};
-    const totalComplaints = allComplaints.length || 1;
+    const priorityMap: Record<string, number> = {};
+
     allComplaints.forEach((c) => {
+      // Status counts
+      statusMap[c.status] = (statusMap[c.status] || 0) + 1;
+      
+      if (c.status === 'RESOLVED' || c.status === 'CLOSED') {
+        resolvedReports++;
+      } else if (c.status === 'REJECTED') {
+        rejectedReports++;
+      } else {
+        pendingReports++;
+      }
+
+      // Category
       const cat = c.category || 'Other';
       categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+
+      // Priority
+      const prio = c.priority || 'MEDIUM';
+      priorityMap[prio] = (priorityMap[prio] || 0) + 1;
+
+      // AI Insights
+      if (c.aiPrediction) {
+        totalAiProcessed++;
+        totalConfidence += c.aiPrediction.confidenceScore;
+      }
     });
 
-    const colors = ['#208AEF', '#7C3AED', '#F79009', '#12B76A', '#EF4444'];
-    const categories = Object.entries(categoryMap)
-      .map(([label, count], i) => ({
-        label,
-        value: Math.round((count / totalComplaints) * 100),
-        color: colors[i % colors.length],
-      }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 4);
+    const resolutionRate = totalReports > 0 ? Math.round((resolvedReports / totalReports) * 100) : 0;
+    const avgConfidence = totalAiProcessed > 0 ? Math.round((totalConfidence / totalAiProcessed) * 100) / 100 : null;
 
+    // Avg resolution time using timeline
+    const avgResolutionRaw = await this.prisma.$queryRaw<{ avg_ms: bigint }[]>`
+      SELECT AVG(EXTRACT(EPOCH FROM (ct_resolved."createdAt" - c."createdAt")) * 1000)::bigint AS avg_ms
+      FROM complaints c
+      JOIN complaint_timelines ct_resolved
+        ON ct_resolved."complaintId" = c.id
+        AND ct_resolved.status = 'RESOLVED'
+      WHERE c."reporterId" = ${userId} AND c.status IN ('RESOLVED', 'CLOSED')
+    `;
+
+    let avgResolutionHours: number | null = null;
+    if (avgResolutionRaw && avgResolutionRaw.length > 0 && avgResolutionRaw[0].avg_ms) {
+       avgResolutionHours = Math.round(Number(avgResolutionRaw[0].avg_ms) / 3600000 * 10) / 10;
+    }
+
+    // Trend calculation
     const now = new Date();
+    let trendLabels: string[] = [];
+    const submittedData: number[] = [];
+    const resolvedData: number[] = [];
 
-    const dailyLabels = Array.from({ length: 7 }).map((_, i) => {
-      const d = new Date();
-      d.setDate(now.getDate() - (6 - i));
-      return d.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
-    });
-    const dailyValues = Array(7).fill(0);
+    const rangeLower = range.toLowerCase();
+    if (rangeLower === 'yearly') {
+      trendLabels = Array.from({ length: 12 }).map((_, i) => {
+        const d = new Date();
+        d.setMonth(now.getMonth() - (11 - i));
+        return d.toLocaleDateString('en-US', { month: 'short' });
+      });
+      submittedData.push(...Array(12).fill(0));
+      resolvedData.push(...Array(12).fill(0));
 
-    const monthlyLabels = ['W1', 'W2', 'W3', 'W4'];
-    const monthlyValues = Array(4).fill(0);
+      allComplaints.forEach(c => {
+        const diffMonths = (now.getFullYear() - c.createdAt.getFullYear()) * 12 + now.getMonth() - c.createdAt.getMonth();
+        if (diffMonths >= 0 && diffMonths < 12) {
+          const idx = 11 - diffMonths;
+          submittedData[idx]++;
+          if (c.status === 'RESOLVED' || c.status === 'CLOSED') {
+             resolvedData[idx]++;
+          }
+        }
+      });
+    } else if (rangeLower === 'monthly') {
+       trendLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+       submittedData.push(...Array(4).fill(0));
+       resolvedData.push(...Array(4).fill(0));
 
-    const yearlyLabels = Array.from({ length: 12 }).map((_, i) => {
-      const d = new Date();
-      d.setMonth(now.getMonth() - (11 - i));
-      return d.toLocaleDateString('en-US', { month: 'short' });
-    });
-    const yearlyValues = Array(12).fill(0);
+       allComplaints.forEach(c => {
+         const diffTime = now.getTime() - c.createdAt.getTime();
+         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+         // Fix: If a complaint is in the future (timezone), diffDays might be negative. Let's enforce >= 0
+         if (diffDays >= 0 && diffDays < 28) {
+           const week = 3 - Math.floor(diffDays / 7);
+           if (week >= 0 && week < 4) {
+             submittedData[week]++;
+             if (c.status === 'RESOLVED' || c.status === 'CLOSED') resolvedData[week]++;
+           }
+         }
+       });
+    } else {
+       // Daily default
+       trendLabels = Array.from({ length: 7 }).map((_, i) => {
+         const d = new Date();
+         d.setDate(now.getDate() - (6 - i));
+         return d.toLocaleDateString('en-US', { weekday: 'short' });
+       });
+       submittedData.push(...Array(7).fill(0));
+       resolvedData.push(...Array(7).fill(0));
 
-    allComplaints.forEach((c) => {
-      const diffTime = Math.abs(now.getTime() - c.createdAt.getTime());
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays <= 6) {
-        const idx = 6 - diffDays;
-        if (idx >= 0 && idx < 7) dailyValues[idx]++;
-      }
-      if (diffDays <= 27) {
-        const week = Math.floor((27 - diffDays) / 7);
-        if (week >= 0 && week < 4) monthlyValues[week]++;
-      }
-      const diffMonths =
-        (now.getFullYear() - c.createdAt.getFullYear()) * 12 +
-        now.getMonth() -
-        c.createdAt.getMonth();
-      if (diffMonths <= 11 && diffMonths >= 0) {
-        const idx = 11 - diffMonths;
-        if (idx >= 0 && idx < 12) yearlyValues[idx]++;
-      }
-    });
-
-    const getStats = () => [
-      { label: 'Avg Response', value: '2.5 hrs', color: '#208AEF' },
-      { label: 'Resolution Rate', value: '92%', color: '#12B76A' },
-      { label: 'Satisfaction', value: '4.8★', color: '#F79009' },
-    ];
+       allComplaints.forEach(c => {
+         const diffTime = now.getTime() - c.createdAt.getTime();
+         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+         if (diffDays >= 0 && diffDays < 7) {
+           const idx = 6 - diffDays;
+           if (idx >= 0 && idx < 7) {
+             submittedData[idx]++;
+             if (c.status === 'RESOLVED' || c.status === 'CLOSED') resolvedData[idx]++;
+           }
+         }
+       });
+    }
 
     return {
-      civicScore: user?.civicScore || 0,
-      categories,
-      graphData: {
-        Daily: { labels: dailyLabels, values: dailyValues, stats: getStats() },
-        Monthly: {
-          labels: monthlyLabels,
-          values: monthlyValues,
-          stats: getStats(),
-        },
-        Yearly: {
-          labels: yearlyLabels,
-          values: yearlyValues,
-          stats: getStats(),
-        },
+      civicScore: {
+        current: user?.civicScore || 0,
       },
+      overview: {
+        totalReports,
+        resolvedReports,
+        pendingReports,
+        rejectedReports,
+        resolutionRate,
+        avgResolutionHours,
+      },
+      trend: {
+        labels: trendLabels,
+        datasets: {
+          submitted: submittedData,
+          resolved: resolvedData,
+        }
+      },
+      statusBreakdown: Object.entries(statusMap).map(([status, count]) => ({ status, count })),
+      categoryBreakdown: Object.entries(categoryMap).map(([category, count]) => ({ category, count })).sort((a,b) => b.count - a.count),
+      priorityBreakdown: Object.entries(priorityMap).map(([priority, count]) => ({ priority, count })),
+      aiInsights: {
+        totalAiProcessed,
+        avgConfidence,
+      }
     };
   }
 
@@ -223,26 +306,8 @@ export class CitizenService {
       };
     }
 
-    // Deterministic simulation based on file URL
-    const combineStr =
-      (docs.idDocumentUrl as string) + (docs.selfieUrl as string);
-    let score = 0;
-    for (let i = 0; i < combineStr.length; i++) {
-      score += combineStr.charCodeAt(i);
-    }
-
-    // ~7% chance to simulate a fake document detection for testing purposes
-    if (score % 13 === 0) {
-      this.logger.warn(
-        'AI Triage detected potential photocopy or manipulated document.',
-      );
-      return {
-        success: false,
-        reason:
-          'AI Verification Failed: The document appears to be a photocopy or digitally manipulated.',
-      };
-    }
-
+    // TODO: Integrate actual computer vision identity service when available.
+    // For now, accept all properly uploaded identity documents.
     this.logger.log('AI Triage confirmed documents are authentic.');
     return { success: true };
   }

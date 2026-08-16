@@ -6,6 +6,7 @@ import {
   Body,
   UseGuards,
   Param,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CitizenService } from './citizen.service';
@@ -33,9 +34,12 @@ export class CitizenController {
   }
 
   @Get('analytics')
-  @ApiOperation({ summary: 'Get global analytics data for the citizen' })
-  async getAnalytics(@CurrentUser() user: User) {
-    return this.citizenService.getAnalytics(user.id);
+  @ApiOperation({ summary: 'Get scoped analytics data for the citizen' })
+  async getAnalytics(
+    @CurrentUser() user: User,
+    @Query('range') range?: string,
+  ) {
+    return this.citizenService.getAnalytics(user.id, range);
   }
 
   @Get('profile')

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { AnalyzeComplaintDto } from './dto/analyze-complaint.dto';
@@ -51,59 +51,15 @@ export class AiTriageService {
           };
         }
       } catch (error) {
-        this.logger.error(
-          `Failed to call FastAPI inference service: ${error.message}. Falling back to mock model.`,
+        this.logger.error(`AI triage analysis failed: ${error.message}`);
+        throw new ServiceUnavailableException(
+          'FastAPI inference service is currently unavailable.',
         );
       }
+    } else {
+      throw new ServiceUnavailableException(
+        'FastAPI inference URL is not configured.',
+      );
     }
-
-    // Fallback simple keyword-based mock model
-    const text = dto.description.toLowerCase();
-
-    let department = 'SANITATION';
-    let priority = 'MEDIUM';
-    let category = 'General Issue';
-    let confidenceScore = 0.85;
-
-    if (
-      text.includes('pipe') ||
-      text.includes('water') ||
-      text.includes('leak')
-    ) {
-      department = 'WATER';
-      category = 'Water Leak';
-      priority = text.includes('burst') ? 'HIGH' : 'MEDIUM';
-      confidenceScore = 0.92;
-    } else if (
-      text.includes('road') ||
-      text.includes('pothole') ||
-      text.includes('street')
-    ) {
-      department = 'ROADS';
-      category = 'Road Damage';
-      priority =
-        text.includes('large') || text.includes('accident') ? 'HIGH' : 'MEDIUM';
-      confidenceScore = 0.88;
-    } else if (
-      text.includes('light') ||
-      text.includes('electricity') ||
-      text.includes('power')
-    ) {
-      department = 'ELECTRICITY';
-      category = 'Electrical Outage';
-      priority = 'HIGH';
-      confidenceScore = 0.95;
-    }
-
-    return {
-      success: true,
-      triageResult: {
-        department,
-        category,
-        priority,
-        confidenceScore,
-        aiSummary: `[Fallback] AI analyzed the text and categorized it as ${category} with ${(confidenceScore * 100).toFixed(0)}% confidence, routed to ${department}.`,
-      },
-    };
   }
 }

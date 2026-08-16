@@ -1,367 +1,305 @@
-import { useTheme } from "@/design-system/ThemeContext";
-import { LumenIcon } from "@/design-system/icons/LumenIcon";
-import { Spacing, TextStyles } from "@/design-system/tokens";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Pressable,
+  ActivityIndicator,
+  Dimensions,
+} from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useTheme } from "@/design-system/ThemeContext";
+import { LumenIcon } from "@/design-system/icons/LumenIcon";
+import { TextStyles } from "@/design-system/tokens";
 import { CitizenService } from "@/services/citizen.service";
-import React, { useEffect, useRef, useState } from "react";
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  Pressable,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { CitizenAnalyticsResponse } from "@/types/analytics";
+import { BarChart, PieChart } from "react-native-gifted-charts";
+import { StatusBar } from "react-native";
 
 const { width: W } = Dimensions.get("window");
+const CHART_WIDTH = W - 72;
 
 export default function AnalyticsScreen() {
   const { colors, isDark } = useTheme();
+  const [range, setRange] = useState<"Daily" | "Monthly" | "Yearly">("Daily");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["analytics"],
-    queryFn: () => CitizenService.getAnalytics(),
+  const { data, isLoading, isError, refetch } = useQuery<CitizenAnalyticsResponse>({
+    queryKey: ["analytics", range],
+    queryFn: () => CitizenService.getAnalytics(range),
   });
 
-  // Enter animations
-  const fadeHeader = useRef(new Animated.Value(0)).current;
-  const fadeContent = useRef(new Animated.Value(0)).current;
-  const slideContent = useRef(new Animated.Value(30)).current;
+  const renderHeader = () => (
+    <View style={s.header}>
+      <Pressable
+        onPress={() => router.back()}
+        style={({ pressed }) => [s.backBtn, pressed && { opacity: 0.7 }]}
+      >
+        <LumenIcon name="arrowLeft" size="sm" color={colors.textPrimary} />
+      </Pressable>
+      <View style={{ alignItems: "center" }}>
+        <Text style={[s.headerTitle, { color: colors.textPrimary }]}>Analytics & Insights</Text>
+        <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>Real-time Citizen Impact</Text>
+      </View>
+      <View style={s.backBtn} />
+    </View>
+  );
 
-  useEffect(() => {
-    Animated.timing(fadeHeader, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-    Animated.parallel([
-      Animated.timing(fadeContent, {
-        toValue: 1,
-        duration: 600,
-        delay: 150,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideContent, {
-        toValue: 0,
-        delay: 150,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 40,
-      }),
-    ]).start();
-  }, []);
+  const renderLoading = () => (
+    <View style={s.centerState}>
+      <ActivityIndicator size="large" color={colors.brand} />
+      <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 16 }]}>
+        Loading your insights...
+      </Text>
+    </View>
+  );
+
+  const renderError = () => (
+    <View style={s.centerState}>
+      <LumenIcon name="alert" size="lg" color="#EF4444" />
+      <Text style={[TextStyles.body, { color: colors.textPrimary, marginTop: 16, marginBottom: 24 }]}>
+        Unable to load analytics.
+      </Text>
+      <Pressable
+        style={[s.retryBtn, { backgroundColor: colors.brand }]}
+        onPress={() => refetch()}
+      >
+        <Text style={{ color: "#FFF", fontWeight: "600" }}>Retry</Text>
+      </Pressable>
+    </View>
+  );
+
+  const renderEmpty = () => (
+    <View style={s.centerState}>
+      <View style={[s.emptyIconWrap, { backgroundColor: colors.bgSubtle }]}>
+        <LumenIcon name="spark" size="lg" color={colors.brand} />
+      </View>
+      <Text style={{ fontSize: 24, fontWeight: "700", color: colors.textPrimary, marginTop: 24 }}>
+        No civic activity yet
+      </Text>
+      <Text style={[TextStyles.body, { color: colors.textSecondary, textAlign: "center", marginTop: 8, paddingHorizontal: 32 }]}>
+        Submit your first report to start building your civic insights and improving your city.
+      </Text>
+      <Pressable
+        style={[s.retryBtn, { backgroundColor: colors.brand, marginTop: 24 }]}
+        onPress={() => router.push("/(citizen)/Report-issue")}
+      >
+        <Text style={{ color: "#FFF", fontWeight: "600" }}>Report an Issue</Text>
+      </Pressable>
+    </View>
+  );
+
+  if (isLoading) return <View style={[s.container, { backgroundColor: colors.bgBase }]}>{renderHeader()}{renderLoading()}</View>;
+  if (isError || !data) return <View style={[s.container, { backgroundColor: colors.bgBase }]}>{renderHeader()}{renderError()}</View>;
+  if (data.overview.totalReports === 0) return <View style={[s.container, { backgroundColor: colors.bgBase }]}>{renderHeader()}{renderEmpty()}</View>;
+
+  const trendData = data.trend.labels.map((label, i) => ({
+    value: data.trend.datasets.submitted[i],
+    label: label,
+    frontColor: colors.brand,
+    topLabelComponent: () => (
+      <Text style={{ color: colors.textSecondary, fontSize: 10, marginBottom: 4 }}>
+        {data.trend.datasets.submitted[i]}
+      </Text>
+    ),
+  }));
+
+  const pieData = data.statusBreakdown.map((s, i) => {
+    const palette = ["#10B981", colors.brand, "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"];
+    return {
+      value: s.count,
+      text: `${s.count}`,
+      color: palette[i % palette.length],
+      focused: s.status === "RESOLVED",
+    };
+  });
 
   return (
     <View style={[s.container, { backgroundColor: colors.bgBase }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-
-      {/* ── Background Elements ── */}
       <View style={s.bgGlowWrap}>
-        <BlurView
-          intensity={isDark ? 80 : 40}
-          tint={isDark ? "dark" : "light"}
-          style={StyleSheet.absoluteFill}
-        >
+        <BlurView intensity={isDark ? 80 : 40} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill}>
           <View style={[s.glowOrb, { backgroundColor: colors.brand, top: -100, right: -50 }]} />
           <View style={[s.glowOrb, { backgroundColor: "#7C3AED", top: 200, left: -100 }]} />
         </BlurView>
       </View>
 
-      {/* ── Header ── */}
-      <Animated.View style={[s.header, { opacity: fadeHeader }]}>
-        <Pressable
-          onPress={() => router.back()}
-          style={({ pressed }) => [s.backBtn, pressed && { opacity: 0.7 }]}
-        >
-          <LumenIcon name="arrowLeft" size="sm" color={colors.textPrimary} />
-        </Pressable>
-        <Text style={[s.headerTitle, { color: colors.textPrimary }]}>Analytics & Insights</Text>
-        <View style={s.backBtn} />
-      </Animated.View>
+      {renderHeader()}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
-        <Animated.View
-          style={{ opacity: fadeContent, transform: [{ translateY: slideContent }], gap: 24 }}
-        >
+        <View style={{ gap: 24 }}>
           {/* Civic Score Card */}
-          <CivicScoreCard colors={colors} isDark={isDark} score={data?.civicScore || 0} />
+          <View style={[s.card, { borderColor: colors.borderDefault }]}>
+            <LinearGradient
+              colors={isDark ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={s.scoreInner}>
+              <View style={s.scoreInfo}>
+                <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Your Civic Score</Text>
+                <Text style={[TextStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>
+                  Your score reflects your verified civic participation and resolved reports.
+                </Text>
+              </View>
+              <View style={[s.scoreBadge, { backgroundColor: "rgba(32, 138, 239, 0.15)" }]}>
+                <LumenIcon name="spark" size="md" color="#208AEF" />
+                <Text style={s.scoreText}>{data.civicScore.current}</Text>
+              </View>
+            </View>
+          </View>
 
-          {/* Performance Graph */}
-          {data?.graphData && (
-            <DynamicPerformanceGraph colors={colors} isDark={isDark} graphData={data.graphData} />
-          )}
+          {/* Key Metrics */}
+          <View style={s.metricsGrid}>
+            <MetricBox title="Reports" value={data.overview.totalReports} colors={colors} />
+            <MetricBox title="Resolved" value={data.overview.resolvedReports} colors={colors} />
+            <MetricBox title="Res. Rate" value={`${data.overview.resolutionRate}%`} colors={colors} />
+            <MetricBox title="Avg Time" value={data.overview.avgResolutionHours ? `${data.overview.avgResolutionHours}h` : '--'} colors={colors} />
+          </View>
 
-          {/* Breakdown by Category */}
-          {data?.categories && (
-            <CategoryBreakdownCard colors={colors} isDark={isDark} categories={data.categories} />
+          {/* Resolution Trend Chart */}
+          <View style={[s.card, { borderColor: colors.borderDefault }]}>
+            <LinearGradient
+              colors={isDark ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={s.cardInner}>
+              <View style={s.sectionHeader}>
+                <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Resolution Trends</Text>
+                <View style={[s.timePillRow, { backgroundColor: colors.bgSubtle, borderRadius: 20 }]}>
+                  {(["Daily", "Monthly", "Yearly"] as const).map((t) => (
+                    <Pressable
+                      key={t}
+                      style={[s.timePill, range === t && { backgroundColor: colors.brand }]}
+                      onPress={() => setRange(t)}
+                    >
+                      <Text style={[TextStyles.caption, { color: range === t ? "#FFFFFF" : colors.textTertiary, fontWeight: "700" }]}>
+                        {t}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+              <View style={{ marginTop: 16, alignItems: "center" }}>
+                <BarChart
+                  data={trendData}
+                  width={CHART_WIDTH}
+                  height={180}
+                  barWidth={22}
+                  spacing={16}
+                  roundedTop
+                  roundedBottom
+                  hideRules
+                  xAxisThickness={0}
+                  yAxisThickness={0}
+                  yAxisTextStyle={{ color: colors.textTertiary, fontSize: 10 }}
+                  noOfSections={4}
+                  maxValue={Math.max(...data.trend.datasets.submitted, 5)}
+                  isAnimated
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Status Breakdown */}
+          <View style={[s.card, { borderColor: colors.borderDefault }]}>
+            <LinearGradient
+              colors={isDark ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={s.cardInner}>
+              <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: 16 }]}>Complaint Outcomes</Text>
+              <View style={s.pieRow}>
+                <PieChart
+                  data={pieData}
+                  donut
+                  showText
+                  textColor="#FFF"
+                  radius={70}
+                  innerRadius={45}
+                  textSize={12}
+                  isAnimated
+                />
+                <View style={s.pieLegend}>
+                  {data.statusBreakdown.map((item, i) => {
+                    const palette = ["#10B981", colors.brand, "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"];
+                    return (
+                      <View key={item.status} style={s.legendItem}>
+                        <View style={[s.legendDot, { backgroundColor: palette[i % palette.length] }]} />
+                        <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
+                          {item.status} ({item.count})
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Category Breakdown */}
+          <View style={[s.card, { borderColor: colors.borderDefault }]}>
+            <LinearGradient
+              colors={isDark ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={s.cardInner}>
+              <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: 16 }]}>Top Categories</Text>
+              <View style={s.categoryList}>
+                {data.categoryBreakdown.map((cat, i) => (
+                  <View key={cat.category} style={s.categoryItem}>
+                    <View style={s.catHeader}>
+                      <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: "600" }]}>{cat.category}</Text>
+                      <Text style={[TextStyles.body, { color: colors.textSecondary }]}>{cat.count}</Text>
+                    </View>
+                    <View style={[s.catTrack, { backgroundColor: colors.bgSubtle }]}>
+                      <View style={[s.catFill, { backgroundColor: colors.brand, width: `${(cat.count / data.overview.totalReports) * 100}%` }]} />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+
+          {/* AI Insights */}
+          {data.aiInsights.totalAiProcessed > 0 && (
+            <View style={[s.card, { borderColor: colors.borderDefault }]}>
+              <LinearGradient
+                colors={isDark ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={s.cardInner}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                  <LumenIcon name="spark" size="sm" color={colors.brand} />
+                  <Text style={[s.cardTitle, { color: colors.textPrimary }]}>AI Analytics</Text>
+                </View>
+                <View style={s.metricsGrid}>
+                  <MetricBox title="AI Processed" value={data.aiInsights.totalAiProcessed} colors={colors} />
+                  <MetricBox title="Avg Confidence" value={`${(data.aiInsights.avgConfidence! * 100).toFixed(1)}%`} colors={colors} />
+                </View>
+                <Text style={[TextStyles.caption, { color: colors.textTertiary, marginTop: 12 }]}>
+                  High confidence classification helps route your issues faster without manual verification.
+                </Text>
+              </View>
+            </View>
           )}
-        </Animated.View>
+        </View>
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   );
 }
 
-// ── Components ───────────────────────────────────────────────────
-
-function CivicScoreCard({
-  colors,
-  isDark,
-  score,
-}: {
-  colors: any;
-  isDark: boolean;
-  score: number;
-}) {
-  const scale = useRef(new Animated.Value(0.95)).current;
-
-  useEffect(() => {
-    Animated.spring(scale, {
-      toValue: 1,
-      useNativeDriver: true,
-      tension: 30,
-      friction: 6,
-      delay: 300,
-    }).start();
-  }, []);
-
+function MetricBox({ title, value, colors }: { title: string; value: string | number; colors: any }) {
   return (
-    <Animated.View style={[s.card, { borderColor: colors.borderDefault, transform: [{ scale }] }]}>
-      <LinearGradient
-        colors={
-          isDark
-            ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"]
-            : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]
-        }
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={s.scoreInner}>
-        <View style={s.scoreInfo}>
-          <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Your Civic Score</Text>
-          <Text style={[TextStyles.body, { color: colors.textSecondary }]}>
-            You are in the top 5% of active citizens in your district.
-          </Text>
-        </View>
-        <View style={[s.scoreBadge, { backgroundColor: "rgba(32, 138, 239, 0.15)" }]}>
-          <LumenIcon name="spark" size="md" color="#208AEF" />
-          <Text style={s.scoreText}>{score}</Text>
-        </View>
-      </View>
-    </Animated.View>
-  );
-}
-
-function CategoryBreakdownCard({
-  colors,
-  isDark,
-  categories,
-}: {
-  colors: any;
-  isDark: boolean;
-  categories: any[];
-}) {
-  if (!categories || categories.length === 0) return null;
-  return (
-    <View style={[s.card, { borderColor: colors.borderDefault }]}>
-      <LinearGradient
-        colors={
-          isDark
-            ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"]
-            : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]
-        }
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={s.cardInner}>
-        <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Issue Breakdown</Text>
-
-        <View style={s.progressRow}>
-          {categories.map((cat, i) => (
-            <AnimatedCategoryBar key={cat.label} category={cat} index={i} />
-          ))}
-        </View>
-
-        <View style={s.legendGrid}>
-          {categories.map((cat) => (
-            <View key={cat.label} style={s.legendItem}>
-              <View style={[s.legendDot, { backgroundColor: cat.color }]} />
-              <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>
-                {cat.label} ({cat.value}%)
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
+    <View style={[s.metricBox, { backgroundColor: colors.bgSubtle, borderColor: colors.borderDefault }]}>
+      <Text style={[TextStyles.caption, { color: colors.textSecondary }]}>{title}</Text>
+      <Text style={[s.metricValue, { color: colors.textPrimary }]}>{value}</Text>
     </View>
   );
 }
-
-function AnimatedCategoryBar({ category, index }: { category: any; index: number }) {
-  const widthAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(widthAnim, {
-      toValue: category.value,
-      duration: 800,
-      delay: 400 + index * 100,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start();
-  }, []);
-
-  return (
-    <Animated.View
-      style={[
-        s.segment,
-        {
-          backgroundColor: category.color,
-          width: widthAnim.interpolate({ inputRange: [0, 100], outputRange: ["0%", "100%"] }),
-        },
-      ]}
-    />
-  );
-}
-
-function DynamicPerformanceGraph({
-  colors,
-  isDark,
-  graphData,
-}: {
-  colors: any;
-  isDark: boolean;
-  graphData: any;
-}) {
-  const [timeRange, setTimeRange] = useState<"Daily" | "Monthly" | "Yearly">("Daily");
-  const data = graphData[timeRange] || { labels: [], values: [], stats: [] };
-  const maxVal = Math.max(...data.values, 10);
-
-  return (
-    <View style={[s.card, { borderColor: colors.borderDefault }]}>
-      <LinearGradient
-        colors={
-          isDark
-            ? ["rgba(255,255,255,0.03)", "rgba(255,255,255,0.01)"]
-            : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.6)"]
-        }
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={s.cardInner}>
-        <View style={s.sectionHeader}>
-          <Text style={[s.cardTitle, { color: colors.textPrimary }]}>Resolution Trends</Text>
-          <View style={[s.timePillRow, { backgroundColor: colors.bgSubtle, borderRadius: 20 }]}>
-            {(["Daily", "Monthly", "Yearly"] as const).map((t) => (
-              <Pressable
-                key={t}
-                style={[s.timePill, timeRange === t && { backgroundColor: colors.brand }]}
-                onPress={() => setTimeRange(t)}
-              >
-                <Text
-                  style={[
-                    TextStyles.caption,
-                    { color: timeRange === t ? "#FFFFFF" : colors.textTertiary, fontWeight: "700" },
-                  ]}
-                >
-                  {t}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 16 }}
-        >
-          <View style={s.chartScrollArea}>
-            {data.values.map((val: number, i: number) => (
-              <AnimatedBar
-                key={`${timeRange}-${i}`}
-                value={val}
-                max={maxVal}
-                label={data.labels[i]}
-                colors={colors}
-              />
-            ))}
-          </View>
-        </ScrollView>
-
-        <View style={s.analyticsStats}>
-          {data.stats.map((stat: any, i: number) => (
-            <AnimatedStat key={`${timeRange}-stat-${i}`} stat={stat} colors={colors} />
-          ))}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function AnimatedBar({
-  value,
-  max,
-  label,
-  colors,
-}: {
-  value: number;
-  max: number;
-  label: string;
-  colors: any;
-}) {
-  const heightAnim = useRef(new Animated.Value(0)).current;
-  const targetHeight = Math.max(8, (value / max) * 160);
-
-  useEffect(() => {
-    Animated.spring(heightAnim, {
-      toValue: targetHeight,
-      useNativeDriver: false,
-      friction: 6,
-      tension: 40,
-    }).start();
-  }, [value, max, targetHeight]);
-
-  return (
-    <View style={s.barColumn}>
-      <View style={[s.barTrack, { backgroundColor: colors.bgSubtle }]}>
-        <Animated.View style={[s.barFill, { backgroundColor: colors.brand, height: heightAnim }]}>
-          <LinearGradient
-            colors={[colors.brand, colors.brand + "60"]}
-            style={StyleSheet.absoluteFill}
-          />
-        </Animated.View>
-      </View>
-      <Text
-        style={[
-          TextStyles.caption,
-          { color: colors.textTertiary, fontSize: 11, fontWeight: "600" },
-        ]}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function AnimatedStat({ stat, colors }: { stat: any; colors: any }) {
-  const fade = useRef(new Animated.Value(0)).current;
-  const slide = useRef(new Animated.Value(10)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fade, { toValue: 1, duration: 400, useNativeDriver: true }),
-      Animated.spring(slide, { toValue: 0, useNativeDriver: true, speed: 20, bounciness: 4 }),
-    ]).start();
-  }, [stat.value]);
-
-  return (
-    <Animated.View style={[s.analyticsStat, { opacity: fade, transform: [{ translateY: slide }] }]}>
-      <Text style={[s.analyticsStatValue, { color: stat.color }]}>{stat.value}</Text>
-      <Text style={[TextStyles.caption, { color: colors.textTertiary }]}>{stat.label}</Text>
-    </Animated.View>
-  );
-}
-
-// ── Styles ────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
   container: { flex: 1 },
@@ -394,11 +332,14 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: "700" },
   scrollContent: { paddingHorizontal: 16, paddingBottom: 100, paddingTop: 10 },
 
-  card: { borderRadius: 24, borderWidth: 1, overflow: "hidden", marginBottom: 20 },
-  cardInner: { padding: 20 },
-  cardTitle: { fontSize: 18, fontWeight: "700", marginBottom: 4 },
+  centerState: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
+  emptyIconWrap: { width: 80, height: 80, borderRadius: 40, alignItems: "center", justifyContent: "center" },
+  retryBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 24 },
 
-  // Civic Score
+  card: { borderRadius: 24, borderWidth: 1, overflow: "hidden" },
+  cardInner: { padding: 20 },
+  cardTitle: { fontSize: 18, fontWeight: "700" },
+
   scoreInner: { flexDirection: "row", alignItems: "center", padding: 20, gap: 16 },
   scoreInfo: { flex: 1 },
   scoreBadge: {
@@ -411,52 +352,22 @@ const s = StyleSheet.create({
   },
   scoreText: { fontSize: 24, fontWeight: "800", color: "#208AEF" },
 
-  // Graph
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
+  metricsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  metricBox: { flex: 1, minWidth: "45%", padding: 16, borderRadius: 16, borderWidth: 1, gap: 8 },
+  metricValue: { fontSize: 24, fontWeight: "800" },
+
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   timePillRow: { flexDirection: "row", padding: 4 },
   timePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
-  chartScrollArea: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    height: 190,
-    gap: 14,
-    minWidth: "100%",
-    justifyContent: "space-between",
-  },
-  barColumn: { alignItems: "center", justifyContent: "flex-end", height: 190, width: 34, gap: 8 },
-  barTrack: {
-    height: 160,
-    justifyContent: "flex-end",
-    width: "100%",
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  barFill: { width: "100%" },
-  analyticsStats: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 24,
-    paddingHorizontal: 10,
-  },
-  analyticsStat: { alignItems: "center", gap: 4 },
-  analyticsStatValue: { fontSize: 16, fontWeight: "800" },
 
-  // Breakdown
-  progressRow: {
-    flexDirection: "row",
-    height: 12,
-    borderRadius: 6,
-    overflow: "hidden",
-    marginTop: 24,
-    marginBottom: 24,
-  },
-  segment: { height: "100%" },
-  legendGrid: { flexDirection: "row", flexWrap: "wrap", gap: 16 },
-  legendItem: { flexDirection: "row", alignItems: "center", gap: 6, width: "45%" },
-  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  pieRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 24 },
+  pieLegend: { flex: 1, gap: 12 },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 8 },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
+
+  categoryList: { gap: 16 },
+  categoryItem: { gap: 8 },
+  catHeader: { flexDirection: "row", justifyContent: "space-between" },
+  catTrack: { height: 8, borderRadius: 4, overflow: "hidden" },
+  catFill: { height: "100%", borderRadius: 4 },
 });

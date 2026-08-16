@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -49,68 +49,16 @@ export class AiService {
           };
         }
       } catch (error) {
-        this.logger.error(
-          `Failed to call FastAPI for text analysis: ${error.message}. Falling back to mock model.`,
+        this.logger.error(`FastAPI text analysis failed: ${error.message}`);
+        throw new ServiceUnavailableException(
+          'FastAPI inference service is currently unavailable.',
         );
       }
+    } else {
+      throw new ServiceUnavailableException(
+        'FastAPI inference URL is not configured.',
+      );
     }
-
-    // Fallback logic
-    let suggestedPriority = 'MEDIUM';
-    let suggestedCategory = 'GENERAL';
-
-    if (
-      text.includes('urgent') ||
-      text.includes('danger') ||
-      text.includes('fire') ||
-      text.includes('crash')
-    ) {
-      suggestedPriority = 'CRITICAL';
-    } else if (
-      text.includes('broken') ||
-      text.includes('leak') ||
-      text.includes('pothole')
-    ) {
-      suggestedPriority = 'HIGH';
-    } else if (text.includes('noise') || text.includes('litter')) {
-      suggestedPriority = 'LOW';
-    }
-
-    if (
-      text.includes('water') ||
-      text.includes('leak') ||
-      text.includes('pipe')
-    ) {
-      suggestedCategory = 'WATER_SUPPLY';
-    } else if (
-      text.includes('road') ||
-      text.includes('pothole') ||
-      text.includes('street')
-    ) {
-      suggestedCategory = 'ROADS_AND_TRAFFIC';
-    } else if (
-      text.includes('light') ||
-      text.includes('electricity') ||
-      text.includes('power')
-    ) {
-      suggestedCategory = 'ELECTRICITY';
-    } else if (
-      text.includes('trash') ||
-      text.includes('garbage') ||
-      text.includes('litter')
-    ) {
-      suggestedCategory = 'WASTE_MANAGEMENT';
-    }
-
-    this.logger.log(
-      `[Fallback] AI Analysis complete for description: ${description.substring(0, 20)}...`,
-    );
-
-    return {
-      suggestedPriority,
-      suggestedCategory,
-      confidenceScore: 0.85 + Math.random() * 0.1,
-    };
   }
 
   async validateComplaintImageSync(
@@ -125,18 +73,7 @@ export class AiService {
     const apiKey = this.configService.get<string>('FASTAPI_API_KEY');
 
     if (!inferenceUrl) {
-      this.logger.warn(
-        'FASTAPI_INFERENCE_URL not set. Skipping synchronous validation.',
-      );
-      // Return a dummy successful response if AI is disabled
-      return {
-        damageClass: 'UNKNOWN',
-        confidenceScore: 1.0,
-        is_blurry: false,
-        blur_score: 100,
-        boundingBoxes: [],
-        metadata: { processingTimeMs: 0, device: 'none', type: 'image' },
-      };
+      throw new ServiceUnavailableException('FASTAPI_INFERENCE_URL not set.');
     }
 
     try {
@@ -156,51 +93,36 @@ export class AiService {
         throw new Error('Photo is too blurry. Please capture a clearer photo.');
       }
 
-      // 2. Confidence Validation
-      const THRESHOLD = 0.6;
-      // UNKNOWN means YOLO found nothing at all. Or if confidence is too low.
-      if (data.damageClass === 'UNKNOWN' || data.confidenceScore < THRESHOLD) {
-        throw new Error(
-          'The issue could not be identified clearly. Please submit a clearer photo.',
-        );
+      const normalizedCategory = category.toUpperCase();
+      const isRoadCategory =
+        normalizedCategory.includes('ROAD') ||
+        normalizedCategory.includes('INFRASTRUCTURE');
+
+      // 2. Confidence Validation (Only enforce for Road/Infrastructure categories where we have the model)
+      if (isRoadCategory) {
+        const THRESHOLD = 0.25; // Lowered to YOLO model's native confidence threshold
+        if (data.damageClass === 'UNKNOWN' || data.confidenceScore < THRESHOLD) {
+          throw new Error(
+            'The issue could not be identified clearly. Please submit a clearer photo.',
+          );
+        }
       }
 
       // 3. Category Relevance Validation
-      // Map frontend categories to expected YOLO classes roughly
-      const normalizedCategory = category.toUpperCase();
       const detected = data.damageClass.toLowerCase();
-
       let isRelevant = false;
-      if (
-        normalizedCategory.includes('ROAD') ||
-        normalizedCategory.includes('INFRASTRUCTURE')
-      ) {
+
+      if (isRoadCategory) {
         if (
           ['d00', 'd10', 'd20', 'd40', 'pothole', 'crack'].some((c) =>
             detected.includes(c),
           )
-        )
+        ) {
           isRelevant = true;
-      } else if (
-        normalizedCategory.includes('WATER') ||
-        normalizedCategory.includes('LEAK')
-      ) {
-        if (
-          ['water', 'leak', 'flood', 'hazard'].some((c) => detected.includes(c))
-        )
-          isRelevant = true;
-      } else if (
-        normalizedCategory.includes('WASTE') ||
-        normalizedCategory.includes('TRASH')
-      ) {
-        if (
-          ['trash', 'garbage', 'litter', 'waste'].some((c) =>
-            detected.includes(c),
-          )
-        )
-          isRelevant = true;
+        }
       } else {
-        // If it's a category we don't have a specific model for, we might accept it if confidence is high
+        // For all other categories, since the YOLO model is only trained on road damage,
+        // we accept the photo if it is clear (not blurry).
         isRelevant = true;
       }
 
@@ -322,7 +244,8 @@ export class AiService {
         { headers },
       ),
     );
-
+                                           
+                                            
     await this.aiRepository.updateComplaintWithAiResult(
       complaintId,
       response.data,

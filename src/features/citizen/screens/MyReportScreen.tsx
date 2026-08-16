@@ -12,6 +12,7 @@ import {
   RefreshControl,
   TextInput,
   Animated,
+  Image,
 } from "react-native";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
@@ -226,10 +227,18 @@ function PremiumReportCard({
     >
       {/* Top row: icon + info + priority dot */}
       <View style={prc.topRow}>
-        {/* Category icon */}
-        <View style={[prc.iconWrap, { backgroundColor: catMeta.color + "18" }]}>
-          <LumenIcon name={catMeta.icon} size="sm" color={catMeta.color} strokeWidth={2.5} />
-        </View>
+        {/* Category icon / uploaded image thumbnail */}
+        {report.imageUrl ? (
+          <Image
+            source={{ uri: report.imageUrl }}
+            style={prc.thumbnail}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[prc.iconWrap, { backgroundColor: catMeta.color + "18" }]}>
+            <LumenIcon name={catMeta.icon} size="sm" color={catMeta.color} strokeWidth={2.5} />
+          </View>
+        )}
 
         {/* Info */}
         <View style={prc.infoWrap}>
@@ -304,6 +313,12 @@ const prc = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
+  },
+  thumbnail: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: "rgba(0,0,0,0.05)",
   },
   infoWrap: { flex: 1, gap: 6 },
   title: { fontSize: 15, fontWeight: "700", lineHeight: 20 },

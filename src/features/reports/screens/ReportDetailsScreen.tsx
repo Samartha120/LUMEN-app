@@ -56,7 +56,6 @@ export default function ReportDetailsScreen() {
         {/* Hero Map View */}
         <View style={styles.heroMapContainer}>
           <MapView
-            provider={PROVIDER_GOOGLE}
             style={StyleSheet.absoluteFill}
             initialRegion={{
               latitude: 37.78825,

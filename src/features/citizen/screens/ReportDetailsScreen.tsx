@@ -43,6 +43,14 @@ const { width: W } = Dimensions.get("window");
 // ── Report Data (replace with API / Supabase realtime) ────────
 // Dynamic data will be fetched from API instead of mock constants
 
+const getSeverityLevel = (severity: number | null | undefined) => {
+  if (severity === null || severity === undefined) return "Analysis Pending";
+  if (severity > 4) return "CRITICAL";
+  if (severity > 3) return "HIGH";
+  if (severity > 1.5) return "MEDIUM";
+  return "LOW";
+};
+
 // ── Animated Number Counter ───────────────────────────────────
 function CounterText({
   target,
@@ -187,7 +195,7 @@ const tl = StyleSheet.create({
   line: { width: 2, flex: 1, minHeight: 12, marginVertical: 2 },
   contentCol: { flex: 1, paddingBottom: 4 },
   stepTitle: { fontSize: 14 },
-  stepTime: { fontSize: 12, marginTop: 1 },
+  stepTime: { fontSize: 11, marginTop: 1 },
   stepDesc: { fontSize: 12, marginTop: 2, lineHeight: 18 },
 });
 
@@ -248,7 +256,20 @@ export default function ReportDetailsScreen() {
               router.back();
             } catch (err: any) {
               console.error("Delete failed:", err);
-              Alert.alert("Error", err.message || "Failed to delete report");
+              if (err.response?.status === 404) {
+                // If it's already 404, it means it's already deleted (stale cache / double click)
+                if (Platform.OS === "android") {
+                  ToastAndroid.show("Report deleted successfully", ToastAndroid.SHORT);
+                } else {
+                  Alert.alert("Success", "Report deleted successfully");
+                }
+                queryClient.invalidateQueries({ queryKey: ["citizen-complaints"] });
+                queryClient.invalidateQueries({ queryKey: ["citizen-dashboard"] });
+                queryClient.invalidateQueries({ queryKey: ["nearby-complaints"] });
+                router.back();
+              } else {
+                Alert.alert("Error", err.message || "Failed to delete report");
+              }
             } finally {
               setIsDeleting(false);
             }
@@ -577,6 +598,39 @@ export default function ReportDetailsScreen() {
           </View>
 
         
+          <View style={[s.card, { backgroundColor: colors.bgSurface, ...shadows.lg }, s.mx]}>
+            <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: 4 }]}>
+              Image Analysis
+            </Text>
+            {reportData.aiPrediction ? (
+              <View style={{ gap: Spacing[2], marginTop: Spacing[2] }}>
+                <View style={s.analysisRow}>
+                  <Text style={[TextStyles.body, { color: colors.textSecondary, flex: 1 }]}>Detected Issue</Text>
+                  <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: '500' }]}>{reportData.aiPrediction.damageClass}</Text>
+                </View>
+
+                <View style={s.analysisRow}>
+                  <Text style={[TextStyles.body, { color: colors.textSecondary, flex: 1 }]}>Damage Severity</Text>
+                  <Text style={[TextStyles.body, { 
+                    color: reportData.severity && reportData.severity > 3 ? '#F04438' : colors.textPrimary, 
+                    fontWeight: '500' 
+                  }]}>
+                    {getSeverityLevel(reportData.severity)}
+                  </Text>
+                </View>
+
+                <View style={s.analysisRow}>
+                  <Text style={[TextStyles.body, { color: colors.textSecondary, flex: 1 }]}>Model Confidence</Text>
+                  <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: '500' }]}>
+                    {reportData.aiPrediction.confidenceScore ? `${(reportData.aiPrediction.confidenceScore * 100).toFixed(1)}%` : 'N/A'}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <Text style={[TextStyles.body, { color: colors.textSecondary }]}>Analysis Pending</Text>
+            )}
+          </View>
+
           <View style={[s.card, { backgroundColor: colors.bgSurface, ...shadows.lg }, s.mx]}>
             <Text style={[s.cardTitle, { color: colors.textPrimary, marginBottom: 4 }]}>
               Details
@@ -976,6 +1030,12 @@ const s = StyleSheet.create({
     justifyContent: "flex-end",
   },
   detailValue: { fontSize: 14, fontWeight: "600", textAlign: "right" },
+  analysisRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing[1],
+  },
 
   // Inline map
   inlineMapWrap: { height: 140, width: "100%", position: "relative" },

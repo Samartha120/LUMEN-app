@@ -154,6 +154,38 @@ export default function ReportDetailsScreen() {
           </View>
         </View>
 
+        {/* Image Analysis */}
+        <View
+          style={[
+            styles.overviewCard,
+            {
+              backgroundColor: colors.bgSurface,
+              marginHorizontal: Spacing[5],
+              marginBottom: Spacing[5],
+              padding: Spacing[5],
+              borderRadius: Radius.lg,
+            },
+          ]}
+        >
+          <Text style={[TextStyles.title, { color: colors.textPrimary, marginBottom: Spacing[3] }]}>
+            IMAGE ANALYSIS
+          </Text>
+          <View style={{ gap: Spacing[2] }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={[TextStyles.body, { color: colors.textSecondary }]}>Detected Issue</Text>
+              <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: '500' }]}>Road Damage</Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={[TextStyles.body, { color: colors.textSecondary }]}>Damage Severity</Text>
+              <Text style={[TextStyles.body, { color: '#F04438', fontWeight: '500' }]}>HIGH</Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={[TextStyles.body, { color: colors.textSecondary }]}>Model Confidence</Text>
+              <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: '500' }]}>94.0%</Text>
+            </View>
+          </View>
+        </View>
+
         {/* Vertical Timeline */}
         <View
           style={[

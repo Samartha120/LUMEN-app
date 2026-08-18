@@ -40,7 +40,6 @@ class SocketService {
     }
 
     this.socket = io(this.backendUrl, {
-      transports: ["websocket"],
       extraHeaders: {
         Authorization: `Bearer ${session.access_token}`,
       },

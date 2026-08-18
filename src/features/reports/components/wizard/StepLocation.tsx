@@ -203,9 +203,11 @@ export function StepLocation({ data, updateData, onNext }: StepProps) {
               <View
                 style={[
                   styles.centerPin,
-                  { backgroundColor: "#F04438", borderColor: colors.bgBase },
+                  { backgroundColor: "#F04438" },
                 ]}
-              />
+              >
+                <View style={[styles.pinHole, { backgroundColor: colors.bgBase }]} />
+              </View>
               <View style={styles.centerPinShadow} />
             </View>
           </>
@@ -317,15 +319,35 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "50%",
     left: "50%",
-    marginLeft: -15,
-    marginTop: -30,
+    marginLeft: -14,
+    marginTop: -28,
     alignItems: "center",
   },
-  centerPin: { width: 30, height: 30, borderWidth: 3, borderRadius: 15 },
-  centerPinShadow: {
+  centerPin: {
+    width: 28,
+    height: 28,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 0,
+    transform: [{ rotate: "45deg" }],
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  pinHole: {
     width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  centerPinShadow: {
+    width: 12,
     height: 4,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.2)",
     borderRadius: 2,
     marginTop: 2,
   },

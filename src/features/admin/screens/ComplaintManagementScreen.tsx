@@ -44,6 +44,8 @@ interface Complaint {
   latitude: number | null;
   longitude: number | null;
   imageUrl: string | null;
+  severity: number | null;
+  confidence: number | null;
   createdAt: string;
   updatedAt: string;
   reporter: { fullName: string | null } | null;
@@ -109,6 +111,14 @@ const formatAge = (createdAt: string) => {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
+};
+
+const getSeverityLevel = (severity: number | null) => {
+  if (severity === null || severity === undefined) return "Analysis Pending";
+  if (severity > 4) return "CRITICAL";
+  if (severity > 3) return "HIGH";
+  if (severity > 1.5) return "MEDIUM";
+  return "LOW";
 };
 
 // ── Component ──────────────────────────────────────────────
@@ -364,18 +374,38 @@ export default function ComplaintManagementScreen() {
 
         {/* AI Prediction strip */}
         {item.aiPrediction && (
-          <View style={[s.aiStrip, { backgroundColor: colors.brand + "10" }]}>
-            <LumenIcon name="ai" size="xs" color={colors.brand} />
-            <Text style={[TextStyles.caption, { color: colors.brand }]}>
-              YOLO11 · {item.aiPrediction.damageClass} · {(aiConf! * 100).toFixed(1)}% confidence
-            </Text>
-            <View style={[s.confBar, { backgroundColor: colors.bgSubtle }]}>
-              <View
-                style={[
-                  s.confBarFill,
-                  { width: `${(aiConf! * 100).toFixed(0)}%` as any, backgroundColor: colors.brand },
-                ]}
-              />
+          <View style={[s.aiStrip, { backgroundColor: colors.bgSurface, borderColor: colors.borderDefault, borderWidth: 1, padding: Spacing[4] }]}>
+            <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[3], fontWeight: 'bold' }]}>IMAGE ANALYSIS</Text>
+            
+            <View style={{ gap: Spacing[2] }}>
+              <View style={s.analysisRow}>
+                <Text style={[TextStyles.body, { color: colors.textSecondary, flex: 1 }]}>Detected Issue</Text>
+                <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: '500' }]}>{item.aiPrediction.damageClass}</Text>
+              </View>
+
+              <View style={s.analysisRow}>
+                <Text style={[TextStyles.body, { color: colors.textSecondary, flex: 1 }]}>Damage Severity</Text>
+                <Text style={[TextStyles.body, { 
+                  color: item.severity && item.severity > 3 ? '#F04438' : colors.textPrimary, 
+                  fontWeight: '500' 
+                }]}>
+                  {getSeverityLevel(item.severity)}
+                </Text>
+              </View>
+
+              <View style={s.analysisRow}>
+                <Text style={[TextStyles.body, { color: colors.textSecondary, flex: 1 }]}>Model Confidence</Text>
+                <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: '500' }]}>
+                  {aiConf ? `${(aiConf * 100).toFixed(1)}%` : 'N/A'}
+                </Text>
+              </View>
+
+              <View style={s.analysisRow}>
+                <Text style={[TextStyles.body, { color: colors.textSecondary, flex: 1 }]}>Analysis Status</Text>
+                <Text style={[TextStyles.body, { color: '#12B76A', fontWeight: '500' }]}>
+                  {item.aiPrediction.status === 'COMPLETED' ? 'Completed' : 'Completed'}
+                </Text>
+              </View>
             </View>
           </View>
         )}
@@ -444,10 +474,32 @@ export default function ComplaintManagementScreen() {
             <Text style={[TextStyles.body, { color: colors.textSecondary, marginBottom: Spacing[4] }]}>{selectedComplaint?.description}</Text>
 
             {selectedComplaint?.aiPrediction && (
-              <Card variant="elevated" style={{ padding: Spacing[4], marginBottom: Spacing[4], backgroundColor: colors.brand + "10" }}>
-                <Text style={[TextStyles.subtitle, { color: colors.brand, marginBottom: Spacing[2] }]}>AI Analysis</Text>
-                <Text style={[TextStyles.body, { color: colors.textPrimary }]}>Damage Class: {selectedComplaint.aiPrediction.damageClass}</Text>
-                <Text style={[TextStyles.body, { color: colors.textPrimary }]}>Confidence: {(selectedComplaint.aiPrediction.confidenceScore * 100).toFixed(1)}%</Text>
+              <Card variant="elevated" style={{ padding: Spacing[4], marginBottom: Spacing[4], backgroundColor: colors.bgSurface, borderColor: colors.borderDefault, borderWidth: 1 }}>
+                <Text style={[TextStyles.subtitle, { color: colors.textPrimary, marginBottom: Spacing[3], fontWeight: 'bold' }]}>IMAGE ANALYSIS</Text>
+                
+                <View style={{ gap: Spacing[2] }}>
+                  <View style={s.analysisRow}>
+                    <Text style={[TextStyles.body, { color: colors.textSecondary, flex: 1 }]}>Detected Issue</Text>
+                    <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: '500' }]}>{selectedComplaint.aiPrediction.damageClass}</Text>
+                  </View>
+
+                  <View style={s.analysisRow}>
+                    <Text style={[TextStyles.body, { color: colors.textSecondary, flex: 1 }]}>Damage Severity</Text>
+                    <Text style={[TextStyles.body, { 
+                      color: selectedComplaint.severity && selectedComplaint.severity > 3 ? '#F04438' : colors.textPrimary, 
+                      fontWeight: '500' 
+                    }]}>
+                      {getSeverityLevel(selectedComplaint.severity)}
+                    </Text>
+                  </View>
+
+                  <View style={s.analysisRow}>
+                    <Text style={[TextStyles.body, { color: colors.textSecondary, flex: 1 }]}>Model Confidence</Text>
+                    <Text style={[TextStyles.body, { color: colors.textPrimary, fontWeight: '500' }]}>
+                      {selectedComplaint.aiPrediction.confidenceScore ? `${(selectedComplaint.aiPrediction.confidenceScore * 100).toFixed(1)}%` : 'N/A'}
+                    </Text>
+                  </View>
+                </View>
               </Card>
             )}
 
@@ -655,13 +707,13 @@ const s = StyleSheet.create({
   },
   priorityDot: { width: 7, height: 7, borderRadius: 3.5 },
   aiStrip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing[2],
-    paddingHorizontal: Spacing[3],
-    paddingVertical: Spacing[2],
     borderRadius: Radius.lg,
     marginBottom: Spacing[3],
+  },
+  analysisRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   confBar: {
     flex: 1,

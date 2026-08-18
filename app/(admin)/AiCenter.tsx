@@ -40,6 +40,8 @@ interface ComplaintWithAi {
   status: string;
   imageUrl?: string;
   createdAt: string;
+  severity?: number;
+  confidence?: number;
   aiPrediction?: AiPrediction;
 }
 
@@ -57,6 +59,14 @@ export default function AiCenterScreen() {
     },
     refetchInterval: 15000,
   });
+
+  const getSeverityLevel = (severity: number | null | undefined) => {
+    if (severity === null || severity === undefined) return "Analysis Pending";
+    if (severity > 4) return "CRITICAL";
+    if (severity > 3) return "HIGH";
+    if (severity > 1.5) return "MEDIUM";
+    return "LOW";
+  };
 
   const aiComplaints = useMemo(() => {
     if (!Array.isArray(complaints)) return [];
@@ -154,6 +164,10 @@ export default function AiCenterScreen() {
           <View style={styles.statBox}>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Detection</Text>
             <Text style={[styles.statValue, { color: colors.textPrimary }]}>{ai.damageClass}</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Damage Severity</Text>
+            <Text style={[styles.statValue, { color: item.severity && item.severity > 3 ? '#F04438' : colors.textPrimary }]}>{getSeverityLevel(item.severity)}</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Confidence</Text>
